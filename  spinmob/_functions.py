@@ -1,6 +1,5 @@
 #############################################################
 # various functions that I like to use
-import scipy                        as _scipy
 import numpy                        as _numpy
 import matplotlib                   as _matplotlib
 import pylab                        as _pylab
