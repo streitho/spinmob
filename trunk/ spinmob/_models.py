@@ -1,6 +1,8 @@
 import scipy as _scipy
-import spinmob_functions as _fun
 import numpy as _numpy
+
+import _functions as _fun
+
 
 pi   = 3.1415926535
 u0   = 1.25663706e-6
@@ -35,7 +37,7 @@ class model_base:
 
     D = None
 
-    # this function just creates a p0 array based on the size of the pnames array    
+    # this function just creates a p0 array based on the size of the pnames array
     def __init__(self):
         # get a numpy array and then resize it
         self.p0     = _numpy.array([])
@@ -84,7 +86,7 @@ class model_base:
         for n in model.pnames:
             append_to_file(fit_file, "fit-" + n + " ")
         append_to_file(fit_file, "\n")
-     
+
 
     def append_pfit_to_file(self, path):
         return
@@ -97,13 +99,13 @@ class model_base:
     def chi_squared(self, p, xdata, ydata, yerror=None):
         """
         This returns a single number that is the chi squared for a given set of parameters p
-    
+
         This is currently not in use for the optimization.  That uses residuals.
         """
 
         if yerror==None: yerror=1
         return sum( (ydata - self.evaluate(p,xdata))**2 / yerror**2)
-        
+
     def optimize(self, xdata, ydata, yerror=None, p0="internal"):
         """
         This actuall performs the optimization on xdata and ydata.
@@ -114,7 +116,7 @@ class model_base:
         if p0 == "internal": p0 = self.p0
         if self.D == None: return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,yerror,), full_output=1)
         else:              return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,yerror,), full_output=1, Dfun=self.jacobian, col_deriv=1)
-        
+
     def residuals(self, p, xdata, ydata, yerror=None):
         """
         This function returns a vector of the differences between the model and ydata, scaled by the error
@@ -172,17 +174,17 @@ class model_base:
             self.p0 = p
 
 
-        
-    
+
+
 class complete_lorentz_flat_background(model_base):
 
     pnames = ["height", "center", "width", "height2", "offset"]
-        
+
     # define the function
     def background(self, p, x):
         return(p[4]) # the 0.0*x is so you get an array from an array
 
-    # main function    
+    # main function
     def evaluate(self, p, x):
         return (p[0]+p[3]*((x-p[1])/p[2]))/(1.0+((x-p[1])/p[2])**2)+p[4]
 
@@ -190,17 +192,17 @@ class complete_lorentz_flat_background(model_base):
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
-                       
+
         # guess the background
         p[4] = (ydata[xbi1]+ydata[xbi2])/2.0
-               
-        # guess the height and center from the max 
+
+        # guess the height and center from the max
         p[0] = max(ydata - p[4])
         p[1] = xdata[index(max(ydata-p[4]), ydata-p[4])] # center
-                      
+
         # guess the asymmetric part from the minimum and background
         p[3] = 0
-        
+
         # guess the halfwidth
         p[2] = (max(xdata)-min(xdata))/12.0
 
@@ -211,33 +213,33 @@ class complete_lorentz_flat_background(model_base):
 
 
 class even_polynomial(model_base):
-    
+
     # set up the parameter structure here
     def __init__(self, order=4):
         self.order = order
 
         # create the pnames based on the supplied order
-        self.pnames = []        
+        self.pnames = []
         self.p0     = []
         for n in range(0, self.order/2+1):
             self.pnames.append("p"+str(n*2))
             self.p0.append(0)
-            
+
     # define the function
     def background(self, p, x):
         return(0.0*x + p[0])
-        
+
     def evaluate(self, p, x):
         y = 0.0
         for n in range(0,len(p)):
             y += p[n] * x**(2*n)
-        return(y)    
-    
+        return(y)
+
     # come up with a routine for guessing p0
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
-        
+
         # this one's easy to guess.
         p[0] = ydata[_fun.index_nearest(0, xdata)]
 
@@ -252,51 +254,51 @@ class even_polynomial(model_base):
 class exponential_offset(model_base):
 
     pnames = ["amplitude", "tau", "offset"]
-    
+
     # define the function
     def background(self, p, x):
         return(p[2])
-        
+
     def evaluate(self, p, x):
-        return(p[0]*_numpy.exp(-x/p[1])+p[2])    
-    
+        return(p[0]*_numpy.exp(-x/p[1])+p[2])
+
     # come up with a routine for guessing p0
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
-        
+
         # amplitude = zero value?
         p[0] = ydata[0]
         p[1] = xdata[len(xdata)/2]
         p[2] = ydata[-1]
-    
+
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
 
 
-        
+
 class kittel_medium_axis(model_base):
 
     global hbar, pi, uB
     pnames = ["Bzy", "Byx"]
-    
+
     # define the function
     def background(self, p, x): return 0*x # the 0.0*x is so you get an array from an array
 
-    # main function    
+    # main function
     def evaluate(self, p, x):
         xa = _numpy.absolute(x)
         return 2*1e-9*(uB/hbar)*((xa+p[0])*(xa-p[1]))**0.5/(2*pi)
- 
+
     # come up with a routine for guessing p0
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
-                       
+
         # guess the background
         p[0] = 1.0
         p[1] = 0.05
-        
+
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
 
@@ -306,14 +308,14 @@ class kittel_medium_axis(model_base):
 class linear(model_base):
 
     pnames = ["slope", "offset"]
-    
+
     # this must return an array!
     def background(self, p, x):
         return p[0]*x + p[1] # the 0.0*x is so you get an array from an array
 
     def evaluate(self, p, x):
         return p[0]*x + p[1]
-    
+
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
@@ -322,7 +324,7 @@ class linear(model_base):
         y1 = ydata[xbi1]
         x2 = xdata[xbi2]
         y2 = ydata[xbi2]
-                       
+
         # guess the slope and intercept
         p[0] = (y1-y2)/(x1-x2)
         p[1] = y1 - p[0]*x1
@@ -334,29 +336,29 @@ class linear(model_base):
 class lorentz_linear_background(model_base):
 
     pnames = ["height", "center", "width", "slope", "offset"]
-    
+
     # define the function
     def background(self, p, x):
         return(p[3]*x+p[4])
     def evaluate(self, p, x):
-        return(p[0]/(1.0+((x-p[1])/p[2])**2)+p[3]*x+p[4])    
-    
+        return(p[0]/(1.0+((x-p[1])/p[2])**2)+p[3]*x+p[4])
+
     # come up with a routine for guessing p0
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
-        
+
         # guess the slope and background
         p[3] = (ydata[xbi1]-ydata[xbi2])/(xdata[xbi1]-xdata[xbi2])
         p[4] = ydata[xbi1]-p[3]*xdata[xbi1]
-               
-        # guess the height and center from the max 
+
+        # guess the height and center from the max
         p[0] = max(ydata - p[4])
         p[1] = xdata[index(max(ydata-p[4]), ydata-p[4])] # center
-                                 
+
         # guess the halfwidth
         p[2] = (max(xdata)-min(xdata))/12.0
-        
+
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
 
@@ -365,14 +367,14 @@ class lorentz_linear_background(model_base):
 class parabola(model_base):
 
     pnames = ["A", "x0", "y0"]
-    
+
     # this must return an array!
     def background(self, p, x):
         return p[2]+0*x # must return an array
 
     def evaluate(self, p, x):
         return p[0]*(x-p[1])**2 + p[2]
-    
+
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
@@ -405,7 +407,7 @@ class sine(model_base):
 
         # guess the amplitude
         p[0] = (max(ydata)-min(ydata))/2.0
-        
+
         # guess the wavelength and phase
         n1 = _fun.index_next_crossing(p[3],ydata,0)
         n2 = _fun.index_next_crossing(p[3],ydata,n1+3)
@@ -461,21 +463,21 @@ class sine_plus_linear(model_base):
         self.write_to_p0(p)
 
 
-    
+
 
 
 
 class quadratic(model_base):
 
     pnames = ["a0", "a1", "a2"]
-    
+
     # this must return an array!
     def background(self, p, x):
         return self.evaluate(p,x)
 
     def evaluate(self, p, x):
         return p[0] + p[1]*x + p[2]*x*x
-    
+
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
         # first get the appropriate size array
         p=self.p0
@@ -490,7 +492,7 @@ class quadratic(model_base):
 
 
 
-    
+
 
 
 

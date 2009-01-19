@@ -28,23 +28,29 @@ if _app == None: app = _wx.App()
 import _prefs
 prefs = _prefs.Prefs()
 
-import _functions as fun
+import _functions as fun               ;fun._prefs               = prefs
 import _pylab_tweaks as tweaks
-import _dialogs as dialogs; dialogs._prefs = prefs
-import _data_types as data
-import _pylab_colorslider;  _pylab_colorslider.prefs = prefs
+import _dialogs as dialogs             ;dialogs._prefs           = prefs
+import _data_types as data             ;data._prefs              = prefs
+import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
+import _fitting                        ;_fitting._prefs          = prefs
+import _models as models
+import _constants as constants
 
-plot  = data.plot_files
+# pull some of the common functions to the top
+plot    = data.plot_files
+printer = fun.printer
+fit     = _fitting.fit
 
-
-
-
-def r():
-    reload(fun)
+# define a fast reload function (mostly for the developers)
+def reload_errthing():
+    reload(fun)                 ;printer = fun.printer
     reload(tweaks)
-    reload(data)
     reload(dialogs)
-
-    plot = data.arccos
+    reload(data)                ;plot = data.plot_files
+    reload(_pylab_colorslider)
+    reload(_fitting)            ;fit = _fitting.fit
+    reload(_models)
+    reload(_constants)
 
 print "\nSpinmob Analysis Kit X-TREEEME\n"

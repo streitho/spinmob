@@ -1,17 +1,19 @@
 #############################################################
 # various functions that I like to use
 
-import numpy as _numpy
-import matplotlib as _matplotlib
-import pylab as _pylab
+import numpy                                  as _numpy
+import matplotlib                             as _matplotlib
+import pylab                                    as _pylab
 from scipy.integrate import quad
 from scipy.integrate import inf
-import cPickle      as _cPickle
+import cPickle                                  as _cPickle
+import os                                         as _os
+import thread                                  as _thread
 
 
 
 import _dialogs                         ;reload(_dialogs)
-import _pylab_tweaks                    ;reload(_dialogs)
+import _pylab_tweaks               ;reload(_dialogs)
 
 
 
@@ -911,18 +913,26 @@ def find_N_peaks(array, N=4, max_iterations=100, rec_max_iterations=3, recursion
 
     return None
 
-def printer(arguments="-color", threaded=True):
+def printer(arguments='', threaded=True):
 
     global _prefs
+
+    if not _prefs.has_key('print_command'):
+        print "No print command setup. Set the user variable prefs['print_command']."
+        return
 
     # get the current figure
     f = _pylab.gcf()
 
     # output the figure to postscript
-    postscript_path = _os.environ['PYTHONPATH'] + "\\temp\\graph.ps"
+    postscript_path = _prefs.temp_dir + _prefs.path_delimiter + "graph.ps"
     f.savefig(postscript_path)
 
-    c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
+    if not arguments == '':
+        c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
+    else:
+        c = _prefs['print_command'] + ' "' + postscript_path + '"'
+    
     print c
 
     # now run the ps printing command
