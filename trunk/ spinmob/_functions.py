@@ -1,16 +1,15 @@
 #############################################################
 # various functions that I like to use
+import scipy                        as _scipy
+import numpy                        as _numpy
+import matplotlib                   as _matplotlib
+import pylab                        as _pylab
+import cPickle                      as _cPickle
+import os                           as _os
+import thread                       as _thread
 
-import numpy                                  as _numpy
-import matplotlib                             as _matplotlib
-import pylab                                    as _pylab
 from scipy.integrate import quad
 from scipy.integrate import inf
-import cPickle                                  as _cPickle
-import os                                         as _os
-import thread                                  as _thread
-
-
 
 import _dialogs                         ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_dialogs)
@@ -932,7 +931,7 @@ def printer(arguments='', threaded=True):
         c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
     else:
         c = _prefs['print_command'] + ' "' + postscript_path + '"'
-    
+
     print c
 
     # now run the ps printing command
