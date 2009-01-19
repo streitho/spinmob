@@ -3,7 +3,7 @@ import pylab as _pylab
 import time
 import wx as _wx
 
-# import some of the more common numpy functions
+# import some of the more common numpy functions (this is for the scripting!)
 from numpy import sin, cos, tan, arcsin, arccos, arctan, sqrt, exp
 
 
@@ -13,14 +13,6 @@ import _dialogs                       ;reload(_dialogs)
 
 
 
-
-pi   = 3.1415926535
-u0   = 1.25663706e-6
-uB   = 9.27400949e-24
-e    = 1.60217e-19
-h    = 6.626068e-34
-hbar = h/(2*pi)
-gamma0 = 2*uB/hbar
 
 
 #
@@ -43,10 +35,14 @@ class standard:
     # The raw data from the file (after load_file()) are stored in columns and header
     ydata          = None
     xdata          = None
-    yerror         = None
+    eydata         = None
     X              = None
     Y              = None
     Z              = None
+
+    xscript        = None
+    yscript        = None
+    eyscript       = None
 
     directory      = "default_directory"
     xlabel         = "xlabel"
@@ -88,25 +84,30 @@ class standard:
     #
     # functions that are often overwritten in modified data classes
     #
-    def __init__(self, delimiter=None, file_extension="*", debug=False):
+    def __init__(self, xscript=0, yscript=1, eyscript=None, delimiter=None, file_extension="*", debug=False):
         """
-        delimiter       The delimiter the file uses. None means "white space"
-        file_extension  Default file extension when navigating files
-        debug           Displays some partial debug information while running
+        xscript, yscript, eyscript  Default scripts to generate xdata, ydata, eydata
+                                    if the get_data() method is called
+        delimiter                   The delimiter the file uses. None means "white space"
+        file_extension              Default file extension when navigating files
+        debug                       Displays some partial debug information while running
         """
-        self.debug=debug
-        self.delimiter=delimiter
-        self.file_extension=file_extension
+        self.xscript   = xscript
+        self.yscript   = yscript
+        self.eyscript  = eyscript
+        self.debug     = debug
+        self.delimiter = delimiter
+        self.file_extension = file_extension
 
 
     def assemble_title(self):
         # get the pieces of the string for the plot title
-        pathparts = self.path.split('\\')
+        pathparts = self.path.split(_prefs.path_delimiter)
 
         # now add the path to the title (either the full path or back a few steps
         x = min([7, len(pathparts)-1])
         self.title = "Last file:  ..."
-        for n in range(0, x): self.title += '/'+pathparts[n-x]
+        for n in range(0, x): self.title += _prefs.path_delimiter+pathparts[n-x]
 
         return self.title
 
@@ -268,6 +269,24 @@ class standard:
             if self.columns.has_key(k):
                 if self.debug: print "renaming column",k,self.obnoxious_column_labels[k]
                 self.columns[self.obnoxious_column_labels[k]] = self.columns[k]
+
+
+    def get_data(self, path="ask", first_data_line="auto"):
+        """
+        This function will run load_data to parse the file specified by path,
+        then generate self.xdata, self.ydata, and self.eydata
+        """
+        self.load_file(path=path, first_data_line=first_data_line)
+
+        # now get the actual data
+        self.xdata = self.get_new_column(self.xscript)
+        self.ydata = self.get_new_column(self.yscript)
+
+        # make sure there's an error script
+        if not self.eyscript == None:
+            self.eydata = self.get_new_column(self.eyscript)
+        else:
+            self.eydata = None
 
 
     def save_file(self, path="ask"):
