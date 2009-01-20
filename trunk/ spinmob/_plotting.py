@@ -223,7 +223,7 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     if draw: _pylab.draw()
     return axes
 
-def plot_function(function, xmin, xmax, steps=200, clear=True, silent=False, axes="gca", legend=True):
+def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True):
     """
 
     Plots the specified function over the specified range with the specified
