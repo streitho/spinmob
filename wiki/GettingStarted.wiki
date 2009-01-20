@@ -1,0 +1,5 @@
+#summary A few things to try right away.
+
+= Details =
+
+Before beginning, install python, scipy, numpy, matplotlib, and wxpython (telling it to generate the tool scripts). The drop the spinmob source folder into <python path>/Lib/site-packages/. 
