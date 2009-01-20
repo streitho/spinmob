@@ -4,6 +4,6 @@
 
 (1) Install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). Then drop the spinmob source folder into your [SitePackages python site-packages] directory.
 
-(2) [pyshell Start pyshell].
+(2) [PyShell Start pyshell].
 
 (3) >>> import spinmob
