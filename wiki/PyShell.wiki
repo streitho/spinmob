@@ -1,0 +1,34 @@
+#summary A quick discussion of pyshell, the amazing wondrous command line from heaven.
+
+= Why you should fall in love with pyshell and pycrust =
+
+A fresh installation of python includes an interactive command line that is, frankly, poopy. It is nice in that it is quick to load and has no overhead, but as you're typing, nothing else is happening. This means you have to either memorize every method of every object and module you're using or have google open and frantically search every time you want to do something.
+
+Pyshell, on the other hand, will constantly provide you with code-completion, argument hints, and documentation _while you're typing_ your code, so that python essentially becomes a self-documented learn-by-trying language. 90% of the time when learning a new package I do not even require any documentation. Just load it into pyshell and play with it until it makes sense. It is a rapid process and I am forever grateful. 
+
+Pycrust is a more complicated version of pyshell, and it's a matter of personal preference at that point. I have also tried IPython, which I know a lot of people swear by, but it just isn't as friendly or helpful in practice. 
+
+Finally, pyshell is dipped in 70% dark chocolate and contains zero calories.
+
+
+
+= Windows Hides It =
+
+Windows doesn't seem to want you to know about pyshell. To run it in windows, first install [http://www.wxpython.org/ wxpython] and tell it to generate the tool scripts during install. Then navigate to python's \scripts directory (default C:\python25\scripts) and double-click pyshell.bat or pycrust.bat. 
+
+
+
+= Mandriva 2009 = 
+
+I remember having trouble figuring out how to get it to run in Mandriva, my favorite Linux distribution, but I had to switch to Ubuntu because it's the only one that worked fully on my [http://eeebuntu.org eee]. I wager now that installing wxpython and then poking around /usr/lib/python2.5/scripts would be the way to go. If anyone figures this out, feel free to update this section or let me know!
+
+
+= Ubuntu 8.10 =
+
+Ubuntu does not hide it. You can find it in the repository :)
+
+
+
+= Mac OSX =
+
+I know I've gotten it working with little effort on OSX, but I forgot how and don't have a mac to test.
