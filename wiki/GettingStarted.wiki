@@ -7,3 +7,28 @@
 (2) [PyShell Start pyshell].
 
 (3) >>> import spinmob
+
+= A Few Commands to Hit the Ground Running =
+
+== Plotting ==
+
+|| >>> spinmob.plot_data([1,2,3],[1,5,4]) || Generate a simple data plot ||
+|| >>> spinmob.plot_data([[1,2,3],[1,2,3]], [[1,3,2],[4,1,3]]) || Generate a few data lines. ||
+|| >>> spinmob.plot_function(spinmob.math.sin) || Plot sin(x) ||
+|| >>> spinmob.plot_function([spinmob.math.sin, spinmob.math.cos]) || Plot sin(x) and cos(x) ||
+|| >>> spinmob.tweaks.auto_zoom() || Auto-scale the data. ||
+|| >>> spinmob.tweaks.ubertidy() || Prepare the plot for presentation. (I save as ps and use [http://www.inkscape.org/ Inkscape]) ||
+
+== Data Analysis ==
+
+The most useful part of this project is the data importing and analysis library. I need to write the documentation for the types of data files it can read and include a test file before I tackle this section.
+
+If you want to play with the class, start by doing something like this:
+
+>>> d = spinmob.data.standard()
+
+>>> d.load_file()
+
+to point an instance of this class at a data file. Then try d[0] to view the 0th column, d.columns, for the full list, d.header for the header values, d.c(), d.h(), and d.get_new_column('2*c(0)', 'my column') to manipulate the data. You can also save the manipulated data with d.save_file()
+
+More to come...
