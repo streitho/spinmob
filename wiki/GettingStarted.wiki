@@ -10,6 +10,8 @@
 
 = A Few Commands to Hit the Ground Running =
 
+In general, I tried to design this library so that everything running in the background starts with an underscore, such as "_plotting" or "_numpy". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the "_whatever" but I have not tested these functions.
+
 == Plotting ==
 
 || >>> spinmob.plot_data([1,2,3],[1,5,4]) || Generate a simple data plot ||
@@ -18,6 +20,8 @@
 || >>> spinmob.plot_function([spinmob.math.sin, spinmob.math.cos]) || Plot sin(x) and cos(x) ||
 || >>> spinmob.tweaks.auto_zoom() || Auto-scale the data. ||
 || >>> spinmob.tweaks.ubertidy() || Prepare the plot for presentation. (I save as ps and use [http://www.inkscape.org/ Inkscape]) ||
+|| >>> def f(x,y): return x*x*y*y || to define a 2-variable function ||
+|| >>> spinmob.plot_surface_function(f,-1,1,-1,1) || to make a 2-d color plot of this function. The GUI sliders are very useful, but do not work so well in Linux yet. I have to overhaul them ||
 
 == Data Analysis ==
 
