@@ -2,4 +2,6 @@
 
 = Details =
 
-Before beginning, install python, scipy, numpy, matplotlib, and wxpython (telling it to generate the tool scripts). The drop the spinmob source folder into <python path>/Lib/site-packages/. 
+(1) Install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). Then drop the spinmob source folder into your [[site-packages]] directory.
+
+(2) [Start pyshell].
