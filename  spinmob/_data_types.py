@@ -4,8 +4,7 @@ import time
 import wx as _wx
 
 # import some of the more common numpy functions (this is for the scripting!)
-from numpy import sin, cos, tan, arcsin, arccos, arctan, sqrt, exp
-
+from _common_math import *
 
 import _functions as _fun             ;reload(_fun)
 import _pylab_tweaks as _pt           ;reload(_pt)
