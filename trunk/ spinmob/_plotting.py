@@ -3,13 +3,16 @@ import glob         as _glob
 import wx           as _wx
 import thread       as _thread
 import pylab        as _pylab
+import numpy        as _numpy
+import matplotlib   as _mpl
+
 from matplotlib.font_manager import FontProperties as _FontProperties
 
 
-import _functions as _fun  
+import _functions as _fun
 import _data_types as _data
-import _pylab_tweaks as _pt 
-import _dialogs                      
+import _pylab_tweaks as _pt
+import _dialogs
 
 
 
@@ -188,6 +191,143 @@ def plot_massive(data, offset=0.0, print_plots=False, arguments="-color", pause=
             if print_plots: printer(arguments, threaded)
 
     return
+
+
+def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, **kwargs):
+    # if the first element is not a list, make it a list
+    if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
+        xdata = [xdata]
+        ydata = [ydata]
+        if label: label = [label]
+
+    # get the current axes
+    if axes=="gca": axes = _pylab.gca()
+
+    # get rid of the old plot
+    if clear:
+        axes.figure.clear()
+        axes = _pylab.gca()
+
+    # now loop over the list of data in xdata and ydata
+    for n in range(0,len(xdata)):
+        if label: l = label[n]
+        else:     l = str(n)
+        axes.plot(xdata[n], ydata[n], label=l, **kwargs)
+
+    axes.legend(loc='best')
+    axes.set_xlabel(xlabel)
+    axes.set_ylabel(ylabel)
+    axes.set_title(title)
+
+    # update the canvas
+    if draw: _pylab.draw()
+    return axes
+
+def plot_function(function, xmin, xmax, steps=200, clear=True, silent=False, axes="gca", legend=True):
+    """
+
+    Plots the specified function over the specified range with the specified
+    number of steps using the antiquated and undocumented scipy.plt
+
+    """
+    # make sure it's a list so we can loop over it
+    if not type(function) == type([]): function = [function]
+
+    if axes=="gca": axes = _pylab.gca()
+    if clear:
+        axes.figure.clear()
+        axes=_pylab.gca()
+
+    for f in function:
+        x = []
+        y = []
+        for z in _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps)):
+            x.append(z)
+            y.append(f(z))
+
+        axes.plot(x,y,color=style.get_line_color(1),label=f.__name__)
+
+    if legend: axes.legend()
+
+    if not silent:
+        _pt.auto_zoom()
+        _pt.raise_figure_window()
+        _pt.raise_pyshell()
+
+    return axes
+
+
+def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, type="wire"):
+    """
+    Generates a 3-d plot based on the grid coordinates
+    """
+
+    fig = _pylab.gcf()
+    fig.clear()
+
+    # generate the 3d axes
+    axes = _pylab.gca()
+
+    axes.imshow(zgrid, interpolation='bilinear', origin='lower', cmap=_mpl.cm.hot, extent=(xmin,xmax,ymin,ymax), aspect=1.0)
+
+    _pt.raise_figure_window()
+    _pt.raise_pyshell()
+
+    _pt.close_sliders();
+    _pt.gui_colormap()
+    _pt.image_set_aspect(1.0)
+    _pylab.draw()
+    return axes
+
+def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50, type="wire"):
+    """
+    f(x,y) = ...
+    plotted over the specified range, broken into so many steps
+
+    type="wire"     or "surface"
+
+    """
+
+    # generate the grid x and y coordinates
+    xones = _numpy.linspace(1,1,xsteps)
+    x     = _numpy.linspace(xmin, xmax, xsteps)
+    xgrid = _numpy.outer(xones, x)
+
+    yones = _numpy.linspace(1,1,ysteps)
+    y     = _numpy.linspace(ymin, ymax, ysteps)
+    ygrid = _numpy.outer(y, yones)
+
+    # now get the z-grid
+    try:
+        # try it the fast numpy way. Add 0 to assure dimensions
+        zgrid = f(xgrid, ygrid) + xgrid*0.0
+    except:
+        print "Notice: function is not rocking hardcore. Generating grid the slow way..."
+        # manually loop over the data to generate the z-grid
+        zgrid = []
+        for ny in range(0, len(y)):
+            zgrid.append([])
+            for nx in range(0, len(x)):
+                zgrid[ny].append(f(x[nx], y[ny]))
+
+        zgrid = _numpy.array(zgrid)
+
+
+
+    # now plot!
+    axes = plot_surface_data(zgrid,xmin,xmax,ymin,ymax)
+
+    axes.set_xlabel("x")
+    axes.set_ylabel("y")
+
+    _pylab.draw()
+    _pt.raise_figure_window()
+    _pt.raise_pyshell()
+
+    return axes
+
+
+
 
 
 
