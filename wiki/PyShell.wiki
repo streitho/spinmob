@@ -1,6 +1,6 @@
 #summary A quick discussion of pyshell, the amazing wondrous command line from heaven.
 
-= Why you should fall in love with pyshell and pycrust =
+= Why You Should Fall in Love with Pyshell and Pycrust =
 
 A fresh installation of python includes an interactive command line that is, frankly, poopy. It is nice in that it is quick to load and has no overhead, but as you're typing, nothing else is happening. This means you have to either memorize every method of every object and module you're using or have google open and frantically search every time you want to do something.
 
@@ -12,23 +12,23 @@ Finally, pyshell is dipped in 70% dark chocolate and contains zero calories.
 
 
 
-= Windows Hides It =
+== Windows Hides It ==
 
 Windows doesn't seem to want you to know about pyshell. To run it in windows, first install [http://www.wxpython.org/ wxpython] and tell it to generate the tool scripts during install. Then navigate to python's \scripts directory (default C:\python25\scripts) and double-click pyshell.bat or pycrust.bat. 
 
 
 
-= Mandriva 2009 = 
+== Mandriva 2009 Hides It Even Better == 
 
 I remember having trouble figuring out how to get it to run in Mandriva, my favorite Linux distribution, but I had to switch to Ubuntu because it's the only one that worked fully on my [http://eeebuntu.org eee]. I wager now that installing wxpython and then poking around /usr/lib/python2.5/scripts would be the way to go. If anyone figures this out, feel free to update this section or let me know!
 
 
-= Ubuntu 8.10 =
+== Ubuntu 8.10 Doesn't ==
 
-Ubuntu does not hide it. You can find it in the repository :)
+Ubuntu does not hide pyshell. You can find it in the repository :)
 
 
 
-= Mac OSX =
+== Mac OSX ==
 
 I know I've gotten it working with little effort on OSX, but I forgot how and don't have a mac to test.
