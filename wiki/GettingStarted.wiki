@@ -10,7 +10,7 @@
 
 = A Few Commands to Hit the Ground Running =
 
-In general, I tried to design this library so that everything running in the background starts with an underscore, such as "`_plotting" or "`_numpy". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the "_whatever" but I have not tested these functions.
+In general, I tried to design this library so that everything running in the background starts with an underscore, such as "`_plotting`" or "`_numpy`". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the "`_whatever`" but I have not tested these functions.
 
 == Plotting ==
 
