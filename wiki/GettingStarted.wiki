@@ -33,6 +33,6 @@ If you want to play with the class, start by doing something like this:
 
 >>> d.load_file()
 
-to point an instance of this class at a data file. Then try d[[0]] to view the 0th column, d.columns, for the full list, d.header for the header values, d.c(), d.h(), and d.get_new_column('2*c(0)', 'my column') to manipulate the data. You can also save the manipulated data with d.save_file()
+to point an instance of this class at a data file. Then try d{{{[0]}}} to view the 0th column, d.columns, for the full list, d.header for the header values, d.c(), d.h(), and d.get_new_column('2*c(0)', 'my column') to manipulate the data. You can also save the manipulated data with d.save_file()
 
 More to come...
