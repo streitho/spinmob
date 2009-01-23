@@ -223,7 +223,7 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     if draw: _pylab.draw()
     return axes
 
-def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True):
+def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
     """
 
     Plots the specified function over the specified range with the specified
@@ -245,7 +245,7 @@ def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False
             x.append(z)
             y.append(f(z))
 
-        axes.plot(x,y,color=style.get_line_color(1),label=f.__name__)
+        eval('axes.'+plot+'(x,y,color=style.get_line_color(1),label=f.__name__)')
 
     if legend: axes.legend()
 
