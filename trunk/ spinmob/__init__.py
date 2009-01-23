@@ -5,8 +5,13 @@
 import wx as _wx
 
 # setup matplotlib and wx so it works well with pyshell/pycrust
-import matplotlib as _mpl
-_mpl.use('WXAgg') # set the backend (must do this first)
+try:
+    # first see if we've loaded pylab. If we have, we've already done this.
+    _pylab
+except:
+    # pylab is not around. Set the backend!
+    import matplotlib as _mpl
+    _mpl.use('WXAgg') # set the backend (must do this first)
 
 import pylab as _pylab
 _pylab.ion()          # turn on interactive mode
