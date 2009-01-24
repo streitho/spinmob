@@ -14,7 +14,7 @@ In general, I tried to design this library so that everything running in the bac
 
 == Plotting ==
 
-|| >>> spinmob.plot_data([1,2,3],[1,5,4]) || Generate a simple data plot ||
+|| `>>> spinmob.plot_data([1,2,3],[1,5,4])` || Generate a simple data plot ||
 || >>> spinmob.plot_data([[1,2,3],[1,2,3]], [[1,3,2],[4,1,3]]) || Generate a few data lines. ||
 || >>> spinmob.plot_function(spinmob.math.sin) || Plot sin(x) ||
 || >>> spinmob.plot_function([spinmob.math.sin, spinmob.math.cos]) || Plot sin(x) and cos(x) ||
