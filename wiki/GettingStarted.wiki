@@ -37,7 +37,7 @@ to point an instance of this class at a data file. Then try `d[0]` to view the 0
 
 Data files can have any delimiter and should have a format something like:
 
-`why_do_this        example_data_file`
+{{{`why_do_this        example_data_file`
 `start_pressure     42`
 `end_pressure       37`
 `type_of_sweep      voltage`
@@ -55,7 +55,7 @@ Data files can have any delimiter and should have a format something like:
 `7    77.232  27.4    1`
 `8    11.4    27.3    0`
 `9    27.0    27.2    1`
-`10   11.11   27.1    1`
+`10   11.11   27.1    1`}}}
 
 
 The default delimiter `spinmob.data.standard()` is looking for is white space, either spaces or tabs. White space will be stripped off the end of values, numbers will be converted to floating point, and strings are allowed as well. Empty lines are ignored, and lists of numbers will be converted into arrays. 
