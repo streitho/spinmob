@@ -36,27 +36,27 @@ If you want to play with the class, start by doing something like this:
 to point an instance of this class at a data file. Then try `d[0]` to view the 0-th column, `d.columns`, for the full list, `d.header` for the header values, `d.c()`, `d.h()`, and things like `d.get_new_column('2*c(0)', 'my column')` to manipulate the data. You can also save the manipulated data with `d.save_file()`
 
 Data files can have any delimiter and should have a format something like:
-`
-why_do_this        example_data_file
-start_pressure     42
-end_pressure       37
-type_of_sweep      voltage
-header_value_4     3.23
-my_row_of_whatever 32 44 55 128 223 147
-more_values        15.2 22 37.45 18
 
-time voltage current other_stuff
-1    32.1    27.0    1
-2    33.2    27.1    0
-3    32.5    27.2    1
-4    44.2    27.3    1
-5    22.2    27.4    0
-6    11.1    27.5    1
-7    77.232  27.4    1
-8    11.4    27.3    0
-9    27.0    27.2    1
-10   11.11   27.1    1
-`
+`why_do_this        example_data_file`
+`start_pressure     42`
+`end_pressure       37`
+`type_of_sweep      voltage`
+`header_value_4     3.23`
+`my_row_of_whatever 32 44 55 128 223 147`
+`more_values        15.2 22 37.45 18`
+
+`time voltage current other_stuff`
+`1    32.1    27.0    1`
+`2    33.2    27.1    0`
+`3    32.5    27.2    1`
+`4    44.2    27.3    1`
+`5    22.2    27.4    0`
+`6    11.1    27.5    1`
+`7    77.232  27.4    1`
+`8    11.4    27.3    0`
+`9    27.0    27.2    1`
+`10   11.11   27.1    1`
+
 
 The default delimiter `spinmob.data.standard()` is looking for is white space, either spaces or tabs. White space will be stripped off the end of values, numbers will be converted to floating point, and strings are allowed as well. Empty lines are ignored, and lists of numbers will be converted into arrays. 
 
