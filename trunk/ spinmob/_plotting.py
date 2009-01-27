@@ -226,25 +226,42 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
 def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
     """
 
-    Plots the specified function over the specified range with the specified
-    number of steps using the antiquated and undocumented scipy.plt
+    Plots the function over the specified range
+
+    function            function or list of functions to plot
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    clear=True          clear the previous plot
+    silent=False        whether or not to update the plot after we're done
+    axes='gca'          instance of axes on which to plot (or 'gca' for current axes)
+    legend=True         should we attempt to construct a legend for the plot?
+    plot='plot'         plot method, can be 'plot', 'semilogx', 'semilogy', or 'loglog'
 
     """
-    # make sure it's a list so we can loop over it
-    if not type(function) == type([]): function = [function]
 
     if axes=="gca": axes = _pylab.gca()
     if clear:
         axes.figure.clear()
         axes=_pylab.gca()
 
+    # if the x-axis is a log scale, use erange
+    if plot in ['semilogx', 'loglog']: r = _fun.erange(xmin, xmax, steps)
+    else:                              r = _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps))
+
+    # make sure it's a list so we can loop over it
+    try:
+        function[0]
+    except:
+        function = [function]
+
+    # loop over the list of functions
     for f in function:
         x = []
         y = []
-        for z in _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps)):
+        for z in r:
             x.append(z)
             y.append(f(z))
 
+        # add the line to the plot
         eval('axes.'+plot+'(x,y,color=style.get_line_color(1),label=f.__name__)')
 
     if legend: axes.legend()
