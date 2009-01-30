@@ -312,7 +312,7 @@ class standard:
             f.write(k + delimiter)
 
             # if this element is a string, float, or int, just write it
-            if type(self.header[k]) in [str, float, int]: f.write(str(self.header[k]) + "\n")
+            if not type(self.header[k]) in [type(_numpy.array([])), type([])]: f.write(str(self.header[k]) + "\n")
 
             # pretend it's an array and try to write it as such
             else:
