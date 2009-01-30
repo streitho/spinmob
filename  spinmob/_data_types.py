@@ -22,8 +22,10 @@ class standard:
     # this is used by the load_file to rename some of the annoying
     # column names that aren't consistent between different types of data files (and older data files)
     # or to just rename columns with difficult-to-remember labels.
-    obnoxious_column_labels = {"example_annoying1" : "unified_name1",
-                               "example_annoying2" : "unified_name2"}
+
+    obnoxious_column_labels = {}
+    #obnoxious_column_labels = {"example_annoying1" : "unified_name1",
+    #                           "example_annoying2" : "unified_name2"}
 
 
 
@@ -368,6 +370,43 @@ class standard:
             self.labels.append(name)
 
         return self.columns[name]
+
+    def append_data(self, data_array, name='temp'):
+        """
+        This will create a new column and fill it with the data fromm the
+        the supplied array.
+        """
+
+        self.columns[name] = _numpy.array(data_array)
+        if not name in self.labels:
+            self.labels.append(name)
+
+    def pop_data(self, column):
+        """
+        This will remove and return the data in the specified column.
+
+        You can specify either a label or an index.
+        """
+
+        try:
+            # if it's not an int, find it
+            if not type(column) == int:
+                column = self.labels.index(column)
+
+            # if we didn't find the column, quit
+            if column < 0:
+                print "Column does not exist (yes, we looked)."
+
+                return
+
+            # we have a valid column. Pop the label and the column
+            name = self.labels.pop(column)
+            return self.columns.pop(name)
+
+        except:
+            print "Invalid column."
+            return None
+
 
     def get_integrated_column(self, name="integrated_dvdi", xscript="-I where I=c('current')", yscript="c('dvdi')"):
         """
