@@ -353,6 +353,13 @@ class standard:
         convenience, common functions like sin() and sqrt() are imported
         explicitly.
 
+        Another acceptable script is simply "F", if there's a column labeled "F".
+        However, I only added this functionality as a shortcut, and something like
+        "2.0*a where a=F" will not work unless F is defined somehow. I figure
+        since you're already writing a complicated script, you don't want to
+        accidentally shortcut your way into using a column instead of a constant!
+        Use "2.0*a where a=c(F)" instead.
+
         """
         if self.debug: print "Generating column '"+name+"' = "+script+"..."
 
@@ -477,21 +484,40 @@ class standard:
         globbies = {'h':self.h, 'c':self.c, 'self':self}
         globbies.update(globals())
 
+
+
+
         # first split up by "where"
         split_script = script.split(" where ")
 
 
+
+
+        # #######################################
+        # Scripts without a "where" statement:
+        # #######################################
+
         # if it's a simple script, like "column0" or "c(3)/2.0"
         if len(split_script) == 1:
             # try to evaluate the script
+
+            # first try to evaluate it as a simple column label
             try:
-                # just return a simple script so we can evaluate it later
-                return ["a", {"a":eval(script, globbies)}]
-
+                return ["a", {"a":self.c(script)}]
             except:
-                print "could not execute script:",script
-                return [None, None]
+                # it's more complicated...
+                try:
+                    # just return a simple script so we can evaluate it later
+                    return ["a", {"a":eval(script, globbies)}]
 
+                except:
+                    print "could not execute script:",script
+                    return [None, None]
+
+
+        # ######################################
+        # Full-on fancy scripts
+        # ######################################
 
         # otherwise it's a complicated script like "c(1)-a/2 where a=h('this')"
 
