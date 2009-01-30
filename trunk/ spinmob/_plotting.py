@@ -193,7 +193,21 @@ def plot_massive(data, offset=0.0, print_plots=False, arguments="-color", pause=
     return
 
 
-def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, **kwargs):
+def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', **kwargs):
+    """
+    Plots specified data.
+
+    xdata, ydata        Arrays (or arrays of arrays) of data to plot
+    label               string or array of strings for the line labels
+    xlabel, ylabel      axes labels
+    title               axes title
+    clear=1             clear the axes first
+    axes="gca"          which axes to use, or "gca" for the current axes
+    draw=1              whether or not to draw the plot after plotting
+    plot='plot'         plot style: can be 'plot', 'semilogx', 'semilogy', 'loglog'
+    """
+
+
     # if the first element is not a list, make it a list
     if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
         xdata = [xdata]
@@ -212,7 +226,7 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
-        axes.plot(xdata[n], ydata[n], label=l, **kwargs)
+        eval('axes.'+plot+'(xdata[n], ydata[n], label=l, **kwargs)')
 
     axes.legend(loc='best')
     axes.set_xlabel(xlabel)
