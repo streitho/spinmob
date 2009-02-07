@@ -25,7 +25,7 @@ I remember having trouble figuring out how to get it to run in Mandriva, my favo
 Update: try looking in the Synaptic Package Manager for python-wxtools. This comes with pyshell on Ubuntu at least.
 
 
-== Ubuntu 8.10 Doesn't ==
+== Ubuntu 8.10 Doesn't (Sometimes) ==
 
 Ubuntu does not hide pyshell. You can find it in the repository :)
 
