@@ -22,14 +22,12 @@ Windows doesn't seem to want you to know about pyshell. To run it in windows, fi
 
 I remember having trouble figuring out how to get it to run in Mandriva, my favorite Linux distribution, but I had to switch to Ubuntu because it's the only one that worked fully on my [http://eeebuntu.org eee]. I wager now that installing wxpython and then poking around /usr/lib/python2.5/scripts would be the way to go. If anyone figures this out, feel free to update this section or let me know!
 
-Update: try looking in the Synaptic Package Manager for python-wxtools. This comes with pyshell on Ubuntu at least.
+Update: try looking in the Package Manager for python-wxtools. This comes with pyshell on Ubuntu at least.
 
 
 == Ubuntu 8.10 Doesn't (Sometimes) ==
 
-Ubuntu does not hide pyshell. You can find it in the repository :)
-
-For non-eeebuntu, install the package python-wxtools.
+Ubuntu does not hide pyshell. You can find it in the repository package "python-wxtools".
 
 == Mac OSX ==
 
