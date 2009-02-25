@@ -2,7 +2,7 @@
 
 = Install and Run =
 
-(1) Install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). Then make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either swipe the latest version from google's fancy SVN server or get a less-frequently-updated version from the Downloads section.
+(1) Install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). Then make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either swipe the latest version from google's fancy SVN server or get a less-frequently-updated version from the downloads section.
 
 (2) [PyShell Start pyshell].
 
