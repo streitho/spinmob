@@ -499,12 +499,15 @@ class standard:
 
         # if it's a simple script, like "column0" or "c(3)/2.0"
         if len(split_script) == 1:
+            if self.debug: print "script of length 1"
+
             # try to evaluate the script
 
             # first try to evaluate it as a simple column label
             try:
                 return ["a", {"a":self.c(script)}]
             except:
+                if self.debug: print "can't make direct column call."
                 # it's more complicated...
                 try:
                     # just return a simple script so we can evaluate it later
@@ -881,11 +884,7 @@ class standard:
         if type(column)==int: return self.columns[self.labels[column]]
 
         # if it's not an integer, search through the columns for a matching string
-        for key in self.columns.keys():
-            if key.find(column) >= 0:
-                return self.columns[key]
-        print "Couldn't find",column,"in columns."
-        return None
+        return self.columns[column]
 
 
     def h(self, search_string):
