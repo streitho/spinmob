@@ -531,7 +531,7 @@ def read_lines(path):
     file = open(path, 'r')
     a = file.readlines()
     file.close()
-    return(join(a,'').replace("\r", "\n").split("\n"))
+    return(join(a,'').replace("\r\n", "\n").replace("\r","\n").split("\n"))
 
 def data_to_file(path, xarray, yarray, delimiter=" ", mode="w"):
     file = open(path, mode)
