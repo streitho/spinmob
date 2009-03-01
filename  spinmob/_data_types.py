@@ -256,7 +256,9 @@ class standard:
                     except: self.columns[self.labels[m]].append(s[m])
 
             # most data files have a trailing new line, so one bad data line is ordinary
-            elif not n==len(self.lines)-1: print "bad data at line,", n, "-", self.lines[n]
+            elif not n==len(self.lines)-1:
+                print "bad data at line"+str(n)+":", self.lines[n]
+                _wx.Yield()
 
         if self.debug: print time.time()-t0, "seconds: yeah."
 
