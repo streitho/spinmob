@@ -363,7 +363,7 @@ def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50, type=
 
 
 #
-def format_figure(figure='gcf', tall=False):
+def format_figure(figure='gcf', tall=False, autozoom=True):
     """
 
     This formats the figure with (hopefully) enough useful information for printing
@@ -400,7 +400,7 @@ def format_figure(figure='gcf', tall=False):
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
 
-        _pt.auto_zoom(axes)
+        if autozoom: _pt.auto_zoom(axes)
 
     # get the shell window
     shell_window = _pt.get_pyshell()
