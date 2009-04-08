@@ -193,20 +193,18 @@ def plot_massive(data, offset=0.0, print_plots=False, arguments="-color", pause=
     return
 
 
-def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', **kwargs):
+def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, **kwargs):
     """
-    Plots specified data.
+    Plots arrays (or arrays of arrays) of data.
 
-    xdata, ydata        Arrays (or arrays of arrays) of data to plot
-    label               string or array of strings for the line labels
-    xlabel, ylabel      axes labels
-    title               axes title
-    clear=1             clear the axes first
-    axes="gca"          which axes to use, or "gca" for the current axes
-    draw=1              whether or not to draw the plot after plotting
-    plot='plot'         plot style: can be 'plot', 'semilogx', 'semilogy', 'loglog'
+    xdata, ydata            can be something like [1,2,3] or [[1,2,3],[3,4,5,6,7]],
+                            but must match in dimensions
+    label, xlabel, ylabel   labels of the lines, x, and y axes
+    title                   plot title
+    clear=1                 start with a clean slate?
+    axes="gca"              "gca" for "get current axes" or send an axes instance
+    draw=1                  draw plot when complete
     """
-
 
     # if the first element is not a list, make it a list
     if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
@@ -226,7 +224,7 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
-        eval('axes.'+plot+'(xdata[n], ydata[n], label=l, **kwargs)')
+        axes.plot(xdata[n], ydata[n], label=l, **kwargs)
 
     axes.legend(loc='best')
     axes.set_xlabel(xlabel)
@@ -237,46 +235,38 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     if draw: _pylab.draw()
     return axes
 
-def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
+def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True):
     """
 
-    Plots the function over the specified range
+    Plots the specified function over the specified range with the specified
+    number of steps.
 
-    function            function or list of functions to plot
-    xmin, xmax, steps   range over which to plot, and how many points to plot
-    clear=True          clear the previous plot
-    silent=False        whether or not to update the plot after we're done
-    axes='gca'          instance of axes on which to plot (or 'gca' for current axes)
-    legend=True         should we attempt to construct a legend for the plot?
-    plot='plot'         plot method, can be 'plot', 'semilogx', 'semilogy', or 'loglog'
+    function        instance of a function defined by python's "def"
+                    should take one input and give one output
+    xmin, xmax      range over which to plot
+    steps           number of points to plot in the range
+    clear=True      should we clear the plot first?
+    silent=False    run in the background?
+    axes="gca"      "gca" for current axes or supply an axes instance
+    legend=True     whether to show the legend
 
     """
+    # make sure it's a list so we can loop over it
+    if not type(function) == type([]): function = [function]
 
     if axes=="gca": axes = _pylab.gca()
     if clear:
         axes.figure.clear()
         axes=_pylab.gca()
 
-    # if the x-axis is a log scale, use erange
-    if plot in ['semilogx', 'loglog']: r = _fun.erange(xmin, xmax, steps)
-    else:                              r = _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps))
-
-    # make sure it's a list so we can loop over it
-    try:
-        function[0]
-    except:
-        function = [function]
-
-    # loop over the list of functions
     for f in function:
         x = []
         y = []
-        for z in r:
+        for z in _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps)):
             x.append(z)
             y.append(f(z))
 
-        # add the line to the plot
-        eval('axes.'+plot+'(x,y,color=style.get_line_color(1),label=f.__name__)')
+        axes.plot(x,y,color=style.get_line_color(1),label=f.__name__)
 
     if legend: axes.legend()
 
@@ -288,9 +278,13 @@ def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False
     return axes
 
 
-def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, type="wire"):
+def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
     """
-    Generates a 3-d plot based on the grid coordinates
+    Generates a color plot based on the grid coordinates
+
+    zgrid                   2-d array containing the z values
+    xmin,xmax,ymin,ymax     range upon which to stick the image
+
     """
 
     fig = _pylab.gcf()
@@ -310,12 +304,13 @@ def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, type="wire"):
     _pylab.draw()
     return axes
 
-def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50, type="wire"):
+def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
     """
-    f(x,y) = ...
-    plotted over the specified range, broken into so many steps
+    function f (of two variables) plotted over the specified range
 
-    type="wire"     or "surface"
+    f                       function with two inputs and one output
+    xmin,xmax,ymin,ymax     range over which to plot
+    xsteps, ysteps          number of steps to use while generating the image
 
     """
 
@@ -363,7 +358,7 @@ def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50, type=
 
 
 #
-def format_figure(figure='gcf', tall=False, autozoom=True):
+def format_figure(figure='gcf', tall=False):
     """
 
     This formats the figure with (hopefully) enough useful information for printing
@@ -400,7 +395,7 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
 
-        if autozoom: _pt.auto_zoom(axes)
+        _pt.auto_zoom(axes)
 
     # get the shell window
     shell_window = _pt.get_pyshell()
