@@ -13,6 +13,10 @@ from scipy.integrate import inf
 import _dialogs                         ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_dialogs)
 
+# Functions from other libraries
+average = _numpy.average
+
+
 
 
 def array_shift(a, n, fill="average"):
@@ -52,10 +56,6 @@ def array_shift(a, n, fill="average"):
 
     return new_a
 
-def average(a):
-    sum = 0.0
-    for x in a: sum += x
-    return sum/len(a)
 
 
 def chi_squared(p, f, xdata, ydata):
@@ -288,6 +288,31 @@ def frange(start, end, inc=1.0):
     return _numpy.array(L)
 
 
+def erange(start, end, steps):
+    """
+    Returns a numpy array over the specified range taking geometric steps.
+    """
+    if start == 0:
+        print "Nothing you multiply zero by gives you anything but zero. Try picking something small."
+        return None
+    if end == 0:
+        print "It takes an infinite number of steps to get to zero. Try a small number?"
+        return None
+
+    # figure out our multiplication scale
+    x = 1.0*(end/start)**(1.0/(steps-1))
+
+    # now generate the array
+    a = []
+    for n in range(0,steps): a.append(start*x**n)
+
+    # tidy up the last element (there's often roundoff error)
+    a[-1] = end
+
+    return _numpy.array(a)
+
+
+
 def index(value, array):
     for n in range(0,len(array)):
         if value == array[n]:
@@ -506,7 +531,7 @@ def read_lines(path):
     file = open(path, 'r')
     a = file.readlines()
     file.close()
-    return(join(a,'').replace("\r", "\n").split("\n"))
+    return(join(a,'').replace("\r\n", "\n").replace("\r","\n").split("\n"))
 
 def data_to_file(path, xarray, yarray, delimiter=" ", mode="w"):
     file = open(path, mode)
