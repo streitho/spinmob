@@ -22,10 +22,8 @@ class standard:
     # this is used by the load_file to rename some of the annoying
     # column names that aren't consistent between different types of data files (and older data files)
     # or to just rename columns with difficult-to-remember labels.
-
-    obnoxious_column_labels = {}
-    #obnoxious_column_labels = {"example_annoying1" : "unified_name1",
-    #                           "example_annoying2" : "unified_name2"}
+    obnoxious_column_labels = {"example_annoying1" : "unified_name1",
+                               "example_annoying2" : "unified_name2"}
 
 
 
@@ -256,9 +254,7 @@ class standard:
                     except: self.columns[self.labels[m]].append(s[m])
 
             # most data files have a trailing new line, so one bad data line is ordinary
-            elif not n==len(self.lines)-1:
-                print "bad data at line"+str(n)+":", self.lines[n]
-                _wx.Yield()
+            elif not n==len(self.lines)-1: print "bad data at line,", n, "-", self.lines[n]
 
         if self.debug: print time.time()-t0, "seconds: yeah."
 
@@ -314,7 +310,7 @@ class standard:
             f.write(k + delimiter)
 
             # if this element is a string, float, or int, just write it
-            if not type(self.header[k]) in [type(_numpy.array([])), type([])]: f.write(str(self.header[k]) + "\n")
+            if type(self.header[k]) in [str, float, int]: f.write(str(self.header[k]) + "\n")
 
             # pretend it's an array and try to write it as such
             else:
@@ -355,13 +351,6 @@ class standard:
         convenience, common functions like sin() and sqrt() are imported
         explicitly.
 
-        Another acceptable script is simply "F", if there's a column labeled "F".
-        However, I only added this functionality as a shortcut, and something like
-        "2.0*a where a=F" will not work unless F is defined somehow. I figure
-        since you're already writing a complicated script, you don't want to
-        accidentally shortcut your way into using a column instead of a constant!
-        Use "2.0*a where a=c(F)" instead.
-
         """
         if self.debug: print "Generating column '"+name+"' = "+script+"..."
 
@@ -379,43 +368,6 @@ class standard:
             self.labels.append(name)
 
         return self.columns[name]
-
-    def append_data(self, data_array, name='temp'):
-        """
-        This will create a new column and fill it with the data fromm the
-        the supplied array.
-        """
-
-        self.columns[name] = _numpy.array(data_array)
-        if not name in self.labels:
-            self.labels.append(name)
-
-    def pop_data(self, column):
-        """
-        This will remove and return the data in the specified column.
-
-        You can specify either a label or an index.
-        """
-
-        try:
-            # if it's not an int, find it
-            if not type(column) == int:
-                column = self.labels.index(column)
-
-            # if we didn't find the column, quit
-            if column < 0:
-                print "Column does not exist (yes, we looked)."
-
-                return
-
-            # we have a valid column. Pop the label and the column
-            name = self.labels.pop(column)
-            return self.columns.pop(name)
-
-        except:
-            print "Invalid column."
-            return None
-
 
     def get_integrated_column(self, name="integrated_dvdi", xscript="-I where I=c('current')", yscript="c('dvdi')"):
         """
@@ -486,43 +438,21 @@ class standard:
         globbies = {'h':self.h, 'c':self.c, 'self':self}
         globbies.update(globals())
 
-
-
-
         # first split up by "where"
         split_script = script.split(" where ")
 
 
-
-
-        # #######################################
-        # Scripts without a "where" statement:
-        # #######################################
-
         # if it's a simple script, like "column0" or "c(3)/2.0"
         if len(split_script) == 1:
-            if self.debug: print "script of length 1"
-
             # try to evaluate the script
-
-            # first try to evaluate it as a simple column label
             try:
-                return ["a", {"a":self.c(script)}]
+                # just return a simple script so we can evaluate it later
+                return ["a", {"a":eval(script, globbies)}]
+
             except:
-                if self.debug: print "can't make direct column call."
-                # it's more complicated...
-                try:
-                    # just return a simple script so we can evaluate it later
-                    return ["a", {"a":eval(script, globbies)}]
+                print "could not execute script:",script
+                return [None, None]
 
-                except:
-                    print "could not execute script:",script
-                    return [None, None]
-
-
-        # ######################################
-        # Full-on fancy scripts
-        # ######################################
 
         # otherwise it's a complicated script like "c(1)-a/2 where a=h('this')"
 
@@ -886,7 +816,11 @@ class standard:
         if type(column)==int: return self.columns[self.labels[column]]
 
         # if it's not an integer, search through the columns for a matching string
-        return self.columns[column]
+        for key in self.columns.keys():
+            if key.find(column) >= 0:
+                return self.columns[key]
+        print "Couldn't find",column,"in columns."
+        return None
 
 
     def h(self, search_string):
