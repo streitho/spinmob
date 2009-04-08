@@ -288,9 +288,12 @@ def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False
     return axes
 
 
-def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, type="wire"):
+def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
     """
-    Generates a 3-d plot based on the grid coordinates
+    Generates an image plot
+
+    zgrid                   2-d array of z-values
+    xmin,xmax,ymin,ymax     range upon which to place the image
     """
 
     fig = _pylab.gcf()
@@ -310,12 +313,13 @@ def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, type="wire"):
     _pylab.draw()
     return axes
 
-def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50, type="wire"):
+def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
     """
-    f(x,y) = ...
-    plotted over the specified range, broken into so many steps
+    Plots a 2-d function over the specified range
 
-    type="wire"     or "surface"
+    f                       takes two inputs and returns one value
+    xmin,xmax,ymin,ymax     range over which to generate/plot the data
+    xsteps,ysteps           how many points to plot on the specified range
 
     """
 
