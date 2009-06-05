@@ -366,50 +366,6 @@ def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
 
 
 
-#
-def format_figure(figure='gcf', tall=False, autozoom=True):
-    """
-
-    This formats the figure with (hopefully) enough useful information for printing
-
-    """
-
-    if figure == 'gcf': figure = _pylab.gcf()
-
-    # get the window of the figure
-    figure_window = _pt.get_figure_window(figure)
-    #figure_window.SetPosition([0,0])
-
-    # set the size of the window
-    if(tall): figure_window.SetSize([700,700])
-    else:     figure_window.SetSize([700,550])
-
-    for axes in figure.get_axes():
-
-        # set the position/size of the axis in the window
-        axes.set_position([0.13,0.1,0.5,0.8])
-
-        # set the position of the legend
-        axes.legend(loc=[1.01,0], pad=0.02, prop=_FontProperties(size=7))
-
-        # set the label spacing in the legend
-        if axes.get_legend():
-            if tall: axes.get_legend().labelsep = 0.007
-            else:    axes.get_legend().labelsep = 0.01
-
-        # set up the title label
-        axes.title.set_horizontalalignment('right')
-        axes.title.set_size(8)
-        axes.title.set_position([1.67,1.02])
-        #axes.yaxis.label.set_horizontalalignment('center')
-        #axes.xaxis.label.set_horizontalalignment('center')
-
-        if autozoom: _pt.auto_zoom(axes)
-
-    # get the shell window
-    shell_window = _pt.get_pyshell()
-    figure_window.Raise()
-    shell_window.Raise()
 
 
 
