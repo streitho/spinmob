@@ -80,6 +80,75 @@ def auto_zoom(axes="gca", x_space=0.04, y_space=0.04):
 
     _pylab.draw()
 
+
+def format_figure(figure='gcf', tall=False, autozoom=True):
+    """
+
+    This formats the figure in a compact way with (hopefully) enough useful
+    information for printing large data sets. Used mostly for line and scatter
+    plots with long, information-filled titles.
+
+    Chances are somewhat slim this will be ideal for you but it very well might
+    and is at least a good starting point.
+
+    """
+
+    if figure == 'gcf': figure = _pylab.gcf()
+
+    # get the window of the figure
+    figure_window = get_figure_window(figure)
+    #figure_window.SetPosition([0,0])
+
+    # set the size of the window
+    if(tall): figure_window.SetSize([700,700])
+    else:     figure_window.SetSize([700,550])
+
+    for axes in figure.get_axes():
+
+        # set the position/size of the axis in the window
+        axes.set_position([0.13,0.1,0.5,0.8])
+
+        # set the position of the legend
+        _pylab.axes(axes) # set the current axes
+        _pylab.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
+
+        # set the label spacing in the legend
+        if axes.get_legend():
+            if tall: axes.get_legend().labelsep = 0.007
+            else:    axes.get_legend().labelsep = 0.01
+
+        # set up the title label
+        axes.title.set_horizontalalignment('right')
+        axes.title.set_size(8)
+        axes.title.set_position([1.5,1.02])
+        #axes.yaxis.label.set_horizontalalignment('center')
+        #axes.xaxis.label.set_horizontalalignment('center')
+
+        if autozoom: auto_zoom(axes)
+
+    # get the shell window
+    shell_window = get_pyshell()
+    figure_window.Raise()
+    shell_window.Raise()
+
+def impose_legend_limit(limit=30, axes="gca", **kwargs):
+    """
+    This will erase all but, say, 30 of the legend entries and remake the legend.
+    You'll probably have to move it back into your favorite position at this point.
+    """
+    if axes=="gca": axes = _pylab.gca()
+
+    # make these axes current
+    _pylab.axes(axes)
+
+    # loop over all the lines
+    for n in range(0,len(axes.lines)):
+        if n >  limit-1 and not n==len(axes.lines)-1: axes.lines[n].set_label("_nolegend_")
+        if n == limit-1 and not n==len(axes.lines)-1: axes.lines[n].set_label("...")
+
+    _pylab.legend(**kwargs)
+
+
 def image_autozoom(axes="gca"):
 
     if axes=="gca": axes = _pylab.gca()

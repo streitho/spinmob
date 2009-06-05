@@ -679,7 +679,7 @@ class standard:
         axes.set_ylabel(self.ylabel)
         axes.set_title(self.title)
 
-        if format: format_figure()
+        if format: _pt.format_figure()
         return axes
 
 
@@ -737,7 +737,7 @@ class standard:
 
         # make it look nice
         if tall=="auto": tall = yshift
-        format_figure(axes.figure, tall=tall)
+        _pt.format_figure(axes.figure, tall=tall)
 
         # bring it to the front, but keep the command line up too
         _pt.get_figure_window()
@@ -908,8 +908,4 @@ class standard:
 
 
 
-import _plotting		      ;reload(_plotting)
-
-plot_files    = _plotting.plot_files
-format_figure = _plotting.format_figure
 
