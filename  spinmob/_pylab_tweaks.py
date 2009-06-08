@@ -17,16 +17,19 @@ undo_list = {}
 def clickstemate_slope():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
+    raise_pyshell()
     return (y2-y1)/(x2-x1)
 
 def clickstemate_curvature():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
+    raise_pyshell()
     return (y2-y1)/(x2-x1)**2
 
 def clickstemate_difference():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
+    raise_pyshell()
     return [x2-x1,y2-y1]
 
 def close_sliders():
