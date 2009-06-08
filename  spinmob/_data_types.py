@@ -144,11 +144,11 @@ class standard:
         self.yerror  = None
 
         if path=="ask": path = _dialogs.SingleFile(self.file_extension, default_directory=self.directory)
-        if path=="":
+        self.path = path
+
+        if path==None:
             print "Aborted."
             return False
-
-        self.path = path
 
         # open said file for reading, read in all the lines and close
         t0 = time.time()
