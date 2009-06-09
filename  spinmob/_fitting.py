@@ -173,7 +173,7 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
 
 
 
-def interactive_fitting_loop(model, data):
+def interactive_fitting_loop(model, data, auto_fast=False):
 
     # get a first guess at the background positions
     x_background_index1 = 1
@@ -586,10 +586,12 @@ def interactive_fitting_loop(model, data):
 
 
 
+
         _tweaks.raise_figure_window()
         _tweaks.raise_pyshell()
         # now ask again
-        command = raw_input('%(a)i/%(b)i last: ' %{'a':model.m+1, 'b':model.last+1}
+        if auto_fast: command="y"
+        else:         command = raw_input('%(a)i/%(b)i last: ' %{'a':model.m+1, 'b':model.last+1}
                                 + model.last_command + '\nwhat now? ')
 
 

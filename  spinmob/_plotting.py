@@ -89,8 +89,8 @@ def plot_files(data=_data.standard(), xscript=0, yscript=1, yerror=None, yshift=
     if yshift: data.title += ', progressive y-yshift='+str(yshift)
     a.set_title(data.title)
 
-    if yshift: format_figure(f, tall=True)
-    else:      format_figure(f, tall=False)
+    if yshift: _pt.format_figure(f, tall=True)
+    else:      _pt.format_figure(f, tall=False)
 
     _pylab.draw()
     _pt.get_figure_window()
