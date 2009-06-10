@@ -397,19 +397,26 @@ def integrate3d(f, x1, x2, y1, y2, z1, z2):
 
 
 
-def interpolate(xarray,yarray,x):
+def interpolate(xarray, yarray, x, rigid_limits=True):
     """
 
     returns the y value of the linear interpolated function
-    y(x)
+    y(x). Assumes increasing xarray!
+
+    rigid_limits=False means when x is outside xarray's range,
+    use the endpoint as the y-value.
 
     """
     if not len(xarray) == len(yarray):
         print "lengths don't match.", len(xarray), len(yarray)
         return None
-    if x < min(xarray) or x > max(xarray):
-        print "x=" + str(x) + " is not in " + str(min(xarray)) + " to " + str(max(xarray))
-        return None
+    if x < xarray[0] or x > xarray[-1]:
+        if rigid_limits:
+            print "x=" + str(x) + " is not in " + str(min(xarray)) + " to " + str(max(xarray))
+            return None
+        else:
+            if x < xarray[0]: return yarray[0]
+            else:             return yarray[-1]
 
     # find the index of the first value in xarray higher than x
     for n2 in range(1, len(xarray)):

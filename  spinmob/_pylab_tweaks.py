@@ -1319,6 +1319,8 @@ class GaelInput(object):
         # All done! Disconnect the event and return what we have
         _pylab.disconnect(self.cid)
         self.cid = None
+
+        raise_pyshell()
         return _numpy.array(self.clicks)
 
 
@@ -1328,7 +1330,7 @@ def ginput(n=1, timeout=0, show=True, lines=False):
     Simple functional call for physicists. This will wait for n clicks from the user and
     return a list of the coordinates of each click.
 
-    n=1             number of clicks to collect
+    n=1             number of clicks to collect, n=0 for "wait until right click"
     timeout=30      maximum number of seconds to wait for clicks before giving up.
                     timeout=0 to disable
     show=True       print the clicks as they are received
