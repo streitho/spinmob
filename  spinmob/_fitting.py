@@ -552,6 +552,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 title1.append(str(key)+"="+str(data.constants[key]))
             title1 = _fun.join(title1,", ")
 
+            # second line of the title is the model
             title2 = str(data.__class__) + ", " + str(model.__class__)
 
             title3 = []

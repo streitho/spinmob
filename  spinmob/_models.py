@@ -269,7 +269,7 @@ class exponential_offset(model_base):
 
         # amplitude = zero value?
         p[0] = ydata[0]
-        p[1] = xdata[len(xdata)/2]
+        p[1] = xdata[_fun.index_nearest(min(ydata) + 0.368*(max(ydata)-min(ydata)), ydata)]
         p[2] = ydata[-1]
 
         # write these values to self.p0, but avoid the guessed_list

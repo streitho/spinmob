@@ -31,12 +31,11 @@ def plot_image(data=_data.standard(), xaxis=None, yaxis=None, sliders=True):
     return data
 
 
-def plot_files(data=_data.standard(), xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", coarsen=0, debug=0):
+def plot_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard()):
     """
 
     This selects a bunch of files, and plots them.
 
-    data                instance of data class used to extract plot from the files
     xscript, yscript    the scripts supplied to the data
     yshift=0.0          artificial yshift
     clear=1             clear existing plot first
@@ -45,6 +44,7 @@ def plot_files(data=_data.standard(), xscript=0, yscript=1, yerror=None, yshift=
     yaxis='left'        if 'right', this will make an overlay axis on the right (also doesn't clear)
     paths='ask'         list of full paths to data files (or we'll ask for a list)
     style=None          matplotlib plotting style, such as '-o'
+    data                instance of data class used to extract plot from the files
 
     """
 
