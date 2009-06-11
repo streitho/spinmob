@@ -2,6 +2,7 @@ import numpy as _numpy
 import pylab as _pylab
 import time
 import wx as _wx
+import os as _os
 
 # import some of the more common numpy functions (this is for the scripting!)
 from _common_math import *
@@ -85,7 +86,7 @@ class standard:
     #
     # functions that are often overwritten in modified data classes
     #
-    def __init__(self, xscript=0, yscript=1, eyscript=None, delimiter=None, file_extension="*", debug=False):
+    def __init__(self, xscript=0, yscript=1, eyscript=None, delimiter=None, file_extension="*", debug=False, **kwargs):
         """
         xscript, yscript, eyscript  Default scripts to generate xdata, ydata, eydata
                                     if the get_data() method is called
@@ -93,6 +94,13 @@ class standard:
         file_extension              Default file extension when navigating files
         debug                       Displays some partial debug information while running
         """
+
+        # update with the user-supplied/default values with kwargs
+        plot_kwargs = {}
+        for key in kwargs:
+            try:    eval(key + "=" + kwargs[key])
+            except: plot_kwargs[key] = kwargs[key]
+
         self.xscript   = xscript
         self.yscript   = yscript
         self.eyscript  = eyscript
@@ -115,7 +123,7 @@ class standard:
     #
     # really useful functions
     #
-    def load_file(self, path="ask", first_data_line="auto"):
+    def load_file(self, path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEPANTS.", default_directory=None):
         """
         This will load a file, storing the header info in self.header, and the data in
         self.columns
@@ -132,6 +140,7 @@ class standard:
 
         """
 
+        if default_directory==None: default_directory = self.directory
 
         # this loads the file, getting the header and the column values,
         if self.debug: print "resetting all the file-specific stuff, path =", path
@@ -609,7 +618,9 @@ class standard:
 
             # if yerror doesn't exist and we haven't specified no error
             # set the error to none
-            if not yerror in self.columns.keys() and not yerror==None:
+            if  not yerror in self.columns.keys() \
+            and not yerror==None                  \
+            and not type(yerror) in [int,long]:
                 if self.debug: print yerror, "is not a column"
                 yerror=None
 
@@ -904,8 +915,32 @@ class standard:
 
 
 
+def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEHEAD.", default_directory="default_directory", **kwargs):
+    """
+    Loads a data file into the standard data class. Returns the data object.
 
+    **kwargs are sent to standard()
+    """
+    d = standard(**kwargs)
+    d.load_file(path, first_data_line, filters, text, default_directory)
+    return d
 
+def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Select some files, FACEHEAD.", default_directory="default_directory", **kwargs):
+    """
+    Loads a list of data files into a list of standard data objects.
+    Returns said list.
 
+    **kwargs are sent to standard()
+    """
+    if paths=="ask": paths = _dialogs.MultipleFiles(filters, text, default_directory)
 
+    if paths==None: return
+
+    datas = []
+    for path in paths:
+        print "Loading " + path.split(_os.path.sep)[-1] + " ..."
+        _wx.Yield()
+        datas.append(load(path, first_data_line, **kwargs))
+
+    return datas
 
