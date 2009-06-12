@@ -18,7 +18,7 @@ Most functions in spinmob are self-documented, and said documentation will autom
 == Spinmob Functions ==
 
 || figure()            || pylab's figure() function ||
-|| fit()               || spinmob's interactive fitting routine, handling multiple data files and [models models]  ||
+|| fit()               || spinmob's interactive fitting routine, handling multiple data files and [models models]. At the fit prompt, type "help" for more info.  ||
 || gca()               || pylab's gca() ("get current axes") function ||
 || gcf()               || pylab's gcf() ("get current figure") function ||
 || plot_data()         || simple function to plot arrays of data ||
