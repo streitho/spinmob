@@ -1,0 +1,6 @@
+#summary A quick overview of spinmob's highest-level functions.
+
+= Spinmob Main Functions =
+
+ * [constants constants] : a list of some common scientific constants.
+ * [data data] : access to the standard() data class and data loading functions.
