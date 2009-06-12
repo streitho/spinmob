@@ -591,6 +591,8 @@ class standard:
         linestyle="auto"            What type of line should we plot? "auto" means lines for data with no error
                                     and symbols for data with error.
 
+        kwargs
+
         """
 
         # update with the user-supplied/default values with kwargs
