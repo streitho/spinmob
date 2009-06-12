@@ -12,7 +12,7 @@ Most functions in spinmob are self-documented, and said documentation will autom
 || [fun fun] || various random functions for dealing with arrays, strings, and non-plot-related nonsense ||
 || math || some common scipy math functions like sin(), cos(), exp(), etc... ||
 || [models models] || model classes for the fit routine ||
-|| [tweaks 
+|| [tweaks tweaks] || a bunch of functions for manipulating pylab plots. Try ubertidy() and set_all_line_attributes()! Or shift() to make waterfall plots! ||
 
 
 == Spinmob Functions ==
@@ -32,4 +32,3 @@ Most functions in spinmob are self-documented, and said documentation will autom
 == Other Objects ==
 
 || prefs || a dictionary-like object that keeps track of your local system's preferences. Your main interaction with this object is to set prefs["print_command"] to a valid print command so that printer() will work (I use gsprint.exe on windows, a part of ghostscript). ||
-
