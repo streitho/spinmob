@@ -14,13 +14,15 @@ import _data_types as _data
 import _pylab_tweaks as _pt
 import _dialogs
 
-
+# for the user to get at
+tweaks = _pt
+style  = _pt.style
 
 
 #
 # General plotting routines
 #
-def plot_image(data=_data.standard(), xaxis=None, yaxis=None, sliders=True):
+def _image():
     """
     This asks for a file and plots a color image of the data grid.
     """
@@ -31,7 +33,7 @@ def plot_image(data=_data.standard(), xaxis=None, yaxis=None, sliders=True):
     return data
 
 
-def plot_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard()):
+def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard()):
     """
 
     This selects a bunch of files, and plots them.
@@ -103,10 +105,10 @@ def plot_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, cl
 
 
 
-def plot_files_as_points(datax, datay, clear=True):
+def _files_as_points(datax, datay, clear=True):
     """
 
-    This is antiquated and will be updated when I need it.
+    This is antiquated and will be updated when I need it again.
 
     This selects a bunch of files, and plots some quantity, one data point per file.
 
@@ -159,7 +161,7 @@ def plot_files_as_points(datax, datay, clear=True):
 
 
 
-def plot_massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True, threaded=False, f=plot_files):
+def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True, threaded=False, f=files):
     """
 
     This selects a directory full of directories, and makes a series of plots, one per subdirectory.
@@ -193,7 +195,7 @@ def plot_massive(data, offset=0.0, print_plots=False, arguments="-color", pause=
     return
 
 
-def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', **kwargs):
+def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', **kwargs):
     """
     Plots specified data.
 
@@ -237,7 +239,7 @@ def plot_data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", cl
     if draw: _pylab.draw()
     return axes
 
-def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
+def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
     """
 
     Plots the function over the specified range
@@ -288,7 +290,7 @@ def plot_function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False
     return axes
 
 
-def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
+def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
     """
     Generates an image plot
 
@@ -313,7 +315,7 @@ def plot_surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
     _pylab.draw()
     return axes
 
-def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
+def surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
     """
     Plots a 2-d function over the specified range
 
@@ -350,7 +352,7 @@ def plot_surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
 
 
     # now plot!
-    axes = plot_surface_data(zgrid,xmin,xmax,ymin,ymax)
+    axes = surface_data(zgrid,xmin,xmax,ymin,ymax)
 
     axes.set_xlabel("x")
     axes.set_ylabel("y")
