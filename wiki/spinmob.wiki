@@ -6,7 +6,7 @@ Most functions in spinmob are self-documented, and said documentation will autom
 
 == Spinmob Sub-Modules ==
 
-|| [constants constants] || a list of some common scientific constants. ||
+|| constants || a list of some common scientific constants. ||
 || [data data] || access to the standard() data class and data loading functions. ||
 || [dialogs dialogs] || a few plug-and-play file dialog functions ||
 || [fun fun] || various random functions for dealing with arrays, strings, and non-plot-related nonsense ||
