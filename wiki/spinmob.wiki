@@ -1,6 +1,35 @@
-#summary A quick overview of spinmob's highest-level functions.
+#summary A quick overview of spinmob's functions and libraries.
 
-= Spinmob Main Functions =
+== Introduction ==
 
- * [constants constants] : a list of some common scientific constants.
- * [data data] : access to the standard() data class and data loading functions.
+Most functions in spinmob are self-documented, and said documentation will automatically pop up in pyshell, allowing you to browse functions and learn about them on the fly. In this section, however I will attempt to describe all of them with a few words for reference.
+
+== Spinmob Sub-Modules ==
+
+|| [constants constants] || a list of some common scientific constants. ||
+|| [data data] || access to the standard() data class and data loading functions. ||
+|| [dialogs dialogs] || a few plug-and-play file dialog functions ||
+|| [fun fun] || various random functions for dealing with arrays, strings, and non-plot-related nonsense ||
+|| math || some common scipy math functions like sin(), cos(), exp(), etc... ||
+|| [models models] || model classes for the fit routine ||
+|| [tweaks 
+
+
+== Spinmob Functions ==
+
+|| figure()            || pylab's figure() function ||
+|| fit()               || spinmob's interactive fitting routine, handling multiple data files and [models models]  ||
+|| gca()               || pylab's gca() ("get current axes") function ||
+|| gcf()               || pylab's gcf() ("get current figure") function ||
+|| plot_data()         || simple function to plot arrays of data ||
+|| plot_files()        || simple function to analyze and plot multiple data files using the [data data].standard() class ||
+|| plot_function()     || simple function to numerically plot a function of one variable ||
+|| plot_image()        || makes an image plot from data files ||
+|| plot_surface_data() || makes an image plot from data arrays ||
+|| plot_surface_function() || makes an image plot from a function in 2 variables ||
+|| printer()           || quick function to print the current figure. ||
+
+== Other Objects ==
+
+|| prefs || a dictionary-like object that keeps track of your local system's preferences. Your main interaction with this object is to set prefs["print_command"] to a valid print command so that printer() will work (I use gsprint.exe on windows, a part of ghostscript). ||
+
