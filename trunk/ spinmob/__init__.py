@@ -34,23 +34,16 @@ import _prefs
 prefs = _prefs.Prefs()
 
 import _functions as fun               ;fun._prefs               = prefs
-import _pylab_tweaks as tweaks
+import _plotting as plot               ;plot._prefs              = prefs
 import _dialogs as dialogs             ;dialogs._prefs           = prefs
 import _data_types as data             ;data._prefs              = prefs
+import _models as models               ;models.prefs             = prefs
+import _constants as constants
 import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
 import _fitting                        ;_fitting._prefs          = prefs
-import _models as models
-import _constants as constants
-import _plotting as _plotting          ;_plotting.style          = tweaks.style
 import _common_math as math
 
 # pull some of the common functions to the top
-plot_data               = _plotting.plot_data
-plot_files              = _plotting.plot_files
-plot_function           = _plotting.plot_function
-plot_image              = _plotting.plot_image
-plot_surface_data       = _plotting.plot_surface_data
-plot_surface_function   = _plotting.plot_surface_function
 printer                 = fun.printer
 fit                     = _fitting.fit
 
