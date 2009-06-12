@@ -1,4 +1,5 @@
 #summary A quick overview of spinmob's functions and libraries.
+#labels Featured
 
 == Introduction ==
 
