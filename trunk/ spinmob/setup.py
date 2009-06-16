@@ -9,6 +9,7 @@ setup(name              = 'spinmob',
       author            = 'Jack Sankey',
       author_email      = 'jack.sankey@gmail.com',
       url               = 'http://code.google.com/p/spinmob',
+      license           = 'GPLv3',
       packages          = ['spinmob'],
-      package_data      = {'spinmob':['*.bat']}
+      package_data      = {'spinmob':['*.bat', '*.txt']}
      )
