@@ -26,49 +26,39 @@ In general, I tried to design this library so that everything running in the bac
 
 == Data Analysis ==
 
-The most useful part of this project is the data importing and analysis library. I need to write the documentation for the types of data files it can read and include a test file before I tackle this section.
+By far the most useful part of this project is the data importing and analysis library. I need to write the documentation for the types of data files it can read and include a test file before I tackle this section.
 
 If you want to play with the class, start by doing something like this:
 
-`>>> d = spinmob.data.standard()`
-
-`>>> d.load_file()`
+{{{
+>>> d = spinmob.data.standard()
+>>> d.load_file()
+}}}
 
 to point an instance of this class at a data file. Then try `d[0]` to view the 0-th column, `d.columns`, for the full list, `d.header` for the header values, `d.c()`, `d.h()`, and things like `d.get_new_column('2*c(0)', 'my column')` to manipulate the data. You can also save the manipulated data with `d.save_file()`
 
-Data files can have any delimiter and should have a format something like:
+Data files can have any delimiter (user-specified in `standard()`) and should have a format something like:
 
-`why_do_this        example_data_file`
+{{{
+why_do_this        example_data_file
+start_pressure     42
+end_pressure       37.3
+type_of_sweep      voltage
+my_row_of_whatever 32 44 55 128 223 147
+more_values        15.2 22 37.45 18
 
-`start_pressure     42`
+time voltage current other_stuff
+1    32.1    27.0    1
+2    33.2    27.1    0
+3    32.5    27.2    1
+4    44.2    27.3    1
+5    22.2    27.4    0
+6    11.1    27.5    1
+7    77.232  27.4    1
+}}}
 
-`end_pressure       37`
+The default delimiter `standard()` is looking for is white space, either spaces or tabs, but you can specify any delimiter you like (i.e. comma for csv) when creating an instance of the object. White space will be stripped off the ends of values, numbers will be converted to floating point if possible, and strings are allowed as well. Empty lines are ignored, and lists of numbers will be converted into arrays. 
 
-`type_of_sweep      voltage`
-
-`my_row_of_whatever 32 44 55 128 223 147`
-
-`more_values        15.2 22 37.45 18`
-
-`time voltage current other_stuff`
-
-`1    32.1    27.0    1`
-
-`2    33.2    27.1    0`
-
-`3    32.5    27.2    1`
-
-`4    44.2    27.3    1`
-
-`5    22.2    27.4    0`
-
-`6    11.1    27.5    1`
-
-`7    77.232  27.4    1`
-
-
-The default delimiter `spinmob.data.standard()` is looking for is white space, either spaces or tabs, but you can specify any delimiter you like (commas?). White space will be stripped off the end of values, numbers will be converted to floating point, and strings are allowed as well. Empty lines are ignored, and lists of numbers will be converted into arrays. 
-
-The only overall structural rule for data files, really, is that the header has to come first, and the data columns come last. Basically, lines starting with strings will be interpreted as headers, and then no more having strings once the numbers start pouring in!
+The only overall structural rule for data files, really, is that the header has to come first, and the data columns come last. Basically, lines starting with strings will be interpreted as headers, and then no more strings once the numbers start pouring in!
 
 more to come...
