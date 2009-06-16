@@ -14,7 +14,7 @@ Most functions in spinmob are self-documented, and said documentation will autom
 || math || some common scipy math functions like sin(), cos(), exp(), etc... ||
 || [models models] || various model classes I've used for the fit routine. See the `_`models.py for examples of how to implement your own model function from the base class. ||
 || [plot plot] || several quick and useful automated plotting functions ||
-|| [tweaks tweaks] || a bunch of functions for manipulating pylab plots. Try ubertidy() and set_all_line_attributes(). Or try shift() to make waterfall plots. Or try gui_colormap() for manipulating color/image plots. There's a lot in here. ||
+|| [tweaks plot.tweaks] || a bunch of functions for manipulating pylab plots. Try ubertidy() and set_all_line_attributes(). Or try shift() to make waterfall plots. Or try gui_colormap() for manipulating color/image plots. There's a lot in here. ||
 
 
 == Spinmob Functions ==
