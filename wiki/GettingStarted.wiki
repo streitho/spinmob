@@ -20,7 +20,7 @@ In general, I tried to design this library so that everything running in the bac
 || `>>> spinmob.plot.function(spinmob.math.sin)` || Plot sin(x) ||
 || `>>> spinmob.plot.function([spinmob.math.sin, spinmob.math.cos])` || Plot sin(x) and cos(x) ||
 || `>>> spinmob.plot.tweaks.auto_zoom()` || Auto-scale the data. ||
-|| `>>> spinmob.plot.tweaks.ubertidy()` || Prepare the plot for presentation. (I save as ps and use [http://www.inkscape.org/ Inkscape]) ||
+|| `>>> spinmob.plot.tweaks.ubertidy()` || Prepare the plot for presentation. (I save as ps or svg and use [http://www.inkscape.org/ Inkscape]) ||
 || `>>> def f(x,y): return x*x*y*y` || to define a 2-variable function ||
 || `>>> spinmob.plot.surface_function(f,-1,1,-1,1)` || to make a 2-d color plot of this function. The GUI sliders are very useful, but do not work so well in Linux yet. I have to overhaul them ||
 
