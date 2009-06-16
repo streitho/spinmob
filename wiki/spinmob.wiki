@@ -13,6 +13,7 @@ Most functions in spinmob are self-documented, and said documentation will autom
 || [fun fun] || various random functions for dealing with arrays, strings, and non-plot-related nonsense ||
 || math || some common scipy math functions like sin(), cos(), exp(), etc... ||
 || [models models] || various model classes I've used for the fit routine. See the `_`models.py for examples of how to implement your own model function from the base class. ||
+|| [plot plot] || quick and useful automated data plotting functions ||
 || [tweaks tweaks] || a bunch of functions for manipulating pylab plots. Try ubertidy() and set_all_line_attributes(). Or try shift() to make waterfall plots. Or try gui_colormap() for manipulating color/image plots. There's a lot in here. ||
 
 
@@ -22,12 +23,12 @@ Most functions in spinmob are self-documented, and said documentation will autom
 || fit()               || spinmob's interactive fitting routine, handling multiple data files and [models models]. At the fit prompt, type "help" for more info.  ||
 || gca()               || pylab's gca() ("get current axes") function ||
 || gcf()               || pylab's gcf() ("get current figure") function ||
-|| plot_data()         || simple function to plot arrays of data ||
-|| plot_files()        || simple function to analyze and plot multiple data files using the [data data].standard() class ||
-|| plot_function()     || simple function to numerically plot a function of one variable ||
-|| plot_image()        || makes an image plot from data files ||
-|| plot_surface_data() || makes an image plot from data arrays ||
-|| plot_surface_function() || makes an image plot from a function in 2 variables ||
+|| plot.data()         || simple function to plot arrays of data ||
+|| plot.files()        || simple function to analyze and plot multiple data files using the [data data].standard() class ||
+|| plot.function()     || simple function to numerically plot a function of one variable ||
+|| plot.image()        || makes an image plot from data files ||
+|| plot.surface_data() || makes an image plot from data arrays ||
+|| plot.surface_function() || makes an image plot from a function in 2 variables ||
 || printer()           || quick function to print the current figure. ||
 
 == Other Objects ==
