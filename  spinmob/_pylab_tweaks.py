@@ -14,19 +14,30 @@ line_attributes = ["linestyle","linewidth","color","marker","markersize","marker
 
 undo_list = {}
 
-def clickstemate_slope():
+def add_text(text, x=0.01, y=0.01, axes="gca", draw=True, **kwargs):
+    """
+    Adds text to the axes at the specified position.
+
+    **kwargs go to the axes.text() function.
+    """
+    if axes=="gca": axes = _pylab.gca()
+    axes.text(x, y, text, transform=axes.transAxes, **kwargs)
+    if draw: _pylab.draw()
+
+
+def click_estimate_slope():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
     raise_pyshell()
     return (y2-y1)/(x2-x1)
 
-def clickstemate_curvature():
+def click_estimate_curvature():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
     raise_pyshell()
     return (y2-y1)/(x2-x1)**2
 
-def clickstemate_difference():
+def click_estimate_difference():
     [[x1,y1]] = ginput()
     [[x2,y2]] = ginput()
     raise_pyshell()
@@ -191,6 +202,7 @@ def image_coarsen_undo():
     [image, Z] = undo_list["coarsen_colorplot"]
     image.set_array(Z)
     _pylab.draw()
+
 
 def image_set_aspect(aspect=1.0, axes="gca"):
     """
@@ -1310,10 +1322,10 @@ class GaelInput(object):
         while not self.done:
             # key step: yield the processor to other threads
             _wx.Yield();
-            _time.sleep(0.1)
+            _time.sleep(0.02)
 
             # check for a timeout
-            t += 0.1
+            t += 0.02
             if timeout and t > timeout: print "ginput timeout"; break;
 
         # All done! Disconnect the event and return what we have
