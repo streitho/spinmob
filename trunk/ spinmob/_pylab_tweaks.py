@@ -47,16 +47,49 @@ def click_estimate_slope():
     return (c1[0][1]-c2[0][1])/(c1[0][0]-c2[0][0])
 
 def click_estimate_curvature():
-    [[x1,y1]] = ginput()
-    [[x2,y2]] = ginput()
+    """
+    Takes two clicks and returns the curvature, assuming the first click
+    was the minimum of a parabola and the second was some other point.
+
+    Returns the second derivative of the function giving this parabola.
+
+    Right-click aborts.
+    """
+
+    c1 = ginput()
+    if len(c1)==0:
+        raise_pyshell()
+        return None
+
+    c2 = ginput()
+    if len(c2)==0:
+        raise_pyshell()
+        return None
+
     raise_pyshell()
-    return (y2-y1)/(x2-x1)**2
+
+    return 2*(c2[0][1]-c1[0][1])/(c2[0][0]-c1[0][0])**2
 
 def click_estimate_difference():
-    [[x1,y1]] = ginput()
-    [[x2,y2]] = ginput()
+    """
+    Takes two clicks and returns the difference vector [dx, dy].
+
+    Right-click aborts.
+    """
+
+    c1 = ginput()
+    if len(c1)==0:
+        raise_pyshell()
+        return None
+
+    c2 = ginput()
+    if len(c2)==0:
+        raise_pyshell()
+        return None
+
     raise_pyshell()
-    return [x2-x1,y2-y1]
+
+    return [c2[0][0]-c1[0][0], c2[0][1]-c1[0][1]]
 
 def close_sliders():
 
