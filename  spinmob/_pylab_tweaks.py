@@ -26,10 +26,25 @@ def add_text(text, x=0.01, y=0.01, axes="gca", draw=True, **kwargs):
 
 
 def click_estimate_slope():
-    [[x1,y1]] = ginput()
-    [[x2,y2]] = ginput()
+    """
+    Takes two clicks and returns the slope.
+
+    Right-click aborts.
+    """
+
+    c1 = ginput()
+    if len(c1)==0:
+        raise_pyshell()
+        return None
+
+    c2 = ginput()
+    if len(c2)==0:
+        raise_pyshell()
+        return None
+
     raise_pyshell()
-    return (y2-y1)/(x2-x1)
+
+    return (c1[0][1]-c2[0][1])/(c1[0][0]-c2[0][0])
 
 def click_estimate_curvature():
     [[x1,y1]] = ginput()
@@ -1349,6 +1364,7 @@ def ginput(n=1, timeout=0, show=True, lines=False):
     lines=False     draw lines between clicks
     """
 
+    raise_figure_window()
     x = GaelInput()
     return x(n, timeout, show, lines)
 
