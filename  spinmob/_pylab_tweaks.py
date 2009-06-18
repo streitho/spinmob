@@ -1371,7 +1371,7 @@ class GaelInput(object):
         while not self.done:
             # key step: yield the processor to other threads
             _wx.Yield();
-            _time.sleep(0.02)
+            _time.sleep(0.05)
 
             # check for a timeout
             t += 0.02
@@ -1381,7 +1381,6 @@ class GaelInput(object):
         _pylab.disconnect(self.cid)
         self.cid = None
 
-        raise_pyshell()
         return _numpy.array(self.clicks)
 
 
@@ -1398,7 +1397,6 @@ def ginput(n=1, timeout=0, show=True, lines=False):
     lines=False     draw lines between clicks
     """
 
-    raise_figure_window()
     x = GaelInput()
     return x(n, timeout, show, lines)
 
