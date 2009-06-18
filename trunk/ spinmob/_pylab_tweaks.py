@@ -869,8 +869,8 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     # if trim_visible is true, use the current plot's limits
     if xmin=="auto": (xmin, dummy) = axes.get_xlim()
     if xmax=="auto": (dummy, xmax) = axes.get_xlim()
-    if ymin=="auto": (ymin, dummy) = axes.get_xlim()
-    if ymax=="auto": (dummy, ymax) = axes.get_xlim()
+    if ymin=="auto": (ymin, dummy) = axes.get_ylim()
+    if ymax=="auto": (dummy, ymax) = axes.get_ylim()
 
 
     # get the lines from the plot
@@ -888,7 +888,8 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
             new_ydata = []
             for n in range(0, len(old_xdata)):
                 # if it's in the data range
-                if old_xdata[n] >= xmin and old_xdata[n] <= xmax:
+                if  old_xdata[n] >= xmin and old_xdata[n] <= xmax \
+                and old_ydata[n] >= ymin and old_ydata[n] <= ymax:
                     # append it to the new x and y data set
                     new_xdata.append(old_xdata[n])
                     new_ydata.append(old_ydata[n])
