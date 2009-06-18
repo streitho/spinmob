@@ -62,6 +62,8 @@ class standard:
     columns = {}            # this dictionary will hold the data columns
     labels  = []            # we need a special list of column labels to keep track of their order during data assembly
 
+    extra_globals = {}
+
     def __call__(self, column):
         """
         Returns the specified column. Can be an index or a label.
@@ -493,8 +495,14 @@ class standard:
         # so to make eval() work we should add these functions to a local list
 
         globbies = {'h':self.h, 'c':self.c, 'self':self}
+
+        # add in the module globals
         globbies.update(globals())
 
+        # add in the supplied globals
+        globbies.update(self.extra_globals)
+
+        if self.debug: print globbies.keys()
 
 
 
