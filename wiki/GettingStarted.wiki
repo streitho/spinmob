@@ -35,7 +35,7 @@ If you want to play with the class, start by doing something like this:
 >>> d.load_file()
 }}}
 
-to point an instance of this class at a data file. Then try `d[0]` to view the 0-th column, `d.columns`, for the full list, `d.header` for the header values, `d.c()`, `d.h()`, and things like `d.get_new_column('2*c(0)', 'my column')` or `d.plot('2*c(0)', 'c(1)+c(2)')` to manipulate/plot the data. You can also save the manipulated data to a formatted ascii file with `d.save_file()`
+to point an instance of this class at a data file. Then try `d[0]` to view the 0-th column, `d.columns`, for the full list, `d.header` for the header values, `d.c()`, `d.h()`, and things like `d.generate_new_column('2*c(0)', 'my column')` or `d.plot('2*c(0)', 'c(1)+c(2)')` to manipulate/plot the data. You can also save the manipulated data to a formatted ascii file with `d.save_file()`
 
 Data files can have any delimiter (user-specified in `standard()`) and should have a format something like:
 
@@ -51,14 +51,20 @@ time voltage current other_stuff
 1    32.1    27.0    1
 2    33.2    27.1    0
 3    32.5    27.2    1
-4    44.2    27.3    1
-5    22.2    27.4    0
-6    11.1    27.5    1
-7    77.232  27.4    1
+4    44.2    27.3    x
+5    22.2    27.4    3
+6    11.1    x       5
+7    77.232  27.4    
 }}}
 
 The default delimiter `standard()` is looking for is white space, either spaces or tabs, but you can specify any delimiter you like (i.e. comma for csv) when creating an instance of the object. White space will be stripped off the ends of values, numbers will be converted to floating point if possible, and strings are allowed as well. Empty lines are ignored, and lists of numbers will be converted into arrays. 
 
-The only overall structural rule for data files, really, is that the header has to come first, and the data columns come last. Basically, lines starting with strings will be interpreted as headers, and then no more strings once the numbers start pouring in!
+The only overall structural rule for data files, really, is that the header has to come first, and the data columns come last:
+
+ * Header lines start with strings and come first.
+ * The first data row must be entirely comprised of numbers.
+ * The columns can be different lengths or have placeholders with no data (like the 'x' above). 
+
+If you're using "white space" as your delimiter and you want an empty data value, you'll need to use a place holder because several tabs and/or spaces are read as one delimiter. Note the "other_stuff" column would be read in as `array[1,0,1,35]`, not `array[1,0,1,'x',3,5]`!
 
 more to come...
