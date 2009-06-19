@@ -351,6 +351,86 @@ class standard:
 
 
 
+    def pop_data_point(self, n, ckeys=[]):
+        """
+        This will remove and return the n'th data point (starting at 0)
+        in the supplied list of columns.
+
+        n       index of data point to pop
+        ckeys   which columns to do this to, specified by index or key
+                empty list means "every column"
+        """
+
+        # if it's empty, it's everything
+        if ckeys == []: ckeys = self.ckeys
+
+        # loop over the columns of interest and pop the data
+        popped = []
+        for k in ckeys:
+            if not k == None:
+                # first convert to a list
+                data = list(self.c(k))
+
+                # pop the data
+                popped.append(data.pop(n))
+
+                # now set this column again
+                self.append_column(data, k)
+
+        return popped
+
+
+
+    def plot_and_pop_data_points(self, xkey=0, ykey=1, ekey=None, ckeys=[], **kwargs):
+        """
+        This will plot the columns specified by the scripts and then wait for clicks
+        from the user, popping data points nearest the clicks. Right-click quits.
+
+        xkey,ykey,ekey      column keys to plot
+        ckeys               list of columns to pop, using pop_data_point()
+
+        Set ckeys=[] to pop from all columns, and ckey="these" to pop only from the
+        plotted columns, or a list of ckeys from which to pop.
+        """
+
+        if ckeys == "these": ckeys = [xkey, ykey, ekey]
+
+        # plot the data. This should generate self.xdata and self.ydata
+        self.plot(xkey, ykey, ekey, **kwargs)
+        a = _pylab.gca()
+
+        # start the loop to remove data points
+        raw_input("Zoom in on the region of interest. <enter>")
+        print "Now click near the data points you want to pop. Right-click to finish."
+        poppies = []
+        while True:
+            # get a click
+            clicks = _pt.ginput()
+            if len(clicks)==0: return poppies
+            [cx,cy] = clicks[0]
+
+            # search through x and y for the closest point to this click
+            diff = (self.xdata-cx)**2 + (self.ydata-cy)**2
+            i    = _fun.index(min(diff), diff)
+
+            # now pop!
+            poppies.append(self.pop_data_point(i, ckeys))
+
+            # now get the current zoom so we can replot
+            xlim = a.get_xlim()
+            ylim = a.get_ylim()
+
+            # replot and rezoom
+            _pylab.hold(True)
+            self.plot(xkey, ykey, ekey, **kwargs)
+            a.set_xlim(xlim)
+            a.set_ylim(ylim)
+            _pylab.hold(False)
+            _pylab.draw()
+
+
+
+
     def generate_column(self, script, name="temp"):
         """
         Generates a new column of your specification.
@@ -395,10 +475,16 @@ class standard:
 
     def append_column(self, data_array, ckey='temp'):
         """
-        This will append/overwrite a new column and fill it with the data fromm the
+        This will append/overwrite a new column and fill it with the data from the
         the supplied array.
+
+        If ckey is an integer, use self.ckeys[ckey]
         """
 
+        # if it's an integer, use the ckey from the list
+        if type(ckey) in [int, long]: ckey = self.ckeys[ckey]
+
+        # append/overwrite the column value
         self.columns[ckey] = _numpy.array(data_array)
         if not ckey in self.ckeys:
             self.ckeys.append(ckey)
@@ -406,9 +492,15 @@ class standard:
     def append_header(self, hkey, value):
         """
         This will append/overwrite a value to the header and hkeys.
-        """
-        self.header[str(hkey)] = value
 
+        If hkey is an integer, use self.hkeys[hkey]
+        """
+
+        # if it's an integer, use the hkey from the list
+        if type(hkey) in [int, long]: hkey = self.hkeys[hkey]
+
+        # set the data
+        self.header[str(hkey)] = value
         if not hkey in self.hkeys:
             self.hkeys.append(str(hkey))
 
