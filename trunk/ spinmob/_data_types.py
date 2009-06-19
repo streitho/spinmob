@@ -22,11 +22,11 @@ class standard:
 
     # this is used by the load_file to rename some of the annoying
     # column names that aren't consistent between different types of data files (and older data files)
-    # or to just rename columns with difficult-to-remember labels.
+    # or to just rename columns with difficult-to-remember ckeys.
 
-    obnoxious_column_labels = {}
-    #obnoxious_column_labels = {"example_annoying1" : "unified_name1",
-    #                           "example_annoying2" : "unified_name2"}
+    obnoxious_ckeys = {}
+    #obnoxious_ckeys = {"example_annoying1" : "unified_name1",
+    #                   "example_annoying2" : "unified_name2"}
 
 
 
@@ -60,7 +60,8 @@ class standard:
     constants = {"file":0}  # This is not used much, but holds random info, like the file name or whatever else you like
     header  = {}            # this dictionary will hold the header information
     columns = {}            # this dictionary will hold the data columns
-    labels  = []            # we need a special list of column labels to keep track of their order during data assembly
+    ckeys   = []            # we need a special list of column keys to keep track of their order during data assembly
+    hkeys   = []            # ordered list of header keys
 
     extra_globals = {}
 
@@ -71,17 +72,17 @@ class standard:
         return self.c(column)
 
     def __getitem__(self, n):
-        return self.columns[self.labels[n]]
+        return self.columns[self.ckeys[n]]
 
     def __setitem__(self, n, x):
         """
         set's the n'th column to x
         """
-        self.columns[self.labels[n]] = x
+        self.columns[self.ckeys[n]] = x
 
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.ckeys)
 
 
 
@@ -147,9 +148,13 @@ class standard:
         # this loads the file, getting the header and the column values,
         if self.debug: print "resetting all the file-specific stuff, path =", path
         self.constants = {"file":0}
+
         self.columns = {}
-        self.labels  = []
+        self.ckeys  = []
+
         self.header  = {}
+        self.hkeys   = []
+
         self.xdata   = None
         self.ydata   = None
         self.yerror  = None
@@ -174,7 +179,7 @@ class standard:
 
         # read in the header information
         if self.debug: print time.time()-t0, "seconds: start reading header"
-        labels_line = -1
+        ckeys_line = -1
         for n in range(len(self.lines)):
             # split the line by the delimiter
             s = self.lines[n].strip().split(self.delimiter)
@@ -188,23 +193,25 @@ class standard:
             # stop the header loop if we're here already
             if first_data_line == n: break
 
-            # if this isn't an empty line and is all strings, assume it's a column label line
+            # if this isn't an empty line and has strings for elements, assume it's a column key line for now
             # (we keep overwriting this until we get to the first data line)
             if len(s) > 0 and _fun.elements_are_strings(s):
-                # overwrite the labels, and note the line number
-                self.labels = list(s) # this makes a new instance of the list so it doesn't lose the first element!
-                labels_line = n
-                if self.debug: print "new labels_line:",n,s
+                # overwrite the ckeys, and note the line number
+                self.ckeys = list(s) # this makes a new instance of the list so it doesn't lose the first element!
+                ckeys_line = n
+                if self.debug: print "new ckeys_line:",n,s
 
             # otherwise, there should be at least two elements in a header element
             if len(s) == 2:
                 # If there are exactly two elemenents, just store the header constant
                 try:    self.header[s[0]] = float(s[1]) # this one is a number
                 except: self.header[s[0]] = s[1]        # this one is a string
+                self.hkeys.append(s[0])                 # add to the ordered list
+
                 if self.debug: print "header '"+s[0]+"' = "+s[1]
 
             elif len(s) > 2:
-                # if there are more than 2 elements, then this is the column labels, or column summary values, or the date
+                # if there are more than 2 elements, then this is the column ckeys, or column summary values, or the date
 
                 # if all the elements after the first are numbers, this is a "column values" row
                 if _fun.elements_are_numbers(s, 1):
@@ -214,13 +221,17 @@ class standard:
                     # pop off the first element, this is the string used to access the array
                     l = s.pop(0)
                     self.header[l] = _numpy.array(s)
+                    self.hkeys.append(l)
 
-                # otherwise it could be a list of column labels or the date or a string or something
+                # otherwise it could be a list of column ckeys or the date or a string or something
                 # treat it like a date/string or something for starters
                 else:
-                    # now store the string in the header
+                    # now store the string in the header, using the original delimiter
                     l=s.pop(0)
-                    self.header[l] = _fun.join(s, " ")
+                    delimiter = self.delimiter
+                    if delimiter==None: delimiter = " "
+                    self.header[l] = _fun.join(s, delimiter)
+                    self.hkeys.append(l)
 
                 if self.debug: print "header '"+l+"' = "+str(self.header[l])
 
@@ -233,25 +244,34 @@ class standard:
 
 
 
-        # at this point we've found the first_data_line, and labels_line is correct or -1
+        # at this point we've found the first_data_line, and ckeys_line is correct or -1
 
 
         # count the number of data columns
         column_count = len(self.lines[first_data_line].strip().split(self.delimiter))
 
-        # check to see if labels line is first_data_line-1. If it isn't, it's a false labels line (and it must be equal length to the data!)
-        if not labels_line == first_data_line-1 or not len(self.labels) >= column_count:
-            # it is an invalid labels line. Generate our own!
-            self.labels = []
-            for m in range(0, column_count): self.labels.append("column"+str(m))
+        # check to see if ckeys line is first_data_line-1, and that it is equal in length to the
+        # number of data columns. If it isn't, it's a false ckeys line
+        if not ckeys_line == first_data_line-1 or not len(self.ckeys) >= column_count:
+            # it is an invalid ckeys line. Generate our own!
+            self.ckeys = []
+            for m in range(0, column_count): self.ckeys.append("column"+str(m))
+        else:
+            # otherwise it is valid. Remove this (last) entry from the header info
+            self.header.pop(self.hkeys.pop(-1))
 
-        # for good measure, make sure to trim down the labels array to the size of the data columns
-        for n in range(column_count, len(self.labels)): self.labels.pop(-1)
+            # if we have too many column keys, mention it
+            if len(self.ckeys) > column_count:
+                print "Note: more ckeys than columns (stripping extras)"
 
-        # now we have a valid set of column labels one way or another, and we know first_data_line
+
+        # for good measure, make sure to trim down the ckeys array to the size of the data columns
+        for n in range(column_count, len(self.ckeys)): self.ckeys.pop(-1)
+
+        # now we have a valid set of column ckeys one way or another, and we know first_data_line.
+
         # initialize the columns arrays
-        for label in self.labels: self.columns[label] = []
-
+        for label in self.ckeys: self.columns[label] = []
 
         # start grabbing the data
         if self.debug: print time.time()-t0, "seconds: starting to read data"
@@ -260,47 +280,23 @@ class standard:
             # split the line up
             s = self.lines[n].split(self.delimiter)
 
-            # now start filling the column, ignoring the bad data lines
-            if len(s) == len(self.labels):
-                for m in range(len(s)):
-                    try:    self.columns[self.labels[m]].append(float(s[m]))
-                    except: self.columns[self.labels[m]].append(s[m])
-
-            # most data files have a trailing new line, so one bad data line is ordinary
-            elif not n==len(self.lines)-1:
-                print "bad data at line"+str(n)+":", self.lines[n]
-                _wx.Yield()
+            # now start filling the column, ignoring the empty or bad data lines
+            for m in range(len(s)):
+                try:    self.columns[self.ckeys[m]].append(float(s[m]))
+                except: pass
 
         if self.debug: print time.time()-t0, "seconds: yeah."
 
         # now loop over the columns and make them all hard-core numpy columns!
-        for k in self.labels: self.columns[k] = _numpy.array(self.columns[k])
+        for k in self.ckeys: self.columns[k] = _numpy.array(self.columns[k])
 
         if self.debug: print time.time()-t0, "seconds: totally."
 
         # now, as an added bonus, rename some of the obnoxious headers
-        for k in self.obnoxious_column_labels:
+        for k in self.obnoxious_ckeys:
             if self.columns.has_key(k):
-                if self.debug: print "renaming column",k,self.obnoxious_column_labels[k]
-                self.columns[self.obnoxious_column_labels[k]] = self.columns[k]
-
-
-    def get_data(self, path="ask", first_data_line="auto"):
-        """
-        This function will run load_data to parse the file specified by path,
-        then generate self.xdata, self.ydata, and self.eydata
-        """
-        self.load_file(path=path, first_data_line=first_data_line)
-
-        # now get the actual data
-        self.xdata = self.get_new_column(self.xscript)
-        self.ydata = self.get_new_column(self.yscript)
-
-        # make sure there's an error script
-        if not self.eyscript == None:
-            self.eydata = self.get_new_column(self.eyscript)
-        else:
-            self.eydata = None
+                if self.debug: print "renaming column",k,self.obnoxious_ckeys[k]
+                self.columns[self.obnoxious_ckeys[k]] = self.columns[k]
 
 
     def save_file(self, path="ask"):
@@ -321,7 +317,7 @@ class standard:
 
         # open the file and write the header
         f = open(path, 'w')
-        for k in self.header.keys():
+        for k in self.hkeys:
             f.write(k + delimiter)
 
             # if this element is a string, float, or int, just write it
@@ -336,13 +332,18 @@ class standard:
                     print "header element '"+k+"' is an unknown type"
 
         # now write the column headers
-        for l in self.labels: f.write(l + delimiter)
+        for l in self.ckeys: f.write(l + delimiter)
         f.write("\n")
 
         # now loop over the data
         for n in range(0, len(self[0])):
             # loop over each column
-            for m in range(0, len(self)): f.write(str(self[m][n])+delimiter)
+            for m in range(0, len(self)):
+                # write the data if there is any, otherwise, placeholder ("x")
+                if n < len(self[m]):
+                    f.write(str(self[m][n])+delimiter)
+                else:
+                    f.write('x'+delimiter)
             f.write("\n")
 
 
@@ -350,7 +351,7 @@ class standard:
 
 
 
-    def get_new_column(self, script, name="temp"):
+    def generate_column(self, script, name="temp"):
         """
         Generates a new column of your specification.
 
@@ -363,8 +364,9 @@ class standard:
         to self.c() and self.h() to get columns and header lines
 
         You can also access globals in this module, such as _numpy and for
-        convenience, common functions like sin() and sqrt() are imported
-        explicitly.
+        convenience, many common functions like sin() and sqrt() are imported
+        explicitly. If you would like access to additional globals, set
+        self.extra_globals to the appropriate globals dictionary.
 
         Another acceptable script is simply "F", if there's a column labeled "F".
         However, I only added this functionality as a shortcut, and something like
@@ -385,83 +387,74 @@ class standard:
         # generate the new column
         self.columns[name] = eval(expression, vars)
 
-        # if we don't already have a column of this label, add it to the labels
-        if not name in self.labels:
-            self.labels.append(name)
+        # if we don't already have a column of this label, add it to the ckeys
+        if not name in self.ckeys:
+            self.ckeys.append(name)
 
         return self.columns[name]
 
-    def append_data(self, data_array, name='temp'):
+    def append_column(self, data_array, ckey='temp'):
         """
-        This will create a new column and fill it with the data fromm the
+        This will append/overwrite a new column and fill it with the data fromm the
         the supplied array.
         """
 
-        self.columns[name] = _numpy.array(data_array)
-        if not name in self.labels:
-            self.labels.append(name)
+        self.columns[ckey] = _numpy.array(data_array)
+        if not ckey in self.ckeys:
+            self.ckeys.append(ckey)
 
-    def pop_data(self, column):
+    def append_header(self, hkey, value):
+        """
+        This will append/overwrite a value to the header and hkeys.
+        """
+        self.header[str(hkey)] = value
+
+        if not hkey in self.hkeys:
+            self.hkeys.append(str(hkey))
+
+    def pop_header(self, hkey):
+        """
+        This will remove and return the specified header value.
+
+        You can specify either a key string or an index.
+        """
+
+        # try the integer approach first to allow negative values
+        if type(hkey) in [int,long]:
+            return self.header.pop(self.hkeys.pop(hkey))
+        else:
+            # find the key integer and pop it
+            hkey = self.hkeys.index(hkey)
+
+            # if we didn't find the column, quit
+            if hkey < 0:
+                print "Column does not exist (yes, we looked)."
+                return
+
+            # pop it!
+            return self.header.pop(self.hkeys.pop(hkey))
+
+    def pop_column(self, ckey):
         """
         This will remove and return the data in the specified column.
 
-        You can specify either a label or an index.
+        You can specify either a key string or an index.
         """
 
-        try:
-            # if it's not an int, find it
-            if not type(column) == int:
-                column = self.labels.index(column)
+        # try the integer approach first to allow negative values
+        if type(ckey) in [int,long]:
+            return self.columns.pop(self.ckeys.pop(ckey))
+        else:
+            # find the key integer and pop it
+            ckey = self.ckeys.index(ckey)
 
             # if we didn't find the column, quit
-            if column < 0:
+            if ckey < 0:
                 print "Column does not exist (yes, we looked)."
-
                 return
 
-            # we have a valid column. Pop the label and the column
-            name = self.labels.pop(column)
-            return self.columns.pop(name)
-
-        except:
-            print "Invalid column."
-            return None
-
-
-    def get_integrated_column(self, name="integrated_dvdi", xscript="-I where I=c('current')", yscript="c('dvdi')"):
-        """
-        This makes a new column with trapezoid integration,
-        setting the center value to zero.
-        """
-
-        self.get_new_column(xscript, "x")
-        self.get_new_column(yscript, "y")
-
-        # now numerically (trapezoid) integrate to get the other torques
-        y = self.columns["y"]
-        x = self.columns["x"]
-        iy = [0]
-
-        # do the trapezoid integration
-        for n in range(1, len(y)):
-            iy.append( iy[-1] + (0.5*y[n]+0.5*y[n-1])*(x[n]-x[n-1]) )
-        iy = _numpy.array(iy)
-
-        # now set the center value to zero
-        self.columns[name] = iy-iy[len(iy)/2]
-
-
-    def scale_column_by_center(self, col="dvdi"):
-        """
-        This will produce column_scaled, the column divided by its center value
-        """
-
-        self.columns[col+"_scaled"] = self.columns[col]/self.columns[col][len(self.columns[col])/2]
-        if self.columns.has_key(col+"_error"):
-            print "scaling error by the same amount"
-            self.columns[col+"_error_scaled"] = self.columns[col+"_error"]/self.columns[col][len(self.columns[col])/2]
-
-
+            # pop it!
+            return self.columns.pop(self.ckeys.pop(ckey))
 
 
     def coarsen_columns(self, level=1):
@@ -527,14 +520,10 @@ class standard:
                 return ["a", {"a":self.c(script)}]
             except:
                 if self.debug: print "can't make direct column call."
-                # it's more complicated...
-                try:
-                    # just return a simple script so we can evaluate it later
-                    return ["a", {"a":eval(script, globbies)}]
 
-                except:
-                    print "could not execute script:",script
-                    return [None, None]
+                # it's more complicated...
+                # let it raise an exception to help troubleshoot!
+                return ["a", {"a":eval(script, globbies)}]
 
 
         # ######################################
@@ -715,7 +704,7 @@ class standard:
         yshift_every=1  How many traces should sit at the same offset
         xcolumn=0       Index of the x-data column
         legend=None     What header row to use as the legend values. If set to None,
-                        use the column labels
+                        use the column ckeys
 
         legend_max=40   Maximum number of legend entries
         tall=True       When formatting the figure, make it tall.
@@ -727,10 +716,10 @@ class standard:
         if axes=="gca": axes=_pylab.gca()
         if clear:       axes.clear()
 
-        # set the xdata and labels
+        # set the xdata and ckeys
         self.xdata  = self.c(xcolumn)
-        self.xlabel = self.labels[xcolumn]
-        self.ylabel = self.labels[start]
+        self.xlabel = self.ckeys[xcolumn]
+        self.ylabel = self.ckeys[start]
 
         # get the last index if necessary
         if end < start: end = len(self.columns)-1
@@ -741,7 +730,7 @@ class standard:
             self.ydata = self.c(n)
 
             self.yerror = None
-            if legend == None:  self.legend_string = self.labels[n].replace("_","")
+            if legend == None:  self.legend_string = self.ckeys[n].replace("_","")
             else:               self.legend_string = str(self.h(legend)[n-1]).replace("_","")
 
             # now plot it
@@ -782,7 +771,7 @@ class standard:
 
         # next we assemble the 2-d array for the colorplot
         Z=[]
-        for c in self.labels: Z.append(list(self.columns[c]))
+        for c in self.ckeys: Z.append(list(self.columns[c]))
 
         # initialize the axis labels
         X=[]
@@ -839,6 +828,8 @@ class standard:
     def plot_pseudocolor(self, map="Blues"):
         """
         This is ridiculously slow, but it is useful if you have oddly-spaced data!
+        It is not heavily developed because I tend to stretch matrices and use
+        plot_image() instead.
         """
 
         # if we don't have the data, tell the user
@@ -900,25 +891,29 @@ class standard:
 
 
 
-    def c(self, column):
+    def c(self, ckey):
         """
         Returns the n'th column if it's an integer, returns the column based on key
         """
-        if type(column)==int: return self.columns[self.labels[column]]
+        if type(ckey) in [int, long]: return self.columns[self.ckeys[ckey]]
 
         # if it's not an integer, search through the columns for a matching string
-        return self.columns[column]
+        return self.columns[ckey]
 
 
-    def h(self, search_string):
+    def h(self, hkey):
         """
-        This function searches through the header keys for one containing search_string,
-        and returns that value. It is just to shorten coding.
+        This function searches through hkeys for one *containing* the supplied key string,
+        and returns that header value. It's mostly for shortening coding.
+
+        Also can take integers, returning the key'th header value.
         """
-        for key in self.header.keys():
-            if key.find(search_string) >= 0:
-                return self.header[key]
-        print "Couldn't find",search_string,"in header."
+        if type(hkey) in [int, long]: return self.header[self.hkeys[hkey]]
+
+        for k in self.hkeys:
+            if k.find(hkey) >= 0:
+                return self.header[k]
+        print "Couldn't find",hkey,"in header."
         return None
 
 

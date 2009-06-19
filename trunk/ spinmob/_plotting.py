@@ -54,7 +54,7 @@ def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1
     if paths=="ask":
         paths = _dialogs.MultipleFiles(data.file_extension, default_directory=data.directory)
 
-    if paths == []: return
+    if paths in [[], None]: return
 
     if not isinstance(paths, type([])): paths = [paths]
 

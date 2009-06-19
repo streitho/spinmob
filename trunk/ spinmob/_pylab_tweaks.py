@@ -1395,6 +1395,10 @@ def ginput(n=1, timeout=0, show=True, lines=False):
                     timeout=0 to disable
     show=True       print the clicks as they are received
     lines=False     draw lines between clicks
+
+    This is my original implementation, and I'm leaving it here because it behaves a little
+    differently than the eventual version that was added to matplotlib. I would recommend using
+    the official version if you can!
     """
 
     x = GaelInput()
