@@ -33,7 +33,7 @@ def _image():
     return data
 
 
-def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard()):
+def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", plot='plot', coarsen=0, debug=0, data=_data.standard(), **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -64,8 +64,8 @@ def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1
     if clear and yaxis=='left': f.clf()
 
     # setup the right-hand axis
+    a = _pylab.gca()
     if yaxis=='right':  a = _pylab.twinx()
-    else:               a = _pylab.gca()
 
     # determine the max legend entries
     if legend_max == "auto":
@@ -89,6 +89,7 @@ def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1
 
     # fix up the title if there's an yshift
     if yshift: data.title += ', progressive y-yshift='+str(yshift)
+    if yaxis=="right": data.title = data.title + "\n"
     a.set_title(data.title)
 
     if yshift: _pt.format_figure(f, tall=True)
@@ -195,7 +196,7 @@ def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True
     return
 
 
-def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', **kwargs):
+def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', yaxis='left', **kwargs):
     """
     Plots specified data.
 
@@ -207,6 +208,8 @@ def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1
     axes="gca"          which axes to use, or "gca" for the current axes
     draw=1              whether or not to draw the plot after plotting
     plot='plot'         plot style: can be 'plot', 'semilogx', 'semilogy', 'loglog'
+    yaxis='left'        set to 'right' for a pylab twinx() plot
+
     """
 
 
@@ -218,11 +221,16 @@ def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1
 
     # get the current axes
     if axes=="gca": axes = _pylab.gca()
+    _pylab.figure(axes.figure.number)
 
     # get rid of the old plot
     if clear:
         axes.figure.clear()
         axes = _pylab.gca()
+
+    # if yaxis is 'right' set up the twinx()
+    if yaxis=='right':
+        axes = _pylab.twinx()
 
     # now loop over the list of data in xdata and ydata
     for n in range(0,len(xdata)):

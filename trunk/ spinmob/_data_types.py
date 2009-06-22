@@ -201,14 +201,15 @@ class standard:
                 ckeys_line = n
                 if self.debug: print "new ckeys_line:",n,s
 
-            # otherwise, there should be at least two elements in a header element
+            # Also assume it is a header line. Here should be at least two elements in a header element
             if len(s) == 2:
                 # If there are exactly two elemenents, just store the header constant
                 try:    self.header[s[0]] = float(s[1]) # this one is a number
                 except: self.header[s[0]] = s[1]        # this one is a string
-                self.hkeys.append(s[0])                 # add to the ordered list
 
-                if self.debug: print "header '"+s[0]+"' = "+s[1]
+                # store the key in a variable like the other cases
+                l = s[0]
+
 
             elif len(s) > 2:
                 # if there are more than 2 elements, then this is the column ckeys, or column summary values, or the date
@@ -221,7 +222,6 @@ class standard:
                     # pop off the first element, this is the string used to access the array
                     l = s.pop(0)
                     self.header[l] = _numpy.array(s)
-                    self.hkeys.append(l)
 
                 # otherwise it could be a list of column ckeys or the date or a string or something
                 # treat it like a date/string or something for starters
@@ -231,9 +231,15 @@ class standard:
                     delimiter = self.delimiter
                     if delimiter==None: delimiter = " "
                     self.header[l] = _fun.join(s, delimiter)
-                    self.hkeys.append(l)
 
-                if self.debug: print "header '"+l+"' = "+str(self.header[l])
+            # in either case, we now have a header key in the variable l.
+            # now add it to the ordered list, but only if it doesn't exist
+            if _fun.index(l, self.hkeys) < 0:
+                self.hkeys.append(l)
+            else:
+                print "Duplicate header:", l
+
+            if self.debug: print "header '"+l+"' = "+str(self.header[l])
 
 
 
@@ -665,7 +671,7 @@ class standard:
 
 
 
-    def plot(self, xscript=0, yscript=1, yerror=None, axes="gca", clear=True, format=True, coarsen=0, yshift=0, linestyle='auto', **kwargs):
+    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -744,7 +750,7 @@ class standard:
 
         # assumes we've gotten data already
         if axes=="gca": axes = _pylab.gca()
-        if clear:       axes.clear()
+        if clear: axes.clear()
 
         if yshift: self.legend_string = self.legend_string + " ("+str(yshift)+")"
 

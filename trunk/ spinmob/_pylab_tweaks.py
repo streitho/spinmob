@@ -161,18 +161,27 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
     figure_window = get_figure_window(figure)
     #figure_window.SetPosition([0,0])
 
-    # set the size of the window
-    if(tall): figure_window.SetSize([700,700])
-    else:     figure_window.SetSize([700,550])
+    # assume two axes means twinx
+    if len(figure.get_axes()) > 1:
+        window_width=600
+        legend_position=1.25
+    else:
+        window_width=700
+        legend_position=1.01
 
-    for axes in figure.get_axes():
+    # set the size of the window
+    if(tall): figure_window.SetSize([window_width,700])
+    else:     figure_window.SetSize([window_width,550])
+
+    for n in range(len(figure.get_axes())):
+        axes = figure.get_axes()[n]
 
         # set the position/size of the axis in the window
         axes.set_position([0.13,0.1,0.5,0.8])
 
         # set the position of the legend
         _pylab.axes(axes) # set the current axes
-        _pylab.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
+        if len(axes.lines)>0: _pylab.legend(loc=[legend_position, 1.0*n/len(figure.get_axes())], borderpad=0.02, prop=_FontProperties(size=7))
 
         # set the label spacing in the legend
         if axes.get_legend():
@@ -186,7 +195,7 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
 
-        if autozoom: auto_zoom(axes)
+        if autozoom and not len(axes.lines)==0: auto_zoom(axes)
 
     # get the shell window
     shell_window = get_pyshell()
