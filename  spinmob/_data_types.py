@@ -667,7 +667,7 @@ class standard:
 
 
 
-    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', **kwargs):
+    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -679,8 +679,16 @@ class standard:
         format=True                 Format the axes/labels/legend/title when done plotting?
         coarsen=0                   Should we coarsen the data?
         yshift=0                    How much vertical artificial offset should we add?
-        linestyle="auto"            What type of line should we plot? "auto" means lines for data with no error
-                                    and symbols for data with error.
+
+        linestyle="auto"            What type of line should we plot?
+                                    "auto" means lines for data with no error and symbols
+                                    for data with error (using spinmob style object).
+                                    "style" means always use lines from spinmob style cycle
+
+        marker="auto"               What type of markers should we use?
+                                    "auto" means markers only for data with error, using spinmob style
+                                    "style" means definitely use markers from spinmob style
+                                    otherwise just specify a marker
 
         kwargs
 
@@ -750,35 +758,93 @@ class standard:
 
         if yshift: self.legend_string = self.legend_string + " ("+str(yshift)+")"
 
+
+
+
+        # Now figure out the list of arguments and plotting function
+
+
+
+        # default line and marker values
+        mec = None
+        mfc = None
+        line_color = None
+
+
+        # no yerror.
         if yerror == None:
-            if linestyle=='auto':
-                axes.plot(xdata, ydata + yshift, color = _pt.style.get_line_color(1), label=self.legend_string, linestyle='-', **plot_kwargs)
-                _pylab.draw()
-                axes.legend()
+            # if we're to use the style object to get the line attributes
+            if linestyle in ['auto', 'style']:
+                # get the linestyle from the style cycle
+                linestyle  = _pt.style.get_linestyle(1)
+                line_color = _pt.style.get_line_color(1)
 
-                # just to ease use, cycle through the markers and stuff too
-                _pt.style.get_marker(1)
-                _pt.style.get_face_color(1)
-                _pt.style.get_edge_color(1)
+            # only make markers without yerror if we're not in auto mode
+            if marker in ['auto']:
+                marker = ''
 
-            else:
-                axes.plot(xdata, ydata + yshift, color   = _pt.style.get_line_color(1), label=self.legend_string,
-                                             marker = _pt.style.get_marker(1),
-                                             mfc    = _pt.style.get_face_color(1),
-                                             mec    = _pt.style.get_edge_color(1),
-                                             mew    = 1.0,
-                                             linestyle = linestyle,
-                                             **plot_kwargs)
-                _pylab.draw()
+            # if we're forcing the use of style
+            elif marker in ['style']:
+                # get the marker attributes from the style cycle
+                marker = _pt.style.get_marker(1)
+                mfc    = _pt.style.get_face_color(1)
+                mec    = _pt.style.get_edge_color(1)
 
+            # otherwise, marker is already defined. Hopefully **plot_kwargs will override these values
+
+            # handle to plotting function
+            plotter = axes.plot
+
+        # we have error bars
         else:
-            axes.errorbar(xdata, ydata + yshift, color  = _pt.style.get_line_color(1), label=self.legend_string,
-                                        yerr   = yerror,
-                                        marker = _pt.style.get_marker(1),
-                                        mfc    = _pt.style.get_face_color(1),
-                                        mec    = _pt.style.get_edge_color(1),
-                                        mew    = 1.0, linestyle='',
-                                        **plot_kwargs)
+            # if we're in auto mode, NO LINES!
+            if linestyle in ['auto']:
+                linestyle  = ''
+                line_color = 'k'
+
+            # if we're forcing the style object
+            elif linestyle in ['style']:
+                linestyle  = _pt.style.get_linestyle(1)
+                line_color = _pt.style.get_line_color(1)
+
+            # otherwise it's specified. Default to blue and let **plot_kwargs override
+
+            # similarly for markers
+            if marker in ['auto', 'style']:
+                # get the marker attributes from the style cycle
+                marker = _pt.style.get_marker(1)
+                mfc    = _pt.style.get_face_color(1)
+                mec    = _pt.style.get_edge_color(1)
+
+            # otherwise it's specified
+
+            # handle to plotter and error argument
+            plotter = axes.errorbar
+            plot_kwargs['yerr'] = yerror
+
+        # only add these new arguments to plot_kwargs if they don't already exist
+        # we want to be able to supercede the style cycle
+        if  not plot_kwargs.has_key('color')           \
+        and not line_color == None:                     plot_kwargs['color']        = line_color
+
+        if  not plot_kwargs.has_key('linestyle')       \
+        and not plot_kwargs.has_key('ls'):              plot_kwargs['linestyle']    = linestyle
+
+        if  not plot_kwargs.has_key('marker'):          plot_kwargs['marker']       = marker
+
+        if  not plot_kwargs.has_key('mec')             \
+        and not plot_kwargs.has_key('markeredgecolor') \
+        and not mec==None:                              plot_kwargs['mec']          = mec
+
+        if  not plot_kwargs.has_key('mfc')             \
+        and not plot_kwargs.has_key('markerfacecolor') \
+        and not mfc==None:                              plot_kwargs['mfc']          = mfc
+
+        if  not plot_kwargs.has_key('markeredgewidth') \
+        and not plot_kwargs.has_key('mew'):             plot_kwargs['mew']          = 1.0
+
+        # actually do the plotting
+        plotter(xdata, ydata + yshift, label=self.legend_string, **plot_kwargs)
         axes.set_xlabel(self.xlabel)
         axes.set_ylabel(self.ylabel)
         axes.set_title(self.title)
