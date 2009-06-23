@@ -33,7 +33,7 @@ def _image():
     return data
 
 
-def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', linestyle='auto', legend_max="auto", paths="ask", plot='plot', coarsen=0, debug=0, data=_data.standard(), **kwargs):
+def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -41,12 +41,11 @@ def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1
     xscript, yscript    the scripts supplied to the data
     yshift=0.0          artificial yshift
     clear=1             clear existing plot first
-    line=''             line specifier for pylab
-    marker=''           symbol specifier for pylab
     yaxis='left'        if 'right', this will make an overlay axis on the right (also doesn't clear)
     paths='ask'         list of full paths to data files (or we'll ask for a list)
-    style=None          matplotlib plotting style, such as '-o'
     data                instance of data class used to extract plot from the files
+
+    **kwargs are sent to data.standard().plot()
 
     """
 
@@ -79,7 +78,7 @@ def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1
         # fill up the xdata, ydata, and key
         if debug: print "FILE: "+paths[m]
         data.load_file(paths[m])
-        data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, format=0, coarsen=coarsen, xscript=xscript, yscript=yscript, yerror=yerror, linestyle=linestyle)
+        data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, format=0, coarsen=coarsen, xscript=xscript, yscript=yscript, yerror=yerror, **kwargs)
 
         # now fix the legend up nice like
         if m > legend_max-2 and m != len(paths)-1:
@@ -286,7 +285,7 @@ def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axe
             y.append(f(z))
 
         # add the line to the plot
-        eval('axes.'+plot+'(x,y,color=style.get_line_color(1),label=f.__name__)')
+        eval('axes.'+plot+'(x, y, color=style.get_line_color(1), linestyle=style.get_linestyle(1), label=f.__name__)')
 
     if legend: axes.legend()
 

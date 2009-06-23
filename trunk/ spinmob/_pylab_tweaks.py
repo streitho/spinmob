@@ -1417,19 +1417,23 @@ def ginput(n=1, timeout=0, show=True, lines=False):
 # Style cycle, available for use in plotting
 #
 class style_cycle:
-    def __init__(self, line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=['k','r','b','g','m'], markers=['o']):
+    def __init__(self, line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=['k','r','b','g','m'], markers=['o'], linestyles=['-']):
         self.line_colors   = line_colors
         self.face_colors   = face_colors
         self.markers       = markers
+        self.linestyles    = linestyles
         self.edge_colors   = edge_colors
+
         self.line_colors_index  = 0
         self.markers_index      = 0
+        self.linestyles_index   = 0
         self.face_colors_index  = 0
         self.edge_colors_index  = 0
 
     def reset(self):
         self.line_colors_index  = 0
         self.markers_index      = 0
+        self.linestyles_index   = 0
         self.face_colors_index  = 0
         self.edge_colors_index  = 0
 
@@ -1469,6 +1473,24 @@ class style_cycle:
 
     def set_markers(self, markers=['o']):
         self.markers=markers
+        self.reset()
+
+    def get_linestyle(self, increment=1):
+        """
+        Returns the current marker, then increments the marker by what's specified
+        """
+
+        i = self.linestyles_index
+
+        self.linestyles_index += increment
+        if self.linestyles_index >= len(self.linestyles):
+            self.linestyles_index = self.linestyles_index-len(self.linestyles)
+            if self.linestyles_index >= len(self.linestyles): self.linestyles_index=0 # to be safe
+
+        return self.linestyles[i]
+
+    def set_linestyles(self, linestyles=['-']):
+        self.linestyles=linestyles
         self.reset()
 
     def get_face_color(self, increment=1):
@@ -1529,6 +1551,6 @@ class style_cycle:
         return self.get_line_color(increment)
 
 # this is the guy in charge of keeping track of the rotation of colors and symbols for plotting
-style = style_cycle(['k','r','b','g','m'],['k','r','b','g','m'], ['k','r','b','g','m'], ['o', '^', 's'])
+style = style_cycle(['k','r','b','g','m'],['k','r','b','g','m'], ['k','r','b','g','m'], ['o', '^', 's'], ['-'])
 
 
