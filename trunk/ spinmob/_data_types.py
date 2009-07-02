@@ -49,7 +49,7 @@ class standard:
     directory      = "default_directory"
     xlabel         = "xlabel"
     ylabel         = "ylabel"
-    legend_string  = "legend_string"
+    legend_string  = "(no legend_string set)"
     title          = "title"
     path           = "path"
 
@@ -182,7 +182,7 @@ class standard:
 
         # read in the header information
         if self.debug: print time.time()-t0, "seconds: start reading header"
-        ckeys_line = -1
+        ckeys_line = -2
         for n in range(len(self.lines)):
             # split the line by the delimiter
             s = self.lines[n].strip().split(self.delimiter)
@@ -248,7 +248,7 @@ class standard:
 
 
 
-        # at this point we've found the first_data_line, and ckeys_line is correct or -1
+        # at this point we've found the first_data_line, and ckeys_line is correct or -2
 
 
         # count the number of data columns
@@ -256,15 +256,20 @@ class standard:
 
         # check to see if ckeys line is first_data_line-1, and that it is equal in length to the
         # number of data columns. If it isn't, it's a false ckeys line
-        if not ckeys_line == first_data_line-1 or not len(self.ckeys) >= column_count:
-            # it is an invalid ckeys line. Generate our own!
-            self.ckeys = []
-            for m in range(0, column_count): self.ckeys.append("column_"+str(m))
-        else:
-            # otherwise it is valid.
+        if ckeys_line == first_data_line-1 and len(self.ckeys) >= column_count:
+            # it is valid.
             # if we have too many column keys, mention it
             if len(self.ckeys) > column_count:
                 print "Note: more ckeys than columns (stripping extras)"
+
+            # remove this line from the header
+            try:    self.pop_header(self.ckeys[0])
+            except: print "Couldn't pop column labels from header. Weird."
+
+        else:
+            # it is an invalid ckeys line. Generate our own!
+            self.ckeys = []
+            for m in range(0, column_count): self.ckeys.append("column_"+str(m))
 
 
         # for good measure, make sure to trim down the ckeys array to the size of the data columns
@@ -311,7 +316,7 @@ class standard:
         """
 
         if path=="ask": path = _dialogs.SingleFile(self.file_extension, default_directory=self.directory)
-        if path=="":
+        if path in ["", None]:
             print "Aborted."
             return False
 
@@ -336,6 +341,11 @@ class standard:
                     f.write("\n")
                 except:
                     print "header element '"+k+"' is an unknown type"
+
+        # now write the ckeys line
+        f.write("\n")
+        for ckey in self.ckeys: f.write(str(ckey)+delimiter)
+        f.write("\n")
 
         # now loop over the data
         for n in range(0, len(self[0])):
@@ -475,9 +485,9 @@ class standard:
 
         return self.columns[name]
 
-    def append_column(self, data_array, ckey='temp'):
+    def insert_column(self, data_array, ckey='temp', index='end'):
         """
-        This will append/overwrite a new column and fill it with the data from the
+        This will insert/overwrite a new column and fill it with the data from the
         the supplied array.
 
         If ckey is an integer, use self.ckeys[ckey]
@@ -489,11 +499,15 @@ class standard:
         # append/overwrite the column value
         self.columns[ckey] = _numpy.array(data_array)
         if not ckey in self.ckeys:
-            self.ckeys.append(ckey)
+            if index=='end':
+                self.ckeys.append(ckey)
+            else:
+                self.ckeys.insert(index, ckey)
 
-    def append_header(self, hkey, value):
+
+    def insert_header(self, hkey, value, index=0):
         """
-        This will append/overwrite a value to the header and hkeys.
+        This will insert/overwrite a value to the header and hkeys.
 
         If hkey is an integer, use self.hkeys[hkey]
         """
@@ -504,7 +518,10 @@ class standard:
         # set the data
         self.header[str(hkey)] = value
         if not hkey in self.hkeys:
-            self.hkeys.append(str(hkey))
+            if index=='end':
+                self.hkeys.insert(-1,str(hkey))
+            else:
+                self.hkeys.insert(index, str(hkey))
 
     def pop_header(self, hkey):
         """
@@ -574,6 +591,7 @@ class standard:
 
         # check if the script is simply an integer
         if type(script)==int:
+            if script<0: script = script+len(self.ckeys)
             return ["column"+str(script), {"column"+str(script):self[script]}]
 
 
@@ -820,7 +838,8 @@ class standard:
 
             # handle to plotter and error argument
             plotter = axes.errorbar
-            plot_kwargs['yerr'] = yerror
+            plot_kwargs['yerr']   = yerror
+            plot_kwargs['ecolor'] = mec
 
         # only add these new arguments to plot_kwargs if they don't already exist
         # we want to be able to supercede the style cycle
