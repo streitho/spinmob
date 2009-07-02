@@ -1417,6 +1417,7 @@ def ginput(n=1, timeout=0, show=True, lines=False):
 # Style cycle, available for use in plotting
 #
 class style_cycle:
+
     def __init__(self, line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=['k','r','b','g','m'], markers=['o'], linestyles=['-']):
         self.line_colors   = line_colors
         self.face_colors   = face_colors
@@ -1429,6 +1430,9 @@ class style_cycle:
         self.linestyles_index   = 0
         self.face_colors_index  = 0
         self.edge_colors_index  = 0
+
+    # binding for the user to easily re-initialize
+    initialize = __init__
 
     def reset(self):
         self.line_colors_index  = 0
