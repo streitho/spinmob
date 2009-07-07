@@ -387,7 +387,7 @@ class standard:
                 popped.append(data.pop(n))
 
                 # now set this column again
-                self.append_column(data, k)
+                self.insert_column(data, k)
 
         return popped
 
@@ -568,12 +568,6 @@ class standard:
             return self.columns.pop(self.ckeys.pop(ckey))
 
 
-    def coarsen_columns(self, level=1):
-        """
-        This just coarsens the data in all the columns.
-        """
-        for n in range(len(self)): self[n] = _fun.coarsen_array(self[n], level)
-
     def parse_script(self, script):
         """
         This takes a script such as "a/b where a=current, b=3.3" and returns
@@ -736,12 +730,13 @@ class standard:
             if yerror == "auto": yerror = yscript+"_error"
 
             # if yerror doesn't exist and we haven't specified no error
-            # set the error to none
+            # try to generate the column
             if  not yerror in self.columns.keys() \
             and not yerror==None                  \
             and not type(yerror) in [int,long]:
                 if self.debug: print yerror, "is not a column"
-                yerror=None
+                self.generate_column(yerror, "temp_yerror")
+                yerror="temp_yerror"
 
             [xpression, xvars] = self.parse_script(xscript)
             if xvars == None: return
