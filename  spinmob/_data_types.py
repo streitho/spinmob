@@ -322,6 +322,10 @@ class standard:
 
         self.path=path
 
+        # if the path exists, make a backup
+        if _os.path.exists(path):
+            _os.rename(path,path+".backup")
+
         # get the delimiter
         if self.delimiter==None: delimiter = "\t"
         else:                    delimiter = self.delimiter
@@ -679,7 +683,7 @@ class standard:
 
 
 
-    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', **kwargs):
+    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', label=None, **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -701,6 +705,8 @@ class standard:
                                     "auto" means markers only for data with error, using spinmob style
                                     "style" means definitely use markers from spinmob style
                                     otherwise just specify a marker
+
+        label=None                  None means use self.legend_string (usually file name)
 
         kwargs
 
@@ -769,7 +775,9 @@ class standard:
         if axes=="gca": axes = _pylab.gca()
         if clear: axes.clear()
 
-        if yshift: self.legend_string = self.legend_string + " ("+str(yshift)+")"
+        # modify the legend string
+        if label == None: label=self.legend_string
+        if yshift: label = label + " ("+str(yshift)+")"
 
 
 
@@ -858,7 +866,7 @@ class standard:
         and not plot_kwargs.has_key('mew'):             plot_kwargs['mew']          = 1.0
 
         # actually do the plotting
-        plotter(xdata, ydata + yshift, label=self.legend_string, **plot_kwargs)
+        plotter(xdata, ydata + yshift, label=label, **plot_kwargs)
         axes.set_xlabel(self.xlabel)
         axes.set_ylabel(self.ylabel)
         axes.set_title(self.title)
