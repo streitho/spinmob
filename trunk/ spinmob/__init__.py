@@ -45,7 +45,6 @@ import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
 import _fitting                        ;_fitting._prefs          = prefs
 import _common_math as math
 
-style = plot.tweaks.style
 
 # pull some of the common functions to the top
 printer                 = fun.printer

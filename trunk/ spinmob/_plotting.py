@@ -16,7 +16,6 @@ import _dialogs
 
 # for the user to get at
 tweaks = _pt
-style  = _pt.style
 
 
 #
@@ -285,7 +284,7 @@ def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axe
             y.append(f(z))
 
         # add the line to the plot
-        eval('axes.'+plot+'(x, y, color=style.get_line_color(1), linestyle=style.get_linestyle(1), label=f.__name__)')
+        eval('axes.'+plot+'(x, y, color=_pt.style.get_line_color(1), linestyle=style.get_linestyle(1), label=f.__name__)')
 
     if legend: axes.legend()
 
