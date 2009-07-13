@@ -1441,12 +1441,24 @@ def ginput(n=1, timeout=0, show=True, lines=False):
 #
 class style_cycle:
 
-    def __init__(self, line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=['k','r','b','g','m'], markers=['o'], linestyles=['-']):
+    def __init__(self, linestyles=['-'], markers=['s','^','o'], line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=None):
+        """
+        Set up the line/marker rotation cycles.
+
+        linestyles, markers, line_colors, and face_colors need to be lists,
+        and you can set edge_colors (markeredgecolor) to None to make it
+        the same as the marker_colors.
+        """
+
         self.line_colors   = line_colors
         self.face_colors   = face_colors
         self.markers       = markers
         self.linestyles    = linestyles
-        self.edge_colors   = edge_colors
+
+        if edge_colors in [None, []]:
+            self.edge_colors   = self.face_colors
+        else:
+            self.edge_colors   = edge_colors
 
         self.line_colors_index  = 0
         self.markers_index      = 0
@@ -1578,6 +1590,9 @@ class style_cycle:
         return self.get_line_color(increment)
 
 # this is the guy in charge of keeping track of the rotation of colors and symbols for plotting
-style = style_cycle(['k','r','b','g','m'],['k','r','b','g','m'], ['k','r','b','g','m'], ['o', '^', 's'], ['-'])
+style = style_cycle(line_colors= ['k','r','b','g','m'],
+                    face_colors= ['k','r','b','g','m'],
+                    markers    = ['o', '^', 's'],
+                    linestyles = ['-'])
 
 

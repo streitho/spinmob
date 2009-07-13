@@ -1,14 +1,15 @@
 import numpy as _numpy
 import pylab as _pylab
+import spinmob as _s
 
 from matplotlib.font_manager import FontProperties as _FontProperties
 from scipy import optimize as _optimize
 
-import _functions as _fun
-import _pylab_tweaks as _tweaks
-import _models
-import _dialogs
-import _data_types
+import _functions as _fun           ; reload(_fun)
+import _pylab_tweaks as _tweaks     ; reload(_tweaks)
+import _models                      ; reload(_models)
+import _dialogs                     ; reload(_dialogs)
+import _data_types                  ; reload(_data_types)
 
 
 
@@ -17,8 +18,8 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
 
     This selects a bunch of files, and fits them.
 
-    data                (class) data to extract from the files
-    model               (class) fitting class
+    data                (instance of class) data to extract from the files
+    model               (instance of class) fitting class
     show_guess          show the guess on the fit plots
     skip_first_try      skip the first optimization attempt
     clear_plot=1        should we clear the plot each time?
@@ -126,7 +127,8 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
             else:                      model.skip_next_optimization=0
 
             # fill up the xdata, ydata, and key
-            data.get_data(paths[model.m])
+            data.load_file(paths[model.m])
+            data.get_data()
 
             # now for each key, print the value in the fit file
             for k in key_names:  _fun.append_to_file(fit_file, str(data.constants[k]).replace(' ', '_') + ' ');
@@ -218,7 +220,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
 
         # p means print
         elif command == 'p':
-            printer()
+            _s.printer()
             ask_again = True
 
         # q means quit everything
