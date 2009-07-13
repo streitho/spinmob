@@ -396,6 +396,24 @@ def image_click_yshift(axes = "gca"):
     except:
         print "whoops"
 
+def image_shift(xshift=0, yshift=0, axes="gca"):
+    """
+    This will shift an image to a new location on x and y.
+    """
+
+    if axes=="gca": axes = _pylab.gca()
+
+    e = axes.images[0].get_extent()
+
+    e[0] = e[0] + xshift
+    e[1] = e[1] + xshift
+    e[2] = e[2] + yshift
+    e[3] = e[3] + yshift
+
+    axes.images[0].set_extent(e)
+
+    _pylab.draw()
+
 
 
 def image_set_clim(vmin=None, vmax=None, axes="gca"):
@@ -410,7 +428,7 @@ def image_set_clim(vmin=None, vmax=None, axes="gca"):
 
     _pylab.draw()
 
-def image_ubertidy(figure="gcf"):
+def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial'):
 
     if figure=="gcf": figure = _pylab.gcf()
 
@@ -425,11 +443,16 @@ def image_ubertidy(figure="gcf"):
         a.frame.set_linewidth(3.0)
         a.set_frame_on(True) # adds a thick border to the colorbar
 
-        _pylab.xticks(fontsize=18, fontweight='bold', fontname='Arial')
-        _pylab.yticks(fontsize=18, fontweight='bold', fontname='Arial')
+        _pylab.xticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
+        _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
-        image_set_aspect(1.0)
+        image_set_aspect(aspect)
         get_figure_window().SetSize((550,500))
+
+        # we want to give the labels some breathing room (1% of the data range)
+        for label in _pylab.xticks()[1]: label.set_y(-0.010)
+        for label in _pylab.yticks()[1]: label.set_x(-0.008)
+
 
         # thicken the tick lines
         for l in a.get_xticklines(): l.set_markeredgewidth(2.0)
@@ -913,7 +936,7 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     # zoom to surround the data properly
     auto_zoom()
 
-def ubertidy(figure="gcf", zoom=True, width=1, height=1):
+def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontname='Arial', fontsize=20, fontweight='bold'):
     """
 
     This guy performs the ubertidy from the helper on the first window.
@@ -953,12 +976,12 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1):
     a.yaxis.tick_left()
 
     # we want bold fonts
-    _pylab.xticks(fontsize=20, fontweight='bold', fontname='Arial')
-    _pylab.yticks(fontsize=20, fontweight='bold', fontname='Arial')
+    _pylab.xticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
+    _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
     # we want to give the labels some breathing room (1% of the data range)
-    for label in _pylab.xticks()[1]: label.set_y(-0.02)
-    for label in _pylab.yticks()[1]: label.set_x(-0.01)
+    for label in _pylab.xticks()[1]: label.set_y(-0.018)
+    for label in _pylab.yticks()[1]: label.set_x(-0.013)
 
     # set the position/size of the axis in the window
     a.set_position([0.15,0.17,0.15+width*0.4,0.17+height*0.5])
