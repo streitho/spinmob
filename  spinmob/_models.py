@@ -423,6 +423,45 @@ class sine(model_base):
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
 
+class sine_stretched_3(model_base):
+
+    pnames = ["A", "a", "b", "c", "x0","y0"]
+
+    # this must return an array!
+    def background(self, p, x):
+        return p[3]+0*x # must return an array
+
+    def evaluate(self, p, x):
+        return p[0]*_numpy.sin(2*pi*(p[1]*(x-p[4]) + p[2]*(x-p[4])**2 + p[3]*(x-p[4])**3)) + p[5]
+
+    def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
+        # first get the appropriate size array
+        p=self.p0
+
+        # guess the offset
+        p[5] = (max(ydata)+min(ydata))/2.0
+
+        # guess the amplitude
+        p[0] = (max(ydata)-min(ydata))/2.0
+
+        # guess the wavelength and phase
+        n1 = _fun.index_next_crossing(p[5],ydata,0)
+        n2 = _fun.index_next_crossing(p[5],ydata,n1+3)
+        if n1<0 or n2<0:
+            p[1] = 3./(xdata[-1]-xdata[0])
+            p[4] = 0
+        else:
+            p[1] = 1.0/(xdata[n2]-xdata[n1])
+            p[4] = -2*pi*xdata[n1]/p[1]
+
+        # assume not stretched much initially
+        p[2] = 0
+        p[3] = 0
+
+        # write these values to self.p0, but avoid the guessed_list
+        self.write_to_p0(p)
+
+
 
 class sine_plus_linear(model_base):
 

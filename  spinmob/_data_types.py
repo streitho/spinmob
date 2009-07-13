@@ -447,7 +447,7 @@ class standard:
 
 
 
-    def generate_column(self, script, name="temp"):
+    def generate_column(self, script, name="temporary"):
         """
         Generates a new column of your specification.
 
@@ -471,6 +471,9 @@ class standard:
         accidentally shortcut your way into using a column instead of a constant!
         Use "2.0*a where a=c(F)" instead.
 
+        NOTE: You shouldn't try to use variables like 'c=...' or 'h=...' because
+        they are already column and header functions!
+
         """
         if self.debug: print "Generating column '"+name+"' = "+script+"..."
 
@@ -488,6 +491,23 @@ class standard:
             self.ckeys.append(name)
 
         return self.columns[name]
+
+    def get_data(self):
+        """
+        This function is mostly used for the fitting routine, whose only
+        restriction on the data class is that it can load_file(), and get_data()
+        storing the results in self.xdata, self.ydata, self.yerror.
+
+        It has no parameters because the fit function doesn't need to know.
+        Uses self.xscript, self.yscript, and self.eyscript.
+        """
+
+        self.xdata  = self.generate_column(self.xscript)
+        self.ydata  = self.generate_column(self.yscript)
+        self.eydata = self.generate_column(self.eyscript)
+        self.xlabel = self.xscript
+        self.ylabel = self.yscript
+
 
     def insert_column(self, data_array, ckey='temp', index='end'):
         """
@@ -526,6 +546,21 @@ class standard:
                 self.hkeys.insert(-1,str(hkey))
             else:
                 self.hkeys.insert(index, str(hkey))
+
+    def insert_global(self, thing, name=None):
+        """
+        Appends or overwrites the supplied object in the self.extra_globals.
+
+        Use this to expose generate_column() or parse_script() etc... to external
+        objects and functions.
+
+        If name=None, use thing.__name__
+        """
+
+        if name==None: name=thing.__name__
+        self.extra_globals[name] = thing
+
+
 
     def pop_header(self, hkey):
         """
