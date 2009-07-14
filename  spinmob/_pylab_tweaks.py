@@ -428,7 +428,7 @@ def image_set_clim(vmin=None, vmax=None, axes="gca"):
 
     _pylab.draw()
 
-def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial'):
+def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial', window_size=(550,500)):
 
     if figure=="gcf": figure = _pylab.gcf()
 
@@ -447,7 +447,7 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
         _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
         image_set_aspect(aspect)
-        get_figure_window().SetSize((550,500))
+        get_figure_window().SetSize(window_size)
 
         # we want to give the labels some breathing room (1% of the data range)
         for label in _pylab.xticks()[1]: label.set_y(-0.010)
@@ -910,28 +910,27 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
 
     # loop over the lines and trim the data
     for line in lines:
-        if isinstance(line, _mpl.lines.Line2D):
-            # get the actual data values
-            old_xdata = line.get_xdata()
-            old_ydata = line.get_ydata()
+        # get the actual data values
+        old_xdata = line.get_xdata()
+        old_ydata = line.get_ydata()
 
-            # loop over the xdata and trim if it's outside the range
-            new_xdata = []
-            new_ydata = []
-            for n in range(0, len(old_xdata)):
-                # if it's in the data range
-                if  old_xdata[n] >= xmin and old_xdata[n] <= xmax \
-                and old_ydata[n] >= ymin and old_ydata[n] <= ymax:
-                    # append it to the new x and y data set
-                    new_xdata.append(old_xdata[n])
-                    new_ydata.append(old_ydata[n])
+        # loop over the xdata and trim if it's outside the range
+        new_xdata = []
+        new_ydata = []
+        for n in range(0, len(old_xdata)):
+            # if it's in the data range
+            if  old_xdata[n] >= xmin and old_xdata[n] <= xmax \
+            and old_ydata[n] >= ymin and old_ydata[n] <= ymax:
+                # append it to the new x and y data set
+                new_xdata.append(old_xdata[n])
+                new_ydata.append(old_ydata[n])
 
-            # don't do anything if we don't have any data left
-            if len(new_xdata) == 0:
-                print "There's nothing left in "+str(line)+"!"
-            else:
-                # otherwise set the data with the new arrays
-                line.set_data(new_xdata, new_ydata)
+        # don't do anything if we don't have any data left
+        if len(new_xdata) == 0:
+            print "There's nothing left in "+str(line)+"!"
+        else:
+            # otherwise set the data with the new arrays
+            line.set_data(new_xdata, new_ydata)
 
     # zoom to surround the data properly
     auto_zoom()
