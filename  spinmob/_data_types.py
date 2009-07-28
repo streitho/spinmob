@@ -999,12 +999,11 @@ class standard:
         for n in range(len(Z[0])): Y.append(n)
         self.ylabel = "y-step number"
 
-        # if we're supposed to, pop off the column (X-axis) labels
+        # if we're supposed to, pop off the top row for the x-axis values
         if xaxis == "first":
             X = []
             for n in range(len(Z)):
-                X.append(Z[n][0])
-                Z[n] = Z[n].take(range(1,len(Z[n])))
+                X.append(Z[n].pop(0))
             self.xlabel = "x-values"
 
         # otherwise, if we specified a row from the header, use that
@@ -1042,31 +1041,7 @@ class standard:
 
         return
 
-    def plot_pseudocolor(self, map="Blues"):
-        """
-        This is ridiculously slow, but it is useful if you have oddly-spaced data!
-        It is not heavily developed because I tend to stretch matrices and use
-        plot_image() instead.
-        """
-
-        # if we don't have the data, tell the user
-        if self.X == None or self.Y == None or self.Z == None:
-            print "You haven't assembled the surface data yet. Use get_XYZ first!"
-            return
-
-        # try the user's colormap
-        try:
-            colormap = eval("_pylab.cm."+map)
-        except:
-            print "ERROR: Invalid colormap, using default."
-            colormap = _pylab.cm.Blues
-
-        # at this point we have X, Y, Z and a colormap, so plot the bitch.
-        a = _pylab.gca()
-        a.clear()
-        _pylab.pcolor(self.X,self.Y, self.Z.transpose(), cmap=colormap)
-
-    def plot_image(self, map="Blues", aspect=1.0, **kwargs):
+    def plot_image(self, cmap="Blues", aspect=1.0, **kwargs):
         """
         This is 8 million times faster than pseudocolor I guess, but it won't handle unevenly spaced stuff.
 
@@ -1080,7 +1055,7 @@ class standard:
 
         # try the user's colormap
         try:
-            colormap = eval("_pylab.cm."+map)
+            colormap = eval("_pylab.cm."+cmap)
         except:
             print "ERROR: Invalid colormap, using default."
             colormap = _pylab.cm.Blues
@@ -1089,13 +1064,22 @@ class standard:
         x_width = float(self.X[-1] - self.X[0])/(len(self.X)-1)
         y_width = float(self.Y[-1] - self.Y[0])/(len(self.Y)-1)
 
+        # reverse Y and Z
+        X = self.X
+        Y = list(self.Y); Y.reverse(); Y = _numpy.array(Y)
+        Z = self.Z.transpose()
+
+        #Y = list(self.Y); Y.reverse(); Y = _numpy.array(Y)
+        #Z = list(self.Z.transpose()); Z=_numpy.array(Z).transpose()
+        #Z = list(Z); Z.reverse(); Z=_numpy.array(Z)
+
         # at this point we have X, Y, Z and a colormap, so plot the mf.
         f=_pylab.gcf()
         f.clear()
-        _pylab.imshow(self.Z.transpose(), cmap=colormap,
-                      aspect=abs(aspect*float(self.X[len(self.Z)-1]-self.X[0])/float(self.Y[len(self.Z[0])-1]-self.Y[0])),
-                      extent=[self.X[0]-x_width/2.0, self.X[len(self.Z   )-1]+x_width/2.0,
-                              self.Y[len(self.Z[0])-1]+y_width/2.0, self.Y[0]-y_width/2.0], **kwargs)
+        _pylab.imshow(Z, cmap=colormap,
+                      aspect=abs(aspect*float(X[-1]-X[0])/float(Y[-1]-Y[0])),
+                      extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
+                              Y[0]+y_width/2.0, Y[-1]-y_width/2.0], **kwargs)
 
         # set the title and labels
         self.title = self.path
