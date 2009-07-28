@@ -302,7 +302,7 @@ def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axe
     return axes
 
 
-def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
+def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, **kwargs):
     """
     Generates an image plot
 
@@ -312,22 +312,35 @@ def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1):
 
     fig = _pylab.gcf()
     fig.clear()
+    axes = _pylab.axes()
 
     # generate the 3d axes
-    axes = _pylab.gca()
+    d=_data.standard()
+    d.X = _fun.frange(xmin,xmax,1.0*(xmax-xmin)/(len(zgrid)-1))
+    d.Y = _fun.frange(ymin,ymax,1.0*(ymax-ymin)/(len(zgrid[0])-1))
+    d.Z = zgrid
 
-    axes.imshow(zgrid, interpolation='bilinear', origin='lower', cmap=_mpl.cm.hot, extent=(xmin,xmax,ymin,ymax), aspect=1.0)
+    # now reverse the Y-axis
+    d.Y = list(d.Y);             d.Y.reverse(); d.Y = _numpy.array(d.Y)
+    d.Z = list(d.Z.transpose()); d.Z.reverse(); d.Z = _numpy.array(d.Z).transpose()
+
+
+    d.path = ""
+    d.xlabel = "X"
+    d.ylabel = "Y"
+
+    d.plot_image(**kwargs)
 
     _pt.raise_figure_window()
     _pt.raise_pyshell()
 
-    _pt.close_sliders();
+    _pt.close_sliders()
     _pt.gui_colormap()
     _pt.image_set_aspect(1.0)
     _pylab.draw()
-    return axes
+    return d
 
-def surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
+def surface_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, **kwargs):
     """
     Plots a 2-d function over the specified range
 
@@ -338,11 +351,11 @@ def surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
     """
 
     # generate the grid x and y coordinates
-    xones = _numpy.linspace(1,1,xsteps)
+    xones = _numpy.linspace(1,1,ysteps)
     x     = _numpy.linspace(xmin, xmax, xsteps)
     xgrid = _numpy.outer(xones, x)
 
-    yones = _numpy.linspace(1,1,ysteps)
+    yones = _numpy.linspace(1,1,xsteps)
     y     = _numpy.linspace(ymin, ymax, ysteps)
     ygrid = _numpy.outer(y, yones)
 
@@ -361,13 +374,12 @@ def surface_function(f, xmin, xmax, ymin, ymax, xsteps=50, ysteps=50):
 
         zgrid = _numpy.array(zgrid)
 
-
+    # use the convention that zgrid[0] corresponds to the zeroth vertical column
+    # (i.e. the first index is the x-index)
+    zgrid=zgrid.transpose()
 
     # now plot!
-    axes = surface_data(zgrid,xmin,xmax,ymin,ymax)
-
-    axes.set_xlabel("x")
-    axes.set_ylabel("y")
+    axes = surface_data(zgrid,xmin,xmax,ymin,ymax,**kwargs)
 
     _pylab.draw()
     _pt.raise_figure_window()
