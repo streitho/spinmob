@@ -332,7 +332,7 @@ def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, **kwargs):
     _pt.gui_colormap()
     _pt.image_set_aspect(1.0)
     _pylab.draw()
-    return d
+    return axes
 
 def surface_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, **kwargs):
     """
