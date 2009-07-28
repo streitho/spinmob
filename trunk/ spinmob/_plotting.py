@@ -234,13 +234,7 @@ def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
-        eval('axes.'+plot+'(xdata[n], ydata[n],  label=l, \
-              color=    _pt.style.get_line_color(1),        \
-              linestyle=_pt.style.get_linestyle(1),         \
-              marker   =_pt.style.get_marker(1),            \
-              mfc      =_pt.style.get_face_color(1),        \
-              mec      =_pt.style.get_edge_color(1),        \
-              **kwargs)')
+        eval('axes.'+plot+'(xdata[n], ydata[n],  label=l, **kwargs)')
 
     axes.legend(loc='best')
     axes.set_xlabel(xlabel)
@@ -251,7 +245,7 @@ def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1
     if draw: _pylab.draw()
     return axes
 
-def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot'):
+def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot', **kwargs):
     """
 
     Plots the function over the specified range
@@ -290,7 +284,7 @@ def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axe
             y.append(f(z))
 
         # add the line to the plot
-        eval('axes.'+plot+'(x, y, color=_pt.style.get_line_color(1), linestyle=_pt.style.get_linestyle(1), label=f.__name__)')
+        eval('axes.'+plot+'(x, y, label=f.__name__, **kwargs)')
 
     if legend: axes.legend()
 
