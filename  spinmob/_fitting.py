@@ -35,6 +35,7 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
     model.show_guess     = show_guess
     model.show_error     = show_error
     model.skip_first_try = skip_first_try
+    model.hold           = 0
     model.last_command   = ''
     model.have_a_guess   = 0
     model.clear_plot     = clear_plot
@@ -278,6 +279,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             print "max               data to include in the fit maximum"
             print "xb1               first x-value of data to estimate background during guess"
             print "xb2               second x-value of data to estimate background during guess"
+            print "hold              don't do a fit until this is 0"
             print "skip_first_try    should we skip the first optimization attempts?"
             print "subtract          should we subtract the background?"
             print "show_guess        should we plot the guess?"
@@ -355,6 +357,8 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                     elif variable == 'max': # max data range
                         xmax = value
                         x_background_index2 = -2
+                    elif variable == 'hold':
+                        model.hold = value
                     elif variable == 'skip_first_try': # should we skip the first optimization attempt?
                         model.skip_first_try = value
                     elif variable == 'subtract': # should we subtract the background when plotting?
@@ -400,8 +404,8 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             # trim the data down into new arrays
             [x, y, ye] = _fun.trim_data(data.xdata, smooth_ydata, data.eydata, [xmin, xmax])
 
-            if len(x) <= 2: # need at least 3 data points
-                print "not enough data, assface"
+            if len(x) <= len(model.p0)+1: # need at least 3 data points
+                print "not enough data to fit!"
                 model.skip_next_optimization = 1
 
 
@@ -416,10 +420,11 @@ def interactive_fitting_loop(model, data, auto_fast=False):
 
             # now fit!
             pfit = {}
+            if model.hold: model.skip_next_optimization = 1
+
             if model.skip_next_optimization:
                 print "SKIPPING OPTIMIZATION..."
                 pfit["parameters"] = model.p0
-                model.skip_next_optimization = 0;
             else:
                 print "OPTIMIZING..."
 
@@ -508,10 +513,16 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 yguess.append(model.evaluate(model.p0, z))
                 yback.append(model.background(pfit["parameters"], z))
                 yguessback.append(model.background(model.p0, z))
-            yfit        = _numpy.array(yfit)
-            yguess      = _numpy.array(yguess)
-            yback       = _numpy.array(yback)
-            yguessback  = _numpy.array(yback)
+
+            # sort the fit results in case the data is jaggy.
+            matrix_to_sort = _numpy.array([x_plot, yfit, yguess, yback, yguessback])
+            sorted_matrix = _fun.sort_matrix(matrix_to_sort, 0)
+
+            xfit        = sorted_matrix[0]
+            yfit        = sorted_matrix[1]
+            yguess      = sorted_matrix[2]
+            yback       = sorted_matrix[3]
+            yguessback  = sorted_matrix[4]
 
 
             if model.subtract:
@@ -522,7 +533,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 yback  = yback*0.0
                 yguessback = yguessback*0.0
 
-            # now plot the bitch!
+            # now plot!
 
             # get rid of the old plot
             if model.clear_plot:
@@ -532,21 +543,28 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             # plot the data, fit, background
             # if we're supposed to, plot the guess too
             if model.show_guess:
-                axes.plot(x_plot,yguess,     color='gray', label='guess')
-                axes.plot(x_plot,yguessback, color='gray', label='guess background')
-            axes.plot(x_plot, yback, color='red', label='fit background')
+                axes.plot(xfit , yguess,     color='gray', label='guess')
+                axes.plot(xfit,  yguessback, color='gray', label='guess background')
+            axes.plot(xfit, yback, color='red', label='fit background')
 
-            if ye_plot==None or not model.show_error:
+            # plot the actual data
+
+            # if there's no error data, or we're not supposed to show it, or we're on hold, just plot the raw data
+            if ye_plot==None or not model.show_error or model.skip_next_optimization:
                   axes.plot    (x_plot, y_plot,          linestyle='', marker='D', mfc='blue', mec='w', label='data')
+
+            # otherwise plot with error bars
             else: axes.errorbar(x_plot, y_plot, ye_plot, linestyle='', marker='D', mfc='blue', mec='w', label='data')
 
-            axes.plot(x_plot, yfit,  color='red', label='fit')
+            # now plot the fit
+            axes.plot(xfit, yfit,  color='red', label='fit')
 
 
             # now plot the residuals on the upper graph
-            axes2.plot(x_plot, 0*x_plot, linestyle='-', color='k')
-            axes2.errorbar(x_plot, (y_plot-yfit)/ye_plot, ye_plot*0+1, linestyle='', marker='o', mfc='blue', mec='w')
-            axes2.xaxis.set_ticklabels([])
+            if not model.skip_next_optimization:
+                axes2.plot(x_plot, 0*x_plot, linestyle='-', color='k')
+                axes2.errorbar(x_plot, (y_plot-yfit)/ye_plot, ye_plot*0+1, linestyle='', marker='o', mfc='blue', mec='w')
+                axes2.xaxis.set_ticklabels([])
 
             # come up with a title
             title1 = []
@@ -557,21 +575,23 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             # second line of the title is the model
             title2 = str(data.__class__) + ", " + str(model.__class__)
 
-            title3 = []
-            for i in range(0,len(model.pnames)):
-                title3.append(model.pnames[i]+"=%(p).4g+/-%(pe).2g" %{"p":pfit["parameters"][i], "pe":pfit["errors"][i]})
-            title3 = _fun.join(title3,", ")
+            title3 = "(no fit performed)"
+            if not model.skip_next_optimization:
+                title3 = []
+                for i in range(0,len(model.pnames)):
+                    title3.append(model.pnames[i]+"=%(p).4g+/-%(pe).2g" %{"p":pfit["parameters"][i], "pe":pfit["errors"][i]})
+                title3 = _fun.join(title3,", ")
 
-            # ask if it looks nice
-            for j in range(0, len(pfit["parameters"])):
-                print model.pnames[j]+' = '+str(pfit["parameters"][j])+" +/- "+str(pfit["errors"][j])
+                # ask if it looks nice
+                for j in range(0, len(pfit["parameters"])):
+                    print model.pnames[j]+' = '+str(pfit["parameters"][j])+" +/- "+str(pfit["errors"][j])
 
             axes2.set_title(title1+"\n"+title2+"\nFIT: "+title3)
             axes.set_xlabel(data.xlabel)
             axes.set_ylabel(data.ylabel)
 
             # set the position of the legend
-            axes.legend(loc=[1.01,0], pad=0.02, prop=_FontProperties(size=7))
+            axes.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
 
             # set the label spacing in the legend
             axes.get_legend().labelsep = 0.01
@@ -582,11 +602,16 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             axes2.title.set_position([1.0,1.010])
 
             _tweaks.auto_zoom(axes)
-            _tweaks.auto_zoom(axes2)
+
+            if not model.skip_next_optimization:
+                _tweaks.auto_zoom(axes2)
 
             # update the plot
             _pylab.draw()
 
+
+            if model.skip_next_optimization:
+                model.skip_next_optimization = 0;
 
 
 
