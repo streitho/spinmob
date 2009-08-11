@@ -13,8 +13,6 @@ import _dialogs                       ;reload(_dialogs)
 
 
 
-
-
 #
 # This is the base class, which currently rocks.
 #
