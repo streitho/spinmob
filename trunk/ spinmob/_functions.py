@@ -623,8 +623,8 @@ def smooth_array(array, amount=1):
 
 def sort_matrix(a,n=0):
     """
-    This will rearrange a[n] from lowest to highest, and
-    rearrange the rest in the same way.
+    This will rearrange the array a[n] from lowest to highest, and
+    rearrange the rest of a[i]'s in the same way.
 
     This modifies the array AND returns it.
     """

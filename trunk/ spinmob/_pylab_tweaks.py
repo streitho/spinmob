@@ -892,7 +892,7 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     This function just removes all data from the plots that
     is outside of the [xmin,xmax,ymin,ymax] range.
 
-    "auto" means "determine from the current axes's range
+    "auto" means "determine from the current axes's range"
 
     """
 
@@ -931,6 +931,23 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
         else:
             # otherwise set the data with the new arrays
             line.set_data(new_xdata, new_ydata)
+
+
+    # loop over the collections, where the vertical parts of the error bars are stored
+    for c in axes.collections:
+
+        # loop over the paths and pop them if they're bad
+        for n in range(len(c._paths)-1,-1,-1):
+
+            # loop over the vertices
+            naughty = False
+            for v in c._paths[n].vertices:
+                # if the path contains any vertices outside the trim box, kill it!
+                if v[0] < xmin or v[0] > xmax or v[1] < ymin or v[1] > ymax:
+                    naughty=True
+
+            # BOOM
+            if naughty: c._paths.pop(n)
 
     # zoom to surround the data properly
     auto_zoom()
@@ -1080,7 +1097,7 @@ def save_plot(axes="gca", path="ask"):
     global line_attributes
 
     # choose a path to save to
-    if path=="ask": path = _dialog.Save("*.plot", default_directory="save_plot_default_directory")
+    if path=="ask": path = _dialogs.Save("*.plot", default_directory="save_plot_default_directory")
 
     if path=="":
         print "aborted."
