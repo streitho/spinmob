@@ -428,11 +428,13 @@ def image_set_clim(vmin=None, vmax=None, axes="gca"):
 
     _pylab.draw()
 
-def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial', window_size=(550,500)):
+def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial', ylabel_pad=0.007, xlabel_pad=0.010, colorlabel_pad=0.1, borderwidth=3.0, window_size=(550,500)):
 
     if figure=="gcf": figure = _pylab.gcf()
 
+    # do this to both axes
     for a in figure.axes:
+        _pylab.axes(a)
 
         # remove the labels
         a.set_title("")
@@ -440,23 +442,33 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
         a.set_ylabel("")
 
         # thicken the border
-        a.frame.set_linewidth(3.0)
+        a.frame.set_linewidth(borderwidth)
         a.set_frame_on(True) # adds a thick border to the colorbar
 
+        # these two cover the main plot
         _pylab.xticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
         _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
-        image_set_aspect(aspect)
-        get_figure_window().SetSize(window_size)
-
-        # we want to give the labels some breathing room (1% of the data range)
-        for label in _pylab.xticks()[1]: label.set_y(-0.010)
-        for label in _pylab.yticks()[1]: label.set_x(-0.008)
-
-
         # thicken the tick lines
-        for l in a.get_xticklines(): l.set_markeredgewidth(2.0)
-        for l in a.get_yticklines(): l.set_markeredgewidth(2.0)
+        for l in a.get_xticklines(): l.set_markeredgewidth(borderwidth*0.8)
+        for l in a.get_yticklines(): l.set_markeredgewidth(borderwidth*0.8)
+
+    # switch to the colorbar axes
+    _pylab.axes(figure.axes[1])
+    for label in _pylab.yticks()[1]: label.set_x(1+colorlabel_pad)
+
+
+    # switch back to the main axes
+    _pylab.axes(figure.axes[0])
+
+    image_set_aspect(aspect)
+    get_figure_window().SetSize(window_size)
+
+    # we want to give the labels some breathing room (1% of the data range)
+    for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
+    for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
+
+
 
     _pylab.draw()
 
