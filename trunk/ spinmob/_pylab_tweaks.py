@@ -428,7 +428,7 @@ def image_set_clim(vmin=None, vmax=None, axes="gca"):
 
     _pylab.draw()
 
-def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial', ylabel_pad=0.007, xlabel_pad=0.010, colorlabel_pad=0.1, borderwidth=3.0, window_size=(550,500)):
+def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fontname='Arial', ylabel_pad=0.007, xlabel_pad=0.010, colorlabel_pad=0.1, borderwidth=3.0, tickwidth=2.0, window_size=(550,500)):
 
     if figure=="gcf": figure = _pylab.gcf()
 
@@ -450,12 +450,21 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
         _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
         # thicken the tick lines
-        for l in a.get_xticklines(): l.set_markeredgewidth(borderwidth*0.8)
-        for l in a.get_yticklines(): l.set_markeredgewidth(borderwidth*0.8)
+        for l in a.get_xticklines(): l.set_markeredgewidth(tickwidth)
+        for l in a.get_yticklines(): l.set_markeredgewidth(tickwidth)
+
+
+
 
     # switch to the colorbar axes
     _pylab.axes(figure.axes[1])
+
     for label in _pylab.yticks()[1]: label.set_x(1+colorlabel_pad)
+    x=_pylab.gca().get_position()
+    x.bounds = (0.762,0.1,0.03,0.8)
+    _pylab.gca().set_position(x)
+
+
 
 
     # switch back to the main axes
@@ -1093,7 +1102,7 @@ def export_figure(dpi=200, figure="gcf", path="ask"):
     """
     if figure=="gcf": figure = _pylab.gcf()
 
-    if path=="ask": path = _dialog.Save("*.*", default_directory="save_plot_default_directory")
+    if path=="ask": path = _dialogs.Save("*.*", default_directory="save_plot_default_directory")
 
     if path=="":
         print "aborted."
