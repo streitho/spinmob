@@ -503,7 +503,16 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 y_plot  = _numpy.array(y)
                 ye_plot = _numpy.array(ye)
 
+            # sort the data results in case the data is jaggy.
+            matrix_to_sort = _numpy.array([x_plot, y_plot, ye_plot])
+            sorted_matrix = _fun.sort_matrix(matrix_to_sort, 0)
+            x_plot  = sorted_matrix[0]
+            y_plot  = sorted_matrix[1]
+            ye_plot = sorted_matrix[2]
+
+
             # loop over the x-data and get the other curves to plot
+            xfit        = x_plot
             yfit        = []
             yguess      = []
             yback       = []
@@ -513,17 +522,6 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 yguess.append(model.evaluate(model.p0, z))
                 yback.append(model.background(pfit["parameters"], z))
                 yguessback.append(model.background(model.p0, z))
-
-            # sort the fit results in case the data is jaggy.
-            matrix_to_sort = _numpy.array([x_plot, yfit, yguess, yback, yguessback])
-            sorted_matrix = _fun.sort_matrix(matrix_to_sort, 0)
-
-            xfit        = sorted_matrix[0]
-            yfit        = sorted_matrix[1]
-            yguess      = sorted_matrix[2]
-            yback       = sorted_matrix[3]
-            yguessback  = sorted_matrix[4]
-
 
             if model.subtract:
                 print "subtracting the background..."

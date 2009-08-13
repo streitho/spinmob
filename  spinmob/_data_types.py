@@ -56,7 +56,7 @@ class standard:
     file_extension = "*"    # when asking the user for a file, use this as the filter
 
     constants = {"file":0}  # This is not used much, but holds random info, like the file name or whatever else you like
-    header  = {}            # this dictionary will hold the header information
+    headers = {}            # this dictionary will hold the header information
     columns = {}            # this dictionary will hold the data columns
     ckeys   = []            # we need a special list of column keys to keep track of their order during data assembly
     hkeys   = []            # ordered list of header keys
@@ -70,13 +70,19 @@ class standard:
         return self.c(column)
 
     def __getitem__(self, n):
-        return self.columns[self.ckeys[n]]
+        try:
+            return self.columns[self.ckeys[n]]
+        except:
+            return self(n)
 
     def __setitem__(self, n, x):
         """
         set's the n'th column to x
         """
-        self.columns[self.ckeys[n]] = x
+        if type(n) == str:
+            self.insert_column(data_array=x, ckey=n, index='end')
+        else:
+            self.columns[self.ckeys[n]] = _numpy.array(x)
 
 
     def __len__(self):
@@ -126,7 +132,7 @@ class standard:
     #
     def load_file(self, path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEPANTS.", default_directory=None):
         """
-        This will load a file, storing the header info in self.header, and the data in
+        This will load a file, storing the header info in self.headers, and the data in
         self.columns
 
         If first_data_line="auto", then the first data line is assumed to be the first line
@@ -147,11 +153,8 @@ class standard:
         if self.debug: print "resetting all the file-specific stuff, path =", path
         self.constants = {"file":0}
 
-        self.columns = {}
-        self.ckeys  = []
-
-        self.header  = {}
-        self.hkeys   = []
+        self.clear_columns()
+        self.clear_headers()
 
         self.xdata   = None
         self.ydata   = None
@@ -179,7 +182,7 @@ class standard:
 
 
         # read in the header information
-        if self.debug: print time.time()-t0, "seconds: start reading header"
+        if self.debug: print time.time()-t0, "seconds: start reading headers"
         ckeys_line = -2
         for n in range(len(self.lines)):
             # split the line by the delimiter
@@ -208,8 +211,8 @@ class standard:
                 # Also assume it is a header line. Here should be at least two elements in a header element
                 if len(s) == 2:
                     # If there are exactly two elemenents, just store the header constant
-                    try:    self.header[s[0]] = float(s[1]) # this one is a number
-                    except: self.header[s[0]] = s[1]        # this one is a string
+                    try:    self.headers[s[0]] = float(s[1]) # this one is a number
+                    except: self.headers[s[0]] = s[1]        # this one is a string
 
                     # store the key in a variable like the other cases
                     l = s[0]
@@ -225,7 +228,7 @@ class standard:
 
                     # pop off the first element, this is the string used to access the array
                     l = s.pop(0)
-                    self.header[l] = s
+                    self.headers[l] = s
 
 
                 # in either case, we now have a header key in the variable l.
@@ -235,7 +238,7 @@ class standard:
                 else:
                     print "Duplicate header:", l
 
-                if self.debug: print "header '"+l+"' = "+str(self.header[l])[0:20]+" ..."
+                if self.debug: print "header '"+l+"' = "+str(self.headers[l])[0:20]+" ..."
 
 
 
@@ -334,12 +337,12 @@ class standard:
             f.write(k + delimiter)
 
             # if this element is a string, float, or int, just write it
-            if not type(self.header[k]) in [type(_numpy.array([])), type([])]: f.write(str(self.header[k]) + "\n")
+            if not type(self.headers[k]) in [type(_numpy.array([])), type([])]: f.write(str(self.headers[k]) + "\n")
 
             # pretend it's an array and try to write it as such
             else:
                 try:
-                    for n in range(len(self.header[k])): f.write(str(self.header[k][n]) + delimiter)
+                    for n in range(len(self.headers[k])): f.write(str(self.headers[k][n]) + delimiter)
                     f.write("\n")
                 except:
                     print "header element '"+k+"' is an unknown type"
@@ -538,7 +541,7 @@ class standard:
         if type(hkey) in [int, long]: hkey = self.hkeys[hkey]
 
         # set the data
-        self.header[str(hkey)] = value
+        self.headers[str(hkey)] = value
         if not hkey in self.hkeys:
             if index=='end':
                 self.hkeys.insert(-1,str(hkey))
@@ -568,8 +571,8 @@ class standard:
         """
 
         # try the integer approach first to allow negative values
-        if type(hkey) in [int,long]:
-            return self.header.pop(self.hkeys.pop(hkey))
+        if not type(hkey) == str:
+            return self.headers.pop(self.hkeys.pop(hkey))
         else:
             # find the key integer and pop it
             hkey = self.hkeys.index(hkey)
@@ -580,7 +583,7 @@ class standard:
                 return
 
             # pop it!
-            return self.header.pop(self.hkeys.pop(hkey))
+            return self.headers.pop(self.hkeys.pop(hkey))
 
     def pop_column(self, ckey):
         """
@@ -590,7 +593,7 @@ class standard:
         """
 
         # try the integer approach first to allow negative values
-        if type(ckey) in [int,long]:
+        if not type(ckey) == str:
             return self.columns.pop(self.ckeys.pop(ckey))
         else:
             # find the key integer and pop it
@@ -603,6 +606,22 @@ class standard:
 
             # pop it!
             return self.columns.pop(self.ckeys.pop(ckey))
+
+
+    def clear_columns(self):
+        """
+        This will remove all the ckeys and columns.
+        """
+        self.ckeys   = []
+        self.columns = {}
+
+
+    def clear_headers(self):
+        """
+        This will remove all the hkeys and headers
+        """
+        self.hkeys    = []
+        self.headers  = {}
 
 
     def parse_script(self, script):
@@ -1039,6 +1058,22 @@ class standard:
 
         return
 
+
+    def get_columns_from_XYZ(self, ylabel="y"):
+        """
+        Assuming you have arryas self.X and self.Y along with the matrix
+        self.Z, clear out the current column data and regenerate it from XYZ
+        using X values for column labels, and the corner argument for the first
+        column label.
+        """
+        self.clear_columns()
+        self.insert_column(self.Y, ylabel)
+        for n in range(len(self.X)):
+            self.insert_column(self.Z[n], str(self.X[n]))
+
+        self.insert_header(ylabel, self.X)
+
+
     def plot_image(self, cmap="Blues", aspect=1.0, **kwargs):
         """
         This is 8 million times faster than pseudocolor I guess, but it won't handle unevenly spaced stuff.
@@ -1107,12 +1142,12 @@ class standard:
 
         Also can take integers, returning the key'th header value.
         """
-        if type(hkey) in [int, long]: return self.header[self.hkeys[hkey]]
+        if type(hkey) in [int, long]: return self.headers[self.hkeys[hkey]]
 
         for k in self.hkeys:
             if k.find(hkey) >= 0:
-                return self.header[k]
-        print "Couldn't find",hkey,"in header."
+                return self.headers[k]
+        print "Couldn't find",hkey,"in headers."
         return None
 
 
