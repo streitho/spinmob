@@ -12,7 +12,7 @@ import _pylab_colorslider as _pc                ;reload(_pc)
 
 line_attributes = ["linestyle","linewidth","color","marker","markersize","markerfacecolor","markeredgewidth","markeredgecolor"]
 
-undo_list = {}
+image_undo_list = []
 
 def add_text(text, x=0.01, y=0.01, axes="gca", draw=True, **kwargs):
     """
@@ -99,7 +99,7 @@ def close_sliders():
     # loop over them and close all the type colorsliderframe's
     for x in w:
         # if it's of the right class
-        if x.__class__ == _pc._pcf.ColorSliderFrame:
+        if x.__class__.__name__ == _pc._pcf.ColorSliderFrame.__name__:
             x.Close()
 
 def image_sliders(image="top", colormap="_last"):
@@ -240,11 +240,12 @@ def image_coarsen(xlevel=0, ylevel=0, image="auto"):
     """
     if image == "auto": image = _pylab.gca().images[0]
 
-    Z = image.get_array()
+    Z = _numpy.array(image.get_array())
 
     # store this image in the undo list
-    global undo_list
-    undo_list["coarsen_colorplot"] = [image, Z]
+    global image_undo_list
+    image_undo_list.append([image, Z])
+    if len(image_undo_list) > 10: image_undo_list.pop(0)
 
     # images have transposed data
     image.set_array(_fun.coarsen_matrix(Z, ylevel, xlevel))
@@ -252,11 +253,52 @@ def image_coarsen(xlevel=0, ylevel=0, image="auto"):
     # update the plot
     _pylab.draw()
 
-def image_coarsen_undo():
+
+def image_neighbor_smooth(xlevel=0.2, ylevel=0.2, image="auto"):
     """
-    Undoes the last coarsen_colorplot command.
+    This will bleed nearest neighbor pixels into each other with
+    the specified weight factors.
     """
-    [image, Z] = undo_list["coarsen_colorplot"]
+    if image == "auto": image = _pylab.gca().images[0]
+
+    Z = _numpy.array(image.get_array())
+
+    # store this image in the undo list
+    global image_undo_list
+    image_undo_list.append([image, Z])
+    if len(image_undo_list) > 10: image_undo_list.pop(0)
+
+    # get the diagonal smoothing level (eliptical, and scaled down by distance)
+    dlevel = ((xlevel**2+ylevel**2)/2.0)**(0.5)
+
+    # don't touch the first column
+    new_Z = [Z[0]*1.0]
+
+    for m in range(1,len(Z)-1):
+        new_Z.append(Z[m]*1.0)
+        for n in range(1,len(Z[0])-1):
+            new_Z[-1][n] = (Z[m,n] + xlevel*(Z[m+1,n]+Z[m-1,n]) + ylevel*(Z[m,n+1]+Z[m,n-1])   \
+                                   + dlevel*(Z[m+1,n+1]+Z[m-1,n+1]+Z[m+1,n-1]+Z[m-1,n-1])   )  \
+                                   / (1.0+xlevel*2+ylevel*2 + dlevel*4)
+
+    # don't touch the last column
+    new_Z.append(Z[-1]*1.0)
+
+    # images have transposed data
+    image.set_array(_numpy.array(new_Z))
+
+    # update the plot
+    _pylab.draw()
+
+def image_undo():
+    """
+    Undoes the last coarsen or smooth command.
+    """
+    if len(image_undo_list) <= 0:
+        print "no undos in memory"
+        return
+
+    [image, Z] = image_undo_list.pop(-1)
     image.set_array(Z)
     _pylab.draw()
 
@@ -416,13 +458,16 @@ def image_shift(xshift=0, yshift=0, axes="gca"):
 
 
 
-def image_set_clim(vmin=None, vmax=None, axes="gca"):
+def image_set_clim(vmin='auto', vmax='auto', axes="gca"):
     """
     This will set the clim (range) of the colorbar.
     """
     if axes=="gca": axes=_pylab.gca()
 
     image = axes.images[0]
+
+    if vmin=='auto': vmin = _numpy.min(image.get_array())
+    if vmax=='auto': vmax = _numpy.max(image.get_array())
 
     image.set_clim(vmin, vmax)
 
@@ -973,7 +1018,8 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     # zoom to surround the data properly
     auto_zoom()
 
-def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontname='Arial', fontsize=20, fontweight='bold'):
+def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontsize=20, fontweight='bold', fontname='Arial',
+             borderwidth=3, tickwidth=2, ticks_point="out", xlabel_pad=0.018, ylabel_pad=0.013, window_size=[550,550]):
     """
 
     This guy performs the ubertidy from the helper on the first window.
@@ -985,7 +1031,7 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontname='Arial', fonts
     else:             f = figure
 
     # first set the size of the window
-    f.canvas.Parent.SetSize([550,550])
+    f.canvas.Parent.SetSize(window_size)
 
     # get the axes
     a = f.axes[0]
@@ -994,19 +1040,20 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontname='Arial', fonts
     lines = a.get_lines()
 
     # we want thick axis lines
-    a.frame.set_linewidth(3.0)
+    a.frame.set_linewidth(borderwidth)
 
     # get the tick lines in one big list
     xticklines = a.get_xticklines()
     yticklines = a.get_yticklines()
 
     # set their marker edge width
-    _pylab.setp(xticklines+yticklines, mew=2.0)
+    _pylab.setp(xticklines+yticklines, mew=tickwidth)
 
 
     # set what kind of tickline they are (outside axes)
-    for l in xticklines: l.set_marker(_mpl.lines.TICKDOWN)
-    for l in yticklines: l.set_marker(_mpl.lines.TICKLEFT)
+    if ticks_point=="out":
+        for l in xticklines: l.set_marker(_mpl.lines.TICKDOWN)
+        for l in yticklines: l.set_marker(_mpl.lines.TICKLEFT)
 
     # get rid of the top and right ticks
     a.xaxis.tick_bottom()
@@ -1017,8 +1064,8 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontname='Arial', fonts
     _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
     # we want to give the labels some breathing room (1% of the data range)
-    for label in _pylab.xticks()[1]: label.set_y(-0.018)
-    for label in _pylab.yticks()[1]: label.set_x(-0.013)
+    for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
+    for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
 
     # set the position/size of the axis in the window
     a.set_position([0.15,0.17,0.15+width*0.4,0.17+height*0.5])
