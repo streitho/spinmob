@@ -102,7 +102,7 @@ def close_sliders():
         if x.__class__ == _pc._pcf.ColorSliderFrame:
             x.Close()
 
-def gui_colormap(image="top", colormap="_last"):
+def image_sliders(image="top", colormap="_last"):
     close_sliders()
     _pc.GuiColorMap(image, colormap)
 
