@@ -536,7 +536,7 @@ def is_a_number(s):
     except:       return 0
 
 
-def shift(yshift, xshift=0, progressive=1, axes="gca"):
+def shift(xshift=0, yshift=0, progressive=0, axes="gca"):
     """
 
     This function adds an artificial offset to the lines.
@@ -1525,24 +1525,26 @@ def ginput(n=1, timeout=0, show=True, lines=False):
 #
 class style_cycle:
 
-    def __init__(self, linestyles=['-'], markers=['s','^','o'], line_colors=['k','r','b','g','m'], face_colors=['k','r','b','g','m'], edge_colors=None):
+    def __init__(self, linestyles=['-'], markers=['s','^','o'], colors=['k','r','b','g','m'], line_colors=None, face_colors=None, edge_colors=None):
         """
         Set up the line/marker rotation cycles.
 
-        linestyles, markers, line_colors, and face_colors need to be lists,
-        and you can set edge_colors (markeredgecolor) to None to make it
-        the same as the marker_colors.
+        linestyles, markers, and colors need to be lists, and you can override
+        using line_colors, and face_colors, and edge_colors (markeredgecolor) by
+        setting them to a list instead of None.
         """
 
-        self.line_colors   = line_colors
-        self.face_colors   = face_colors
-        self.markers       = markers
-        self.linestyles    = linestyles
+        # initial setup, assuming all the overrides are None
+        self.linestyles     = linestyles
+        self.markers        = markers
+        self.line_colors    = colors
+        self.face_colors    = colors
+        self.edge_colors    = colors
 
-        if edge_colors in [None, []]:
-            self.edge_colors   = self.face_colors
-        else:
-            self.edge_colors   = edge_colors
+        # Apply the override colors
+        if not line_colors == None: self.line_colors = line_colors
+        if not face_colors == None: self.face_colors = face_colors
+        if not edge_colors == None: self.edge_colors = edge_colors
 
         self.line_colors_index  = 0
         self.markers_index      = 0
@@ -1667,6 +1669,7 @@ class style_cycle:
             l.set_mfc(self.get_face_color(1))
             l.set_marker(self.get_marker(1))
             l.set_mec(self.get_edge_color(1))
+            l.set_linestyle(self.get_linestyle(1))
 
         _pylab.draw()
 
@@ -1674,8 +1677,7 @@ class style_cycle:
         return self.get_line_color(increment)
 
 # this is the guy in charge of keeping track of the rotation of colors and symbols for plotting
-style = style_cycle(line_colors= ['k','r','b','g','m'],
-                    face_colors= ['k','r','b','g','m'],
+style = style_cycle(colors     = ['k','r','b','g','m'],
                     markers    = ['o', '^', 's'],
                     linestyles = ['-'])
 
