@@ -28,7 +28,7 @@ def _image():
     data.load_file()
     data.get_XYZ(None,None)
     data.plot_image(map='_last')
-    _pt.gui_colormap()
+    _pt.image_sliders()
     return data
 
 
@@ -329,7 +329,7 @@ def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, **kwargs):
     _pt.raise_pyshell()
 
     _pt.close_sliders()
-    _pt.gui_colormap()
+    _pt.image_sliders()
     _pt.image_set_aspect(1.0)
     _pylab.draw()
     return axes
