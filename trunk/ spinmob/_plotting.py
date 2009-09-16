@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), **kwargs):
+def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -160,7 +160,7 @@ def _files_as_points(datax, datay, clear=True):
 
 
 
-def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True, threaded=False, f=files):
+def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True, threaded=False, f=xy_files):
     """
 
     This selects a directory full of directories, and makes a series of plots, one per subdirectory.
@@ -194,7 +194,7 @@ def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True
     return
 
 
-def data(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', yaxis='left', **kwargs):
+def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', yaxis='left', **kwargs):
     """
     Plots specified data.
 
@@ -296,12 +296,15 @@ def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axe
     return axes
 
 
-def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, **kwargs):
+def xyz(X, Y, Z, plot="image", **kwargs):
     """
-    Generates an image plot
+    Generates an image or 3d plot
 
-    zgrid                   2-d array of z-values
+    X                       1-d array of x-values
+    Y                       1-d array of y-values
+    Z                       2-d array of z-values
     xmin,xmax,ymin,ymax     range upon which to place the image
+    plot                    What type of surface data to plot ("image", "mountains")
     """
 
     fig = _pylab.gcf()
@@ -310,38 +313,54 @@ def surface_data(zgrid, xmin=0, xmax=1, ymin=0, ymax=1, **kwargs):
 
     # generate the 3d axes
     d=_data.standard()
-    d.X = _fun.frange(xmin,xmax,1.0*(xmax-xmin)/(len(zgrid)-1))
-    d.Y = _fun.frange(ymin,ymax,1.0*(ymax-ymin)/(len(zgrid[0])-1))
-    d.Z = zgrid
-
-    # now reverse the Y-axis
-    d.Y = list(d.Y);             d.Y.reverse(); d.Y = _numpy.array(d.Y)
-    d.Z = list(d.Z.transpose()); d.Z.reverse(); d.Z = _numpy.array(d.Z).transpose()
-
+    d.X = _numpy.array(X)
+    d.Y = _numpy.array(Y)
+    d.Z = _numpy.array(Z)
 
     d.path = ""
     d.xlabel = "X"
     d.ylabel = "Y"
 
-    d.plot_image(**kwargs)
+    d.plot_XYZ(plot=plot, **kwargs)
+
+    if plot=="image":
+        _pt.close_sliders()
+        _pt.image_sliders()
 
     _pt.raise_figure_window()
     _pt.raise_pyshell()
-
-    _pt.close_sliders()
-    _pt.image_sliders()
-    _pt.image_set_aspect(1.0)
     _pylab.draw()
     return axes
 
-def surface_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, **kwargs):
+
+def zgrid(Z, xmin=0, xmax=1, ymin=0, ymax=1, plot="image", **kwargs):
+    """
+    Generates an image plot on the specified range
+
+    Z                       2-d array of z-values
+    xmin,xmax,ymin,ymax     range upon which to place the image
+    plot                    What type of surface data to plot ("image", "mountains")
+    """
+
+    fig = _pylab.gcf()
+    fig.clear()
+    axes = _pylab.axes()
+
+    # generate the 3d axes
+    X = _numpy.linspace(xmin,xmax,len(Z))
+    Y = _numpy.linspace(ymin,ymax,len(Z[0]))
+
+    return xyz(X,Y,Z,plot)
+
+
+def zfunction(z, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, plot="image", **kwargs):
     """
     Plots a 2-d function over the specified range
 
     f                       takes two inputs and returns one value
     xmin,xmax,ymin,ymax     range over which to generate/plot the data
     xsteps,ysteps           how many points to plot on the specified range
-
+    plot                    What type of surface data to plot ("image", "mountains")
     """
 
     # generate the grid x and y coordinates
@@ -356,7 +375,7 @@ def surface_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100
     # now get the z-grid
     try:
         # try it the fast numpy way. Add 0 to assure dimensions
-        zgrid = f(xgrid, ygrid) + xgrid*0.0
+        zgrid = z(xgrid, ygrid) + xgrid*0.0
     except:
         print "Notice: function is not rocking hardcore. Generating grid the slow way..."
         # manually loop over the data to generate the z-grid
@@ -364,22 +383,14 @@ def surface_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100
         for ny in range(0, len(y)):
             zgrid.append([])
             for nx in range(0, len(x)):
-                zgrid[ny].append(f(x[nx], y[ny]))
+                zgrid[ny].append(z(x[nx], y[ny]))
 
         zgrid = _numpy.array(zgrid)
 
-    # use the convention that zgrid[0] corresponds to the zeroth vertical column
-    # (i.e. the first index is the x-index)
-    zgrid=zgrid.transpose()
-
     # now plot!
-    axes = surface_data(zgrid,xmin,xmax,ymin,ymax,**kwargs)
+    return xyz(x,y,zgrid,plot,**kwargs)
 
-    _pylab.draw()
-    _pt.raise_figure_window()
-    _pt.raise_pyshell()
 
-    return axes
 
 
 

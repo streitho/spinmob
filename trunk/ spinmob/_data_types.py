@@ -3,6 +3,7 @@ import pylab as _pylab
 import time
 import wx as _wx
 import os as _os
+from mpl_toolkits.mplot3d import Axes3D
 
 # import some of the more common numpy functions (this is for the scripting!)
 from _common_math import *
@@ -989,12 +990,12 @@ class standard:
 
 
 
-    def get_XYZ(self, xaxis=None, yaxis="first", xlabel=None, ylabel=None, xcoarsen=0, ycoarsen=0):
+    def get_XYZ(self, xaxis=None, yaxis=None, xlabel=None, ylabel=None, xcoarsen=0, ycoarsen=0):
 
         """
         This will assemble the X, Y, Z data for a 2d colorplot or surface.
 
-        yaxis="first"       What values to use for the y-axis data. "first" means take the first column
+        yaxis=None          What values to use for the y-axis data. "first" means take the first column
                             yaxis=None means just use bin number
         xaxis=None          What values to use for the x-axis data, can be a header array
                             xaxis="first" means pop off the first row of the data
@@ -1005,7 +1006,12 @@ class standard:
 
         # next we assemble the 2-d array for the colorplot
         Z=[]
-        for c in self.ckeys: Z.append(list(self.columns[c]))
+        for c in self.ckeys:
+            # transform so the image plotting has the same orientation as the data
+            # in the file itself.
+            col = list(self.columns[c])
+            col.reverse()
+            Z.append(col)
 
         # initialize the axis labels
         X=[]
@@ -1015,13 +1021,37 @@ class standard:
         Y=[]
         for n in range(len(Z[0])): Y.append(n)
         self.ylabel = "y-step number"
+        Y.reverse()
+
+        # now if we're supposed to, pop off the first column as Y labels
+        if yaxis=="first":
+
+            # just pop off the first column (Z columns are already reversed)
+            Y = Z.pop(0)
+            self.ylabel = "y-values"
+
+            # pop the first element of the X-data
+            X.pop(0)
+
+
+        # otherwise, it's a column value
+        elif not yaxis==None:
+            Y = list(self.c(yaxis))
+            Y.reverse()
+            self.ylabel = yaxis
+
+
 
         # if we're supposed to, pop off the top row for the x-axis values
         if xaxis == "first":
             X = []
             for n in range(len(Z)):
-                X.append(Z[n].pop(0))
+                X.append(Z[n].pop(-1))
+
             self.xlabel = "x-values"
+
+            # pop the first element of the Y-data
+            Y.pop(-1)
 
         # otherwise, if we specified a row from the header, use that
         elif not xaxis==None:
@@ -1032,25 +1062,14 @@ class standard:
 
             self.xlabel = xaxis
 
-        # now if we're supposed to, pop off the row (X-axis) labels
-        if yaxis=="first":
 
-            # just pop off the first column
-            Y = Z.pop(0)
-            self.ylabel = "y-values"
-
-            # if we took off the top row, we must also remove the first element of X
-            if xaxis=="first": X.pop(0)
-
-        # otherwise, it's a column value
-        elif not yaxis==None:
-            Y = _numpy.array(self.c(yaxis))
-            self.ylabel = yaxis
 
         # now if we're supposed to coarsen, do so (produces a numpy array)
         self.X = _fun.coarsen_array(X, xcoarsen)
         self.Y = _fun.coarsen_array(Y, ycoarsen)
-        self.Z = _fun.coarsen_matrix(Z, xcoarsen, ycoarsen)
+
+        # Z has to be transposed to make the data file look like the plot
+        self.Z = _fun.coarsen_matrix(Z, xcoarsen, ycoarsen).transpose()
 
         # if we specified labels, they trump everything
         if xlabel: self.xlabel = xlabel
@@ -1059,7 +1078,7 @@ class standard:
         return
 
 
-    def get_columns_from_XYZ(self, ylabel="y"):
+    def get_columns_from_XYZ(self, corner="x"):
         """
         Assuming you have arryas self.X and self.Y along with the matrix
         self.Z, clear out the current column data and regenerate it from XYZ
@@ -1067,18 +1086,27 @@ class standard:
         column label.
         """
         self.clear_columns()
-        self.insert_column(self.Y, ylabel)
+
+        # do the necessary transforms to make the saved data in the file
+        # arranged as plotted
+        Y = list(self.Y); Y.reverse()
+        self.insert_column(Y, corner)
+
+        # same for the Z's
         for n in range(len(self.X)):
-            self.insert_column(self.Z[n], str(self.X[n]))
+            Zn = list(self.Z[:,n]); Zn.reverse()
+            self.insert_column(Zn, str(self.X[n]))
 
-        self.insert_header(ylabel, self.X)
 
 
-    def plot_image(self, cmap="Blues", aspect=1.0, **kwargs):
+    def plot_XYZ(self, cmap="Blues", plot="image", **kwargs):
         """
         This is 8 million times faster than pseudocolor I guess, but it won't handle unevenly spaced stuff.
 
         You need to generate X, Y and Z first, probably using get_XYZ.
+
+        cmap    Name of the matplotlib cmap to use
+        plot    Type of plot, "image" for fast colorplot, "mountains" for slow 3d plot
         """
 
         # if we don't have the data, tell the user
@@ -1093,35 +1121,40 @@ class standard:
             print "ERROR: Invalid colormap, using default."
             colormap = _pylab.cm.Blues
 
-        # assume X and Y are the bin centers and figure out the bin widths
-        x_width = float(self.X[-1] - self.X[0])/(len(self.X)-1)
-        y_width = float(self.Y[-1] - self.Y[0])/(len(self.Y)-1)
-
-        # reverse Y and Z
-        X = self.X
-        Y = list(self.Y); Y.reverse(); Y = _numpy.array(Y)
-        Z = self.Z.transpose()
-
-        #Y = list(self.Y); Y.reverse(); Y = _numpy.array(Y)
-        #Z = list(self.Z.transpose()); Z=_numpy.array(Z).transpose()
-        #Z = list(Z); Z.reverse(); Z=_numpy.array(Z)
-
         # at this point we have X, Y, Z and a colormap, so plot the mf.
         f=_pylab.gcf()
         f.clear()
-        _pylab.imshow(Z, cmap=colormap,
-                      aspect=abs(aspect*float(X[-1]-X[0])/float(Y[-1]-Y[0])),
+
+        if plot.lower() == "mountains":
+            X, Y = _numpy.meshgrid(self.X, self.Y)
+            a = Axes3D(f)
+            a.plot_surface(X, Y, self.Z, rstride=2, cstride=2, cmap=colormap, **kwargs)
+
+        else:
+            # assume X and Y are the bin centers and figure out the bin widths
+            x_width = abs(float(self.X[-1] - self.X[0])/(len(self.X)-1))
+            y_width = abs(float(self.Y[-1] - self.Y[0])/(len(self.Y)-1))
+
+            # do whatever transformation is required
+            X = self.X
+            Y = self.Y
+            Z = self.Z
+
+            # reverse the Z's
+            Z = list(Z); Z.reverse(); Z = _numpy.array(Z)
+
+            _pylab.imshow(Z, cmap=colormap,
                       extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
-                              Y[0]+y_width/2.0, Y[-1]-y_width/2.0], **kwargs)
+                      Y[0]+y_width/2.0, Y[-1]-y_width/2.0], **kwargs)
+            _pylab.colorbar()
+            _pt.image_set_aspect(1.0)
 
         # set the title and labels
         self.title = self.path
-
         a = _pylab.gca()
         a.set_title(self.title)
         a.set_xlabel(self.xlabel)
         a.set_ylabel(self.ylabel)
-        _pylab.colorbar()
 
 
 
