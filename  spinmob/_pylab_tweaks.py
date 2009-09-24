@@ -487,7 +487,11 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
         a.set_ylabel("")
 
         # thicken the border
-        a.frame.set_linewidth(borderwidth)
+        # we want thick axis lines
+        a.spines['top'].set_linewidth(borderwidth)
+        a.spines['left'].set_linewidth(borderwidth)
+        a.spines['bottom'].set_linewidth(borderwidth)
+        a.spines['right'].set_linewidth(borderwidth)
         a.set_frame_on(True) # adds a thick border to the colorbar
 
         # these two cover the main plot
@@ -498,23 +502,8 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
         for l in a.get_xticklines(): l.set_markeredgewidth(tickwidth)
         for l in a.get_yticklines(): l.set_markeredgewidth(tickwidth)
 
-
-
-
-    # switch to the colorbar axes
-    _pylab.axes(figure.axes[1])
-
-    for label in _pylab.yticks()[1]: label.set_x(1+colorlabel_pad)
-    x=_pylab.gca().get_position()
-    x.bounds = (0.762,0.1,0.03,0.8)
-    _pylab.gca().set_position(x)
-
-
-
-
-    # switch back to the main axes
+    # set the aspect and window size
     _pylab.axes(figure.axes[0])
-
     image_set_aspect(aspect)
     get_figure_window().SetSize(window_size)
 
@@ -522,7 +511,31 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
     for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
     for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
 
+    # need to draw to commit the changes up to this point. Annoying.
+    _pylab.draw()
 
+
+    # get the bounds of the first axes and come up with corresponding bounds
+    # for the colorbar
+    a1 = _pylab.gca()
+    b  = a1.get_position()
+    aspect = figure.axes[1].get_aspect()
+
+    pos = []
+    pos.append(b.x0+b.width+0.02)   # lower left x
+    pos.append(b.y0)                # lower left y
+    pos.append(b.height/aspect)     # width
+    pos.append(b.height)            # height
+
+    # switch to the colorbar axes
+    _pylab.axes(figure.axes[1])
+    _pylab.gca().set_position(pos)
+
+    for label in _pylab.yticks()[1]: label.set_x(1+colorlabel_pad)
+
+
+    # switch back to the main axes
+    _pylab.axes(figure.axes[0])
 
     _pylab.draw()
 
@@ -1040,7 +1053,10 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontsize=20, fontweight
     lines = a.get_lines()
 
     # we want thick axis lines
-    a.frame.set_linewidth(borderwidth)
+    a.spines['top'].set_linewidth(borderwidth)
+    a.spines['left'].set_linewidth(borderwidth)
+    a.spines['bottom'].set_linewidth(borderwidth)
+    a.spines['right'].set_linewidth(borderwidth)
 
     # get the tick lines in one big list
     xticklines = a.get_xticklines()
