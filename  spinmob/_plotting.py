@@ -400,7 +400,10 @@ def zfunction(z, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, plot=
 
 
 
-
+files = xy_files
+data = xy
+surface_data = xyz
+surface_function = zfunction
 
 
 
