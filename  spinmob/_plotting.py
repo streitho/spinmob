@@ -303,7 +303,6 @@ def xyz(X, Y, Z, plot="image", **kwargs):
     X                       1-d array of x-values
     Y                       1-d array of y-values
     Z                       2-d array of z-values
-    xmin,xmax,ymin,ymax     range upon which to place the image
     plot                    What type of surface data to plot ("image", "mountains")
     """
 
