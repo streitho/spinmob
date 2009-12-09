@@ -151,10 +151,14 @@ class model_base:
         This functions sets a parameter named "name" to a value.
         """
 
-        i = self.pnames.index(name)
-        if i < 0:  print "***parameter '"+name+"' does not exist***"
-        else:      self.p0[i] = float(value)
-        return
+        try:
+            i = self.pnames.index(name)
+            self.p0[i] = float(value)
+            return True
+
+        except:
+            print name, "is not a valid variable"
+            return False
 
     def write_to_p0(self, p):
         """
