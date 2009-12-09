@@ -147,7 +147,7 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
             # otherwise, pfit["parameters"] is a good set of fit parameters
             # pfit["errors"] are the (correlated!) errors
             # and pfit["covariance"] is the covariance matrix
-            else:
+            elif not pfit==None:
                 fit_peaks = open(fit_file, 'a')
 
                 # write the parameter values
@@ -192,7 +192,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
     axes2.xaxis.set_ticklabels([])
 
     plot_all = 1
-    command = model.last_command
+    command = model.last_command.strip()
 
     # while not done with a given file
     while True:
@@ -290,106 +290,123 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             ask_again = True
 
         # otherwise, the input should be a list of variables and values
-        # like "center=4 width=2 min=3 max=5"
+        # like "center=4, width=2, min=3, max=5"
         else:
-            # first we have to split the command by spaces to get the values
-            s = command.split(' ')
+            try:
+                # first we have to split the command by spaces to get the values
+                s = command.split(',')
 
-            # get the new and old variable list, and sub in/append
-            # accordingly.  Then reassemble the string for the normal
-            # processing
+                # get the new and old variable list, and sub in/append
+                # accordingly.  Then reassemble the string for the normal
+                # processing
 
-            # get the new variable list
-            new = {}
-            for n in range(0,len(s)):
-                try:
-                    [a,b] = s[n].split('=')
-                    new[a]=b
-                except:
-                    print "Unpacking the new elements did not work.  No biggy."
+                # get the new variable list
+                new = {}
+                for n in range(0,len(s)):
+                    try:
+                        a = s[n].split('=')
+                        if len(a)==2: new[a[0].strip()]=a[1].strip()
+                    except:
+                        print "Unpacking the new elements did not work.  No biggy."
 
-            # get the old variable list
-            old={}
-            old_s = model.last_command.split(' ')
-            for n in range(0,len(old_s)):
-                try:
-                    [a,b] = old_s[n].split('=')
-                    old[a]=b
-                except:
-                    print "Unpacking the old elements did not work.  No biggy."
+                # get the old variable list
+                old={}
+                old_s = model.last_command.split(',')
+                for n in range(0,len(old_s)):
+                    try:
+                        a = old_s[n].split('=')
+                        if len(a)==2: old[a[0].strip()]=a[1].strip()
+                    except:
+                        print old_s
+                        print "Unpacking the old elements did not work.  No biggy."
+                        return
 
-            # now for each new variable either swap it in or make
-            # a new value
-            k = new.keys()
-            for n in range(0,len(k)):
-                old[k[n]] = new[k[n]]
 
-            # now reassemble the command (into a string)
-            k = old.keys()
-            command = ''
-            for n in range(0,len(k)):
-                command += k[n]+'='+old[k[n]]+' '
-            command=command.strip()
-            s = command.split(' ')
+                # now for each new variable either swap it in or make
+                # a new value
+                k = new.keys()
+                for n in range(0,len(k)):
+                    old[k[n]] = new[k[n]]
 
-            # save the command string for future use
-            model.last_command = command
+                # now reassemble the complete command (into a string)
+                k = old.keys()
+                command = ''
+                for n in range(0,len(k)):
+                    command += k[n]+'='+old[k[n]]+', '
+                command=command.strip()
 
-            # now loop over all the arguments
-            xmin = min(data.xdata)
-            xmax = max(data.xdata)
-            model.x_background_index1=1
-            model.x_background_index2=-2
 
-            for n in range(0,len(s)):
 
-                # get the variable to be set and the value
-                try:
-                    [variable, value]=s[n].split('=')
-                    value=float(value)
+                # save the command string for future use
+                model.last_command = command
 
-                    model.guessed_list = []
 
-                    # first look for special strings
-                    if variable == 'min': # min data range
-                        xmin = value
-                        x_background_index1 = 1
-                    elif variable == 'max': # max data range
-                        xmax = value
-                        x_background_index2 = -2
-                    elif variable == 'hold':
-                        model.hold = value
-                    elif variable == 'skip_first_try': # should we skip the first optimization attempt?
-                        model.skip_first_try = value
-                    elif variable == 'subtract': # should we subtract the background when plotting?
-                        model.subtract = value
-                    elif variable == 'show_guess': # draw the guess
-                        model.show_guess = value
-                    elif variable == 'plot_all': # show all the data
-                        model.plot_all = value
-                    elif variable == 'smoothing': # presmooth the data
-                        model.smoothing = value
-                    elif variable == 'show_error': # include the error bars?
-                        model.show_error = value
-                    elif variable == 'auto_error': # should we auto-scale the error bars to make red. chi^2 1?
-                        model.auto_error = value
-                    elif variable == 'auto_trim':
-                        if value == 0:
-                            model.auto_trim = False
-                        else:
-                            model.auto_trim       = True
-                            model.auto_trim_plus  = value
-                            model.auto_trim_minus = value
 
-                    # otherwise we set the model p0 parameters
-                    else:
-                        model.set_parameter(variable, value)
-                        model.guessed_list.append(variable)
-                except:
-                    print '"'+s[n]+'" did not unpack.  Learn how to pack, Sillypants McCantpack.'
-                    model.skip_next_optimization = 1
 
-        # done with "else parse the inputs"
+                # now loop over all the arguments
+                xmin = min(data.xdata)
+                xmax = max(data.xdata)
+                model.x_background_index1=1
+                model.x_background_index2=-2
+
+                s = command.split(',')
+                for n in range(0,len(s)):
+
+                    # get the variable to be set and the value
+                    try:
+                        a=s[n].split('=')
+                        if len(a)==2:
+                            variable = a[0].strip()
+                            value    = float(a[1].strip())
+
+                            model.guessed_list = []
+
+                            # first look for special strings
+                            if variable == 'min': # min data range
+                                xmin = value
+                                x_background_index1 = 1
+                            elif variable == 'max': # max data range
+                                xmax = value
+                                x_background_index2 = -2
+                            elif variable == 'hold':
+                                model.hold = value
+                            elif variable == 'skip_first_try': # should we skip the first optimization attempt?
+                                model.skip_first_try = value
+                            elif variable == 'subtract': # should we subtract the background when plotting?
+                                model.subtract = value
+                            elif variable == 'show_guess': # draw the guess
+                                model.show_guess = value
+                            elif variable == 'plot_all': # show all the data
+                                model.plot_all = value
+                            elif variable == 'smoothing': # presmooth the data
+                                model.smoothing = value
+                            elif variable == 'show_error': # include the error bars?
+                                model.show_error = value
+                            elif variable == 'auto_error': # should we auto-scale the error bars to make red. chi^2 1?
+                                model.auto_error = value
+                            elif variable == 'auto_trim':
+                                if value == 0:
+                                    model.auto_trim = False
+                                else:
+                                    model.auto_trim       = True
+                                    model.auto_trim_plus  = value
+                                    model.auto_trim_minus = value
+
+                            # otherwise we set the model p0 parameters
+                            else:
+                                if model.set_parameter(variable, value):
+                                    model.guessed_list.append(variable)
+
+                    except:
+                        print '"'+s[n]+'" did not unpack.  Learn how to pack, Sillypants McCantpack.'
+                        model.skip_next_optimization = 1
+
+            # done with "else parse the inputs"
+
+            except:
+                print "Commands should look like 'min=3, max=4, a0=3'"
+
+
 
         # If we have good enough input to try a fit
         if not ask_again:
@@ -475,6 +492,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                     fit_output = model.optimize(x,y,ye)
 
 
+
                 # get fit parameters
                 pfit["parameters"] = fit_output[0]
                 pfit["covariance"] = fit_output[1]
@@ -485,6 +503,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                     # get the error vector and correlation matrix from (scaled) covariance
                     [errors, correlation] = _fun.decompose_covariance(pfit["covariance"])
                 else:
+                    print "WARNING: No covariance matrix popped out of model.optimize()"
                     errors = pfit["parameters"]
                     correlation = None
 
@@ -581,6 +600,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                 title3 = _fun.join(title3,", ")
 
                 # ask if it looks nice
+                print
                 for j in range(0, len(pfit["parameters"])):
                     print model.pnames[j]+' = '+str(pfit["parameters"][j])+" +/- "+str(pfit["errors"][j])
 
@@ -615,10 +635,13 @@ def interactive_fitting_loop(model, data, auto_fast=False):
 
         _tweaks.raise_figure_window()
         _tweaks.raise_pyshell()
+
         # now ask again
+        print
         if auto_fast: command="y"
-        else:         command = raw_input('%(a)i/%(b)i last: ' %{'a':model.m+1, 'b':model.last+1}
-                                + model.last_command + '\nwhat now? ')
+        else:
+            print '%(a)i/%(b)i last: "' % {'a':model.m+1, 'b':model.last+1} + model.last_command + '"'
+            command = raw_input('what now? ').strip()
 
 
 

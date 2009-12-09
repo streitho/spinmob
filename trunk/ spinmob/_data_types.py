@@ -482,7 +482,7 @@ class standard:
         # get the expression and variables
         [expression, vars] = self.parse_script(script)
         if vars == None:
-            print "invalid script"
+            print "ERROR: invalid script!"
             return None
 
         # generate the new column
@@ -506,7 +506,8 @@ class standard:
 
         self.xdata  = self.generate_column(self.xscript)
         self.ydata  = self.generate_column(self.yscript)
-        self.eydata = self.generate_column(self.eyscript)
+        if self.eyscript:
+            self.eydata = self.generate_column(self.eyscript)
         self.xlabel = self.xscript
         self.ylabel = self.yscript
 
