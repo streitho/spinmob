@@ -613,6 +613,16 @@ def reverse_draw_order(axes="current"):
     # zoom to surround the data properly
     auto_zoom()
 
+def set_axes_scales(xscale='linear', yscale='log', axes='gca'):
+    """
+    Set's the type of x and y types of the axes using axes.set_xscale() etc..
+    """
+    if axes == 'gca': axes = _pylab.gca()
+
+    axes.set_xscale(xscale)
+    axes.set_yscale(yscale)
+    _pylab.draw()
+
 def scale_x(scale, axes="current"):
     """
 

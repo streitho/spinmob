@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), **kwargs):
+def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), plot='plot', **kwargs):
     """
 
     This selects a bunch of files, and plots them.
