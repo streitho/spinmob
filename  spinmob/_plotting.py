@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), plot='plot', **kwargs):
+def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), plot='plot', **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -84,6 +84,10 @@ def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clea
             a.get_lines()[-1].set_label('_nolegend_')
         elif m == legend_max-2:
             a.get_lines()[-1].set_label('...')
+
+    # add the axis labels
+    if not xlabel==None: a.set_xlabel(xlabel)
+    if not ylabel==None: a.set_ylabel(ylabel)
 
     # fix up the title if there's an yshift
     if yshift: data.title += ', progressive y-yshift='+str(yshift)
