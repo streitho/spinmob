@@ -13,6 +13,20 @@ import _data_types                  ; reload(_data_types)
 
 
 
+def fit2(model=_models.parabola(), data=_data_types.standard(), initial_command="", paths="ask"):
+
+    # Have the user select a bunch of files.
+    if paths=="ask": paths = _dialogs.MultipleFiles('DIS AND DAT|*.*', default_directory=data.directory)
+    if paths==None: return
+
+    for path in paths:
+        model.fit(data)
+
+
+
+
+
+
 def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, show_guess=0, show_error=1, plot_all=0, skip_first_try=0, subtract=0, clear_plot=1, invert=0, autofile=1, paths="ask"):
     """
 
