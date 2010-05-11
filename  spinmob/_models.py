@@ -1,5 +1,8 @@
 import scipy as _scipy
 import numpy as _numpy
+import pylab as _pylab
+import spinmob as _spinmob
+_tweaks = _spinmob.plot.tweaks
 
 import _functions as _fun
 
@@ -19,21 +22,6 @@ class model_base:
     # this is something the derived classes must do, to define
     # their fit variables
     pnames = ["height", "center", "width", "height2", "offset"]
-
-    # dumb stuff I should probably make less silly (needed for interactive_fitting_loop())
-    #clear_plot   = True
-    #last_command = ""
-    #smoothing    = 0
-    #have_a_guess = 0
-    #skip_next_optimization = 0
-    #auto_trim    = 0
-    #auto_error   = 1
-    #plot_all     = 0
-    #subtract     = 0
-    #show_guess   = 0
-    #show_error   = 1
-    #m            = 0
-    #last         = 0
 
     D = None
 
@@ -108,10 +96,11 @@ class model_base:
 
     def optimize(self, xdata, ydata, yerror=None, p0="internal"):
         """
-        This actuall performs the optimization on xdata and ydata.
+        This actually performs the optimization on xdata and ydata.
         p0="internal"   is the initial parameter guess, such as [1,2,44.3].
                         "internal" specifies to use the model's internal guess result
                         but you better have guessed!
+        returns the fit p from scipy.optimize.leastsq()
         """
         if p0 == "internal": p0 = self.p0
         if self.D == None: return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,yerror,), full_output=1)
@@ -176,6 +165,262 @@ class model_base:
                     self.p0[n] = p[n]
         except: # an error occurred, likely due to no guessed_list
             self.p0 = p
+
+
+
+
+
+
+    ######################################
+    ## Interactive fitting routine
+    ######################################
+
+    def fit(self, data, first_command="", interactive=True, figure=1):
+        """
+        This generates xdata, ydata, and yerror from the three scripts
+        (or auto-sets the error and updates it depending on the fit),
+        fits the data, stores the results (and scripts) in the data file's header
+        and saves the data in a new file.
+
+        data            instance of a data class
+        command         initial interactive fit command
+        interactive     set to False to automatically fit without confirmation
+        """
+        d = data # for ease of coding.
+
+        # dictionary of settings like "min" and "skip"
+        settings = {"min"               : None,
+                    "max"               : None,
+                    "skip"              : False,
+                    "subtract"          : False,
+                    "xb1"               : 0,
+                    "xb2"               : -1,
+                    "show_guess"        : False,
+                    "show_error"        : True,
+                    "show_background"   : True,
+                    "plot_all"          : False,
+                    "smooth"            : 0,
+                    "coarsen"           : 0,
+                    "auto_error"        : False,
+                    "guess"             : True}
+        if d.eyscript == None: settings["auto_error"] = True
+
+        # Initialize the fit_parameters (we haven't any yet!)
+        fit_parameters = None
+        command        = None
+
+        # set up the figure
+        fig = _pylab.figure(figure)
+        fig.clear()
+        axes1 = fig.add_axes([0.10, 0.08, 0.73, 0.70])
+        axes2 = fig.add_axes([0.10, 0.79, 0.73, 0.13])
+        axes2.xaxis.set_ticklabels([])
+
+        # Keep trying to fit until the user says its okay or gives up.
+        while True:
+
+            # If last command is None, this is the first time. Parse the initial
+            # command but don't ask for one.
+            if command == None:
+                command = first_command
+            else:
+                print "min=" + str(settings['min']) + ", max="+str(settings['max'])
+                print "last command:", command
+                command = raw_input("What now (or 'h')? ").strip()
+
+            # first check and make sure the command isn't one of the simple ones
+            if command.lower() in ['h', 'help']:
+                print
+                print "COMMANDS"
+                print "  <enter>    Do more iterations."
+                print "  n          No, this is not a good fit. Move on."
+                print "  y          Yes, this is a good fit. Move on."
+                print "  p          Call the printer() command."
+                print "  q          Quit."
+                print
+                print "SETTINGS"
+                for key in settings.keys(): print "  "+key+" =", settings[key]
+                print
+                continue
+
+            if command.lower() in ['q', 'quit', 'exit']:
+                return 'q'
+
+            elif command.lower() in ['y', 'yes']:
+                return [fit_parameters, fit_errors, fit_reduced_chi_squared, fit_covariance]
+
+            elif command.lower() in ['n', 'no', 'next']:
+                return 'n'
+
+            elif command.lower() in ['p', 'print']:
+                _spinmob.printer()
+
+            elif command.lower() in ['']:
+                print ""
+
+            else:
+                # now parse it (it has the form "min=2, max=4, plot_all=True")
+                s = command.split(',')
+                for c in s:
+                    try:
+                        [key, value] = c.split('=')
+                        if settings.has_key(key):
+                            settings[key] = eval(value)
+                        else:
+                            self.p0[key] = eval(value)
+                            settings['guess'] = False
+                            settings['skip'] = True
+
+                    except:
+                        print "ERROR: '"+str(c)+"' is an invalid command."
+                        settings["skip"] = True
+
+
+
+
+            # now that that's out of the way, we're ready to fit.
+            print "Beginning the fit routine..."
+
+            # start by generating the data
+            d.get_data()
+
+            # if we're doing auto error, start with an array of 1's
+            if settings["auto_error"]: d.yerror = d.xdata*0.0 + 1.0
+
+            # now sort the data in case it's jaggy!
+            matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.yerror])
+            sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
+            d.xdata  = sorted_matrix[0]
+            d.ydata  = sorted_matrix[1]
+            d.yerror = sorted_matrix[2]
+
+            # now trim all the data based on xmin and xmax
+            xmin = settings["min"]
+            xmax = settings["max"]
+            if xmin==None: xmin = min(d.xdata)+1
+            if xmax==None: xmax = max(d.xdata)+1
+            [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.yerror, [xmin, xmax])
+
+            # smooth and coarsen
+            [x,y,ye] = _fun.smooth_data(x,y,ye,settings["smooth"])
+            [x,y,ye] = _fun.coarsen_data(x,y,ye,settings["coarsen"])
+
+            # now do the first optimization. Start by guessing parameters from
+            # the data's shape. This writes self.p0
+            if settings["guess"]: self.guess(x, y, settings["xb1"], settings["xb2"])
+            print "  GUESS:", self.p0
+
+            # now do the first optimization
+            if not settings["skip"]:
+                fit_output = self.optimize(x, y, ye, self.p0)
+
+                # If we're doing auto error, now we should scale the error so that
+                # the reduced xi^2 is 1
+                sigma_y = 1.0
+                if settings["auto_error"]:
+
+                    # guess the correction to the y-error we're fitting (sets the reduced chi^2 to 1)
+                    sigma_y = _numpy.sqrt(self.residuals_variance(fit_output[0],x,y,ye))
+                    print "    initial reduced chi^2 =", sigma_y**2
+                    print "    scaling error by", sigma_y, "and re-optimizing..."
+                    ye = sigma_y*ye
+
+                    # optimize with new improved errors, using the old fit to start
+                    fit_output = self.optimize(x,y,ye,p0=fit_output[0])
+
+                # Now that the fitting is done, show the output
+
+                # grab all the information from fit_output
+                fit_parameters = fit_output[0]
+                fit_covariance = fit_output[1]
+                fit_reduced_chi_squared = self.residuals_variance(fit_parameters,x,y,ye)
+                if fit_covariance is not None:
+                    # get the error vector and correlation matrix from (scaled) covariance
+                    [fit_errors, fit_correlation] = _fun.decompose_covariance(fit_covariance)
+                else:
+                    print "  WARNING: No covariance matrix popped out of model.optimize()"
+                    fit_errors      = fit_parameters
+                    fit_correlation = None
+
+                print "  reduced chi^2 is now", fit_reduced_chi_squared
+
+                # print the parameters
+                for n in range(0,len(self.pnames)): print "  "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
+
+
+
+
+            # get the data to plot
+            if settings["plot_all"]:
+                x_plot  = d.xdata
+                y_plot  = d.ydata
+                ye_plot = d.yerror*sigma_y
+
+                # smooth and coarsen
+                [x_plot, y_plot, ye_plot] = _fun.smooth_data(x_plot, y_plot, ye_plot, settings["smooth"])
+                [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot,y_plot, ye_plot, settings["coarsen"])
+            else:
+                # this data is already smoothed and coarsened before the fit.
+                x_plot  = x
+                y_plot  = y
+                ye_plot = ye
+
+            # by default, don't subtract any backgrounds or anything.
+            thing_to_subtract = 0.0*x_plot
+
+
+            # now plot everything
+
+            # don't draw anything until the end.
+            _pylab.hold(True)
+            axes1.clear()
+            axes2.clear()
+
+            # get the fit data if we're supposed to so we can know the thing to subtract
+            if not settings["skip"]:
+                # get the fit and fit background for plotting (so we can subtract it!)
+                y_fit            = self.evaluate(fit_parameters, x_plot)
+                y_fit_background = self.background(fit_parameters, x_plot)
+                if settings["subtract"]: thing_to_subtract = y_fit_background
+
+
+            # plot the guess
+            if settings["show_guess"]:
+                y_guess = self.evaluate(self.p0, x_plot)
+                axes1.plot(x_plot, y_guess-thing_to_subtract, color='gray', label='guess')
+                if settings["show_background"]:
+                    y_guess_background = self.background(self.p0, x_plot)
+                    axes1.plot(x_plot, y_guess_background-thing_to_subtract, color='gray', linestyle='--', label='guess background')
+
+            # Plot the data
+            if settings["show_error"]:  axes1.errorbar(x_plot, y_plot-thing_to_subtract, ye_plot, linestyle='', marker='D', mfc='blue', mec='w', label='data')
+            else:                       axes1.plot(    x_plot, y_plot-thing_to_subtract,          linestyle='', marker='D', mfc='blue', mec='w', label='data')
+
+            # plot the fit
+            if not settings["skip"]:
+                axes1.plot(x_plot, y_fit-thing_to_subtract, color='red', label='fit')
+                if settings["show_background"]:
+                    axes1.plot(x_plot, y_fit_background-thing_to_subtract, color='red', linestyle='--', label='fit background')
+
+                # plot the residuals in the upper graph
+                axes2.plot    (x_plot, 0*x_plot, linestyle='-', color='k')
+                axes2.errorbar(x_plot, (y_plot-y_fit)/ye_plot, ye_plot*0+1.0, linestyle='', marker='o', mfc='blue', mec='w')
+                axes2.xaxis.set_ticklabels([])
+
+            _tweaks.auto_zoom(axes1)
+            _tweaks.auto_zoom(axes2)
+            _pylab.draw()
+
+            _tweaks.raise_figure_window()
+            _tweaks.raise_pyshell()
+
+            # if we ran through this without fitting or plotting the fit, don't do it again!
+            settings["skip"] = False
+
+
+
+
+
 
 
 
@@ -261,7 +506,7 @@ class exponential_offset(model_base):
 
     # define the function
     def background(self, p, x):
-        return(p[2])
+        return(p[2]+0.0*x)
 
     def evaluate(self, p, x):
         return(p[0]*_numpy.exp(-x/p[1])+p[2])

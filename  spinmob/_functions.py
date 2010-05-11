@@ -580,7 +580,7 @@ def join(array_of_strings, delimiter=' '):
 def smooth(array, index, amount):
     """
 
-    Returns the average of the data at index +/- amount
+    Returns the average of the data at the specified index +/- amount
 
     """
 
@@ -611,6 +611,7 @@ def smooth_array(array, amount=1):
     It does NOT slice off the funny end points
 
     """
+    if amount==0: return array
 
     # we have to store the old values in a temp array to keep the
     # smoothing from affecting the smoothing
@@ -618,6 +619,19 @@ def smooth_array(array, amount=1):
 
     for n in range(amount, len(temp_array)-amount):
         array[n] = smooth(temp_array, n, amount)
+
+
+def smooth_data(xdata, ydata, yerror, amount=1):
+    """
+    Returns smoothed [xdata, ydata, yerror]. Does not destroy the input arrays.
+    """
+
+    new_xdata  = smooth_array(_numpy.array(xdata), amount)
+    new_ydata  = smooth_array(_numpy.array(ydata), amount)
+    if yerror == None:  new_yerror = None
+    else:               new_yerror = smooth_array(_numpy.array(yerror), amount)
+
+    return [new_xdata, new_ydata, new_yerror]
 
 
 

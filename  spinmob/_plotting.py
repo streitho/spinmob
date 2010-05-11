@@ -108,26 +108,28 @@ def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clea
 
 
 
-def _files_as_points(datax, datay, clear=True):
+def _files_as_points(xscript, yscript, clear=True):
     """
 
     This is antiquated and will be updated when I need it again.
 
     This selects a bunch of files, and plots some quantity, one data point per file.
 
-    datax    is an instance of a data class that takes a file
+    xscript  is an instance of a data class that takes a file
                 list and assembles header data
-    datay    is the same type, but will be the y-values.
+    yscript  is the same type, but will be the y-values.
 
     clear=True  should we clear the axes?
 
     """
 
     # have the user select a file
-    paths = _dialogs.MultipleFiles('DIS AND DAT|*.*',
-                                default_directory=header_x.directory)
+    if paths=="ask":
+        paths = _dialogs.MultipleFiles(data.file_extension, default_directory=data.directory)
 
-    if paths == []: return
+    if paths in [[], None]: return
+
+    if not isinstance(paths, type([])): paths = [paths]
 
     # get the header data arrays
     datax.get_data(paths)
