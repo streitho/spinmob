@@ -54,6 +54,7 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
     model.have_a_guess   = 0
     model.clear_plot     = clear_plot
     model.smoothing      = 0
+    model.coarsen        = 0
     model.auto_trim      = 0
 
 
@@ -300,6 +301,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             print "show_error        should we plot the error bars?"
             print "plot_all          should we plot the entire data set with the fit?"
             print "smoothing         how much to smooth the data by before fitting?"
+            print "coarsen           how much to coarsen the data before fitting?"
             print "\n"
             ask_again = True
 
@@ -393,7 +395,9 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                             elif variable == 'plot_all': # show all the data
                                 model.plot_all = value
                             elif variable == 'smoothing': # presmooth the data
-                                model.smoothing = value
+                                model.smoothing = int(value)
+                            elif variable == 'coarsen':
+                                model.coarsen = int(value)
                             elif variable == 'show_error': # include the error bars?
                                 model.show_error = value
                             elif variable == 'auto_error': # should we auto-scale the error bars to make red. chi^2 1?
@@ -428,12 +432,17 @@ def interactive_fitting_loop(model, data, auto_fast=False):
             # make a new data range to look at
             print "generating new array to fit"
 
+            # store local copies of the data
+            smooth_x = _numpy.array(data.xdata)
+            smooth_y = _numpy.array(data.ydata)
+            smooth_ye= _numpy.array(data.eydata)
+
             # presmooth the ydata first
-            smooth_ydata = _numpy.array(data.ydata)
-            _fun.smooth_array(smooth_ydata, model.smoothing)
+            _fun.smooth_array(smooth_y, model.smoothing)
+            [smooth_x,smooth_y,smooth_ye] = _fun.coarsen_data(smooth_x,smooth_y,smooth_ye,model.coarsen)
 
             # trim the data down into new arrays
-            [x, y, ye] = _fun.trim_data(data.xdata, smooth_ydata, data.eydata, [xmin, xmax])
+            [x, y, ye] = _fun.trim_data(smooth_x, smooth_y, smooth_ye, [xmin, xmax])
 
             if len(x) <= len(model.p0)+1: # need at least 3 data points
                 print "not enough data to fit!"
@@ -467,7 +476,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                     print "thnick thnick:", [fit_output[0][1]-model.auto_trim_minus*fit_output[0][2], fit_output[0][1]+model.auto_trim_plus*fit_output[0][2]]
 
                     # trim the data down into new arrays
-                    [x, y, ye] = _fun.trim_data(data.xdata, smooth_ydata, data.eydata,
+                    [x, y, ye] = _fun.trim_data(smooth_x, smooth_y, smooth_ye,
                                     [fit_output[0][1]-model.auto_trim_minus*fit_output[0][2],
                                      fit_output[0][1]+model.auto_trim_plus*fit_output[0][2]])
 
@@ -477,7 +486,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
                     print "thnick thnick:", [fit_output[0][1]-model.auto_trim_minus*fit_output[0][2], fit_output[0][1]+model.auto_trim_plus*fit_output[0][2]]
 
                     # trim the data down into new arrays
-                    [x, y, ye] = _fun.trim_data(data.xdata, smooth_ydata, data.eydata,
+                    [x, y, ye] = _fun.trim_data(smooth_x, smooth_y, smooth_ye,
                                     [fit_output[0][1]-model.auto_trim_minus*fit_output[0][2],
                                      fit_output[0][1]+model.auto_trim_plus*fit_output[0][2]])
 
@@ -527,10 +536,10 @@ def interactive_fitting_loop(model, data, auto_fast=False):
 
             # now come up with arrays for the fit curve
             if model.plot_all:
-                x_plot  = _numpy.array(data.xdata)
-                y_plot  = _numpy.array(smooth_ydata)
+                x_plot  = _numpy.array(x)
+                y_plot  = _numpy.array(y)
                 if data.eydata==None: ye_plot = x_plot*0.0+ye[0]
-                else:                 ye_plot = _numpy.array(data.eydata)
+                else:                 ye_plot = _numpy.array(ye)
             else:
                 x_plot  = _numpy.array(x)
                 y_plot  = _numpy.array(y)

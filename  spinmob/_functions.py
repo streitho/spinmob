@@ -113,8 +113,10 @@ def coarsen_data(xdata, ydata, yerror=None, level=1):
             if m < len(xdata):
                 sumx  += xdata[m]
                 sumy  += ydata[m]
-                if not yerror==None:
+                try:
                     sume2 += yerror[m]**2
+                except:
+                    sume2 = 1.0
                 count += 1.0
 
         new_xdata.append(sumx/count)
