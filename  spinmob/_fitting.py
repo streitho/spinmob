@@ -11,6 +11,73 @@ import _models                      ; reload(_models)
 import _dialogs                     ; reload(_dialogs)
 import _data_types                  ; reload(_data_types)
 
+from numpy import *
+
+#
+# Fit function based on the model class
+#
+def fit(f='a*x+b; a; b', bg='0.0', command="", settings={}, **kwargs):
+    """
+    Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
+    are then sent to "data.standard()". Useful ones to keep in mind:
+
+    for loading:    paths, default_directory
+    for data class: xscript, yscript, eyscript
+
+    See the above mentioned functions for more information.
+
+    f (the function) must be a semicolon-delimted string with the first element being the function
+    and the remainder being the variables to fit.
+
+    bg (the background) is also a function string like the first element of f.
+    """
+
+    # generate the model
+    model = _s.models.curve(f, bg, globals())
+    fit_model(model, command,    settings,    **kwargs)
+
+def fit_model(model, command="", settings={}, **kwargs):
+    """
+    Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
+    are then sent to "data.standard()". Useful ones to keep in mind:
+
+    for loading:    paths, default_directory
+    for data class: xscript, yscript, eyscript
+
+    See the above mentioned functions for more information.
+    """
+
+    # Have the user select a bunch of files.
+    ds = _s.data.load_multiple(**kwargs)
+
+    for d in ds:
+        print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
+        result = model.fit(d, command, settings)
+
+        # make sure we didn't quit.
+        if result['command'] == 'q': return
+
+        # prepare for the next file.
+        command=''
+        if result.has_key('settings'):
+            settings = result['settings']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
