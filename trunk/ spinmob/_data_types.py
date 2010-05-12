@@ -302,7 +302,7 @@ class standard:
 
         for n in range(first_data_line, len(self.lines)):
             # split the line up
-            s = self.lines[n].split(self.delimiter)
+            s = self.lines[n].strip().split(self.delimiter)
 
             # now start filling the column, ignoring the empty or bad data lines
             for m in range(len(s)):
