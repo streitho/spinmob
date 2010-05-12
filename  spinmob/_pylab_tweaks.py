@@ -130,6 +130,8 @@ def auto_zoom(axes="gca", x_space=0.04, y_space=0.04):
                 xdata.append(x[m])
                 ydata.append(y[m])
 
+    if len(xdata)==0 or len(ydata)==0: return
+
     xmin = min(xdata)
     xmax = max(xdata)
     ymin = min(ydata)
@@ -860,8 +862,8 @@ def smooth_line(line, smoothing=1, trim=True, draw=True):
     """
 
     # get the actual data values
-    xdata = line.get_xdata()
-    ydata = line.get_ydata()
+    xdata = list(line.get_xdata())
+    ydata = list(line.get_ydata())
 
     _fun.smooth_array(ydata, smoothing)
 

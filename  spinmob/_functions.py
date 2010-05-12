@@ -609,20 +609,20 @@ def smooth(array, index, amount):
 def smooth_array(array, amount=1):
     """
 
-    Returns the nearest-neighbor (+/- amount) smoothed array
-    This modifies the array!
-
-    It does NOT slice off the funny end points
+    Returns the nearest-neighbor (+/- amount) smoothed array.
+    This does not modify the array or slice off the funny end points.
 
     """
     if amount==0: return array
 
     # we have to store the old values in a temp array to keep the
     # smoothing from affecting the smoothing
-    temp_array = _numpy.array(array)
+    new_array = _numpy.array(array)
 
-    for n in range(amount, len(temp_array)-amount):
-        array[n] = smooth(temp_array, n, amount)
+    for n in range(len(array)):
+        new_array[n] = smooth(array, n, amount)
+
+    return new_array
 
 
 def smooth_data(xdata, ydata, yerror, amount=1):
