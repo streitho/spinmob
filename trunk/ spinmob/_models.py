@@ -8,6 +8,7 @@ import spinmob as _spinmob
 _tweaks = _spinmob.plot.tweaks
 
 import _functions as _fun
+import wx as _wx
 
 
 
@@ -179,7 +180,8 @@ class model_base:
                             "guess"             : None,
                             "save_file"         : True,
                             "file_tag"          : 'fit_',
-                            "figure"            : 1}
+                            "figure"            : 1,
+                            "autofit"           : False}
         if d.eyscript == None: default_settings["auto_error"] = True
 
         # fill in the non-supplied settings with defaults
@@ -197,7 +199,8 @@ class model_base:
         axes2 = fig.add_axes([0.10, 0.79, 0.73, 0.13])
         axes2.xaxis.set_ticklabels([])
 
-        # start by plotting the data, no error bars.
+
+        # start by plotting the data, no error bars
         d.get_data()
         axes1.plot(d.xdata, d.ydata, linestyle='', marker='D', mfc='blue', mec='w', label='data')
 
@@ -205,7 +208,6 @@ class model_base:
         while True:
 
             # Start by formatting the previous plot
-
             axes2.xaxis.set_ticklabels([])
 
             # come up with a title
@@ -215,7 +217,7 @@ class model_base:
             title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:]
 
             title3 = "(no fit performed)"
-            if not settings["skip"]:
+            if not settings["skip"] and not fit_parameters==None:
                 title3 = []
                 for i in range(0,len(self.pnames)):
                     title3.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
@@ -241,21 +243,26 @@ class model_base:
             _pylab.draw()
 
             _tweaks.raise_figure_window()
+            _wx.Yield()
             _tweaks.raise_pyshell()
 
 
 
 
-
             # the only way we optimize is if we hit enter.
-            settings["skip"] = True
+            if settings["autofit"]: settings["skip"] = False
+            else:                   settings["skip"] = True
 
             # If last command is None, this is the first time. Parse the initial
             # command but don't ask for one.
             if command == "":
                 print
                 print "min=" + str(settings['min']) + ", max="+str(settings['max'])
-                command = raw_input("Command (<enter> to fit, 'h' for help): ").strip()
+                if settings["autofit"]:
+                    if fit_parameters==None:    command = ""
+                    else:                       command = "y"
+                else:
+                    command = raw_input("Command (<enter> to fit, 'h' for help): ").strip()
 
             # first check and make sure the command isn't one of the simple ones
             if command.lower() in ['h', 'help']:
@@ -375,7 +382,7 @@ class model_base:
             [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.yerror, [xmin, xmax])
 
             # smooth and coarsen
-            [x,y,ye] = _fun.smooth_data(x,y,ye,settings["smooth"])
+            [x,y,ye] = _fun.smooth_data( x,y,ye,settings["smooth"])
             [x,y,ye] = _fun.coarsen_data(x,y,ye,settings["coarsen"])
 
             # now do the first optimization. Start by guessing parameters from
@@ -442,8 +449,8 @@ class model_base:
                 ye_plot = d.yerror*sigma_y
 
                 # smooth and coarsen
-                [x_plot, y_plot, ye_plot] = _fun.smooth_data(x_plot, y_plot, ye_plot, settings["smooth"])
-                [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot,y_plot, ye_plot, settings["coarsen"])
+                [x_plot, y_plot, ye_plot] = _fun.smooth_data( x_plot, y_plot, ye_plot, settings["smooth"])
+                [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot, y_plot, ye_plot, settings["coarsen"])
             else:
                 # this data is already smoothed and coarsened before the fit.
                 x_plot  = x

@@ -52,6 +52,7 @@ def fit_model(model, command="", settings={}, **kwargs):
 
     for d in ds:
         print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
+        model.fit_parameters = None
         result = model.fit(d, command, settings)
 
         # make sure we didn't quit.
@@ -61,6 +62,7 @@ def fit_model(model, command="", settings={}, **kwargs):
         command=''
         if result.has_key('settings'):
             settings = result['settings']
+
 
 
 
