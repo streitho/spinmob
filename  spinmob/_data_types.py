@@ -198,48 +198,59 @@ class standard:
                 # quit the header loop
                 break;
 
+            # first thing to try is simply evaluating the remaining string
 
-            # if this isn't an empty line and has strings for elements, assume it's a column key line for now
-            # (we keep overwriting this until we get to the first data line)
-            if len(s) > 0:
-                # overwrite the ckeys, and note the line number
-                self.ckeys = list(s) # this makes a new instance of the list so it doesn't lose the first element!
-                ckeys_line = n
-
-                # if it's length 1, it's just some word. Store a dummy string in there.
-                if len(s) == 1: s.append('')
-
-                # Also assume it is a header line. Here should be at least two elements in a header element
-                if len(s) == 2:
-                    # If there are exactly two elemenents, just store the header constant
-                    try:    self.headers[s[0]] = float(s[1]) # this one is a number
-                    except: self.headers[s[0]] = s[1]        # this one is a string
-
-                    # store the key in a variable like the other cases
-                    l = s[0]
+            try:
+                remainder = list(s)
+                hkey = remainder.pop(0)
+                remainder = _fun.join(remainder).strip()
+                self.insert_header(hkey, eval(remainder))
 
 
-                else:
-                    # if there are more than 2 elements, then this is an array or a phrase
+            # if that didn't work, try all the other complicated/flexible stuff
+            except:
 
-                    # if all the elements after the first are numbers, this is an array row
-                    if _fun.elements_are_numbers(s, 1):
-                        # just add this to the headers as an array
-                        for n in range(1,len(s)): s[n] = float(s[n])
+                # if this isn't an empty line and has strings for elements, assume it's a column key line for now
+                # (we keep overwriting this until we get to the first data line)
+                if len(s) > 0:
+                    # overwrite the ckeys, and note the line number
+                    self.ckeys = list(s) # this makes a new instance of the list so it doesn't lose the first element!
+                    ckeys_line = n
 
-                    # pop off the first element, this is the string used to access the array
-                    l = s.pop(0)
-                    self.headers[l] = s
+                    # if it's length 1, it's just some word. Store a dummy string in there.
+                    if len(s) == 1: s.append('')
+
+                    # Also assume it is a header line. Here should be at least two elements in a header element
+                    if len(s) == 2:
+                        # If there are exactly two elemenents, just store the header constant
+                        try:    self.headers[s[0]] = float(s[1]) # this one is a number
+                        except: self.headers[s[0]] = s[1]        # this one is a string
+
+                        # store the key in a variable like the other cases
+                        l = s[0]
 
 
-                # in either case, we now have a header key in the variable l.
-                # now add it to the ordered list, but only if it doesn't exist
-                if _fun.index(l, self.hkeys) < 0:
-                    self.hkeys.append(l)
-                else:
-                    print "Duplicate header:", l
+                    else:
+                        # if there are more than 2 elements, then this is an array or a phrase
 
-                if self.debug: print "header '"+l+"' = "+str(self.headers[l])[0:20]+" ..."
+                        # if all the elements after the first are numbers, this is an array row
+                        if _fun.elements_are_numbers(s, 1):
+                            # just add this to the headers as an array
+                            for n in range(1,len(s)): s[n] = float(s[n])
+
+                        # pop off the first element, this is the string used to access the array
+                        l = s.pop(0)
+                        self.headers[l] = s
+
+
+                    # in either case, we now have a header key in the variable l.
+                    # now add it to the ordered list, but only if it doesn't exist
+                    if _fun.index(l, self.hkeys) < 0:
+                        self.hkeys.append(l)
+                    else:
+                        print "Duplicate header:", l
+
+                    if self.debug: print "header '"+l+"' = "+str(self.headers[l])[0:20]+" ..."
 
 
 
@@ -335,18 +346,14 @@ class standard:
         # open the file and write the header
         f = open(path, 'w')
         for k in self.hkeys:
+            # if this is a numpy array, turn it into a list
+            if type(self.headers[k]) == type(_numpy.array([])):
+                self.headers[k] = self.headers[k].tolist()
+
             f.write(k + delimiter)
 
-            # if this element is a string, float, or int, just write it
-            if not type(self.headers[k]) in [type(_numpy.array([])), type([])]: f.write(str(self.headers[k]) + "\n")
-
-            # pretend it's an array and try to write it as such
-            else:
-                try:
-                    for n in range(len(self.headers[k])): f.write(str(self.headers[k][n]) + delimiter)
-                    f.write("\n")
-                except:
-                    print "header element '"+k+"' is an unknown type"
+            # just write it
+            f.write(str(self.headers[k]) + "\n")
 
         # now write the ckeys line
         f.write("\n")
@@ -449,9 +456,10 @@ class standard:
 
 
 
-    def generate_column(self, script, name="temporary"):
+    def generate_column(self, script, name=None):
         """
-        Generates a new column of your specification.
+        Generates a new column of your specification. If name=None it will just
+        return the data without inserting it into the data object.
 
         Scripts are of the form:
 
@@ -486,13 +494,18 @@ class standard:
             return None
 
         # generate the new column
-        self.columns[name] = eval(expression, vars)
+        new_column = eval(expression, vars)
 
-        # if we don't already have a column of this label, add it to the ckeys
-        if not name in self.ckeys:
-            self.ckeys.append(name)
+        # only insert it if someone gave it a name!
+        if name==None: return new_column
+        else:
+            self.columns[name] = new_column
 
-        return self.columns[name]
+            # if we don't already have a column of this label, add it to the ckeys
+            if not name in self.ckeys:
+                self.ckeys.append(name)
+
+            return self.columns[name]
 
     def get_data(self):
         """
@@ -504,8 +517,8 @@ class standard:
         Uses self.xscript, self.yscript, and self.eyscript.
         """
 
-        self.xdata  = self.generate_column(self.xscript)
-        self.ydata  = self.generate_column(self.yscript)
+        self.xdata  = self.generate_column(self.xscript, name=None)
+        self.ydata  = self.generate_column(self.yscript, name=None)
         if self.eyscript:
             self.eydata = self.generate_column(self.eyscript)
         self.xlabel = self.xscript
@@ -532,7 +545,7 @@ class standard:
                 self.ckeys.insert(index, ckey)
 
 
-    def insert_header(self, hkey, value, index=0):
+    def insert_header(self, hkey, value, index='end'):
         """
         This will insert/overwrite a value to the header and hkeys.
 

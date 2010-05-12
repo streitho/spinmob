@@ -571,6 +571,8 @@ def data_from_file(path, delimiter=" "):
 def join(array_of_strings, delimiter=' '):
     if array_of_strings == []: return ""
 
+    if delimiter==None: delimiter=' '
+
     output = str(array_of_strings[0])
     for n in range(1, len(array_of_strings)):
         output += delimiter + str(array_of_strings[n])
