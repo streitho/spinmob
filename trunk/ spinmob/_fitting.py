@@ -13,24 +13,18 @@ import _data_types                  ; reload(_data_types)
 
 
 
-def fit2(model=_models.parabola(), data=_data_types.standard(), initial_command="", paths="ask"):
-
-    # Have the user select a bunch of files.
-    if paths=="ask": paths = _dialogs.MultipleFiles('DIS AND DAT|*.*', default_directory=data.directory)
-    if paths==None: return
-
-    for path in paths:
-        model.fit(data)
 
 
 
 
 
 
-def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, show_guess=0, show_error=1, plot_all=0, skip_first_try=0, subtract=0, clear_plot=1, invert=0, autofile=1, paths="ask"):
+
+
+def _fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, show_guess=0, show_error=1, plot_all=0, skip_first_try=0, subtract=0, clear_plot=1, invert=0, autofile=1, paths="ask"):
     """
 
-    This selects a bunch of files, and fits them.
+    This is antiquated and ugly.
 
     data                (instance of class) data to extract from the files
     model               (instance of class) fitting class
@@ -150,7 +144,7 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
             for k in key_names:  _fun.append_to_file(fit_file, str(data.constants[k]).replace(' ', '_') + ' ');
 
             # now start the query loop to make sure and fit or move on
-            pfit = interactive_fitting_loop(model, data)
+            pfit = _interactive_fitting_loop(model, data)
 
             # now deal with the output
             if pfit == "quit":
@@ -191,7 +185,11 @@ def fit(data=_data_types.standard(), model=_models.parabola(), auto_error=1, sho
 
 
 
-def interactive_fitting_loop(model, data, auto_fast=False):
+def _interactive_fitting_loop(model, data, auto_fast=False):
+    """
+    This is totally antiquated and nasty.
+    """
+
 
     # get a first guess at the background positions
     x_background_index1 = 1
@@ -671,7 +669,7 @@ def interactive_fitting_loop(model, data, auto_fast=False):
 
 
 
-def fit_massive(data, model=_models.complete_lorentz_flat_background(), show_guess=1, skip_first_try=0, clear_plot=1, invert=0, autofile=1):
+def _fit_massive(data, model=_models.complete_lorentz_flat_background(), show_guess=1, skip_first_try=0, clear_plot=1, invert=0, autofile=1):
     d = _dialogs.Directory();
     if d == "": return
     contents = _os.listdir(d) # doesn't include root path
