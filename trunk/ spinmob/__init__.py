@@ -48,6 +48,7 @@ import _common_math as math
 
 # pull some of the common functions to the top
 printer                 = fun.printer
-fit                     = models.fit
+fit                     = _fitting.fit
+fit_model               = _fitting.fit_model
 
 print "\nSpinmob Analysis Kit X-TREEEME\n"

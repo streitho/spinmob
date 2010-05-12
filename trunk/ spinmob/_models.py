@@ -10,41 +10,6 @@ _tweaks = _spinmob.plot.tweaks
 import _functions as _fun
 
 
-pi   = 3.1415926535
-u0   = 1.25663706e-6
-uB   = 9.27400949e-24
-e    = 1.60217e-19
-h    = 6.626068e-34
-hbar = h/(2*pi)
-
-#
-# Fit function based on the model class
-#
-def fit(model, command="", settings={}, **kwargs):
-    """
-    Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
-    are then sent to "data.standard()". Useful ones to keep in mind:
-
-    for loading:    paths, default_directory
-    for data class: xscript, yscript, eyscript
-
-    See the above mentioned functions for more information.
-    """
-
-    # Have the user select a bunch of files.
-    ds = _spinmob.data.load_multiple(**kwargs)
-
-    for d in ds:
-        print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
-        result = model.fit(d, command, settings)
-
-        # make sure we didn't quit.
-        if result['command'] == 'q': return
-
-        # prepare for the next file.
-        command=''
-        if result.has_key('settings'):
-            settings = result['settings']
 
 
 
@@ -55,9 +20,9 @@ class model_base:
 
     # this is something the derived classes must do, to define
     # their fit variables
-    pnames = ["height", "center", "width", "height2", "offset"]
-
-    D = None
+    pnames          = []
+    function_string = None
+    D               = None
 
     # this function just creates a p0 array based on the size of the pnames array
     def __init__(self):
@@ -87,31 +52,6 @@ class model_base:
         self.write_to_p0(p)
         return
 
-    # this can be another overridden function, but it's not necessary
-    # all THIS version does is try to guess the offset and then
-    # tries to write the offset guess parameter (if "offset" is defined)
-    def guess_background(self, ydata, xbi1=0, xbi2=-1):
-        self.set_parameter("offset", (ydata[xbi1]+ydata[xbi2])/2.0)
-
-    # You can override these functions if you like (not fully implemented yet)
-    def append_header_to_file(self, path, data):
-        # write the header to the fit peaks fill
-        append_to_file(fit_file, "\n\nfit_data: model "+str(self))
-        if invert: append_to_file(fit_file, " (DATA INVERTED)")
-        append_to_file(fit_file, "\n"+"data: "+str(data)+"\n")
-
-        # print the key names and the parameters
-        key_names = []
-        for k in data.constants.keys():
-            append_to_file(fit_file, k+" ")
-            key_names.append(k) # make sure we remember the order of keys
-        for n in model.pnames:
-            append_to_file(fit_file, "fit-" + n + " ")
-        append_to_file(fit_file, "\n")
-
-
-    def append_pfit_to_file(self, path):
-        return
 
     #
     #
@@ -351,11 +291,10 @@ class model_base:
                 elif settings['save_file']:
                     # If this is a good fit. Add relevant information to the header then save
                     d.insert_header("fit_model", str(self.__class__).split()[0][0:])
+                    d.insert_header("fit_function", str(self.function_string))
                     for n in range(len(self.pnames)):
-                        d.insert_header("fit_"+self.pnames[n], fit_parameters[n])
-
+                        d.insert_header("fit_"+self.pnames[n], [fit_parameters[n], fit_errors[n]])
                     d.insert_header("fit_reduced_chi_squared",fit_reduced_chi_squared)
-                    d.insert_header("fit_errors",             fit_errors)
 
                     # build the correlations array (not a 2-d array)
                     d.insert_header("fit_correlations",       fit_correlation)
@@ -399,6 +338,8 @@ class model_base:
                 for c in s:
                     try:
                         [key, value] = c.split('=')
+                        key   = key.strip()
+                        value = value.strip()
                         if settings.has_key(key):
                             settings[key] = eval(value)
                         else:
@@ -449,6 +390,10 @@ class model_base:
             # now do the first optimization
             if not settings["skip"]:
                 fit_output = self.optimize(x, y, ye, self.p0)
+                # optimize puts out a float if there's only one parameter. Annoying.
+                if getattr(fit_output[0], '__iter__', False) == False:
+                        fit_parameters = _numpy.array([fit_output[0]])
+                else:   fit_parameters = fit_output[0]
 
                 # If we're doing auto error, now we should scale the error so that
                 # the reduced xi^2 is 1
@@ -456,19 +401,22 @@ class model_base:
                 if settings["auto_error"]:
 
                     # guess the correction to the y-error we're fitting (sets the reduced chi^2 to 1)
-                    sigma_y = _numpy.sqrt(self.residuals_variance(fit_output[0],x,y,ye))
+                    sigma_y = _numpy.sqrt(self.residuals_variance(fit_parameters,x,y,ye))
                     print "    initial reduced chi^2 =", sigma_y**2
                     print "    scaling error by", sigma_y, "and re-optimizing..."
                     ye       = sigma_y*ye
                     d.yerror = sigma_y*d.yerror
 
                     # optimize with new improved errors, using the old fit to start
-                    fit_output = self.optimize(x,y,ye,p0=fit_output[0])
+                    fit_output = self.optimize(x,y,ye,p0=fit_parameters)
+                    # optimize puts out a float if there's only one parameter. Annoying.
+                    if getattr(fit_output[0], '__iter__', False) == False:
+                            fit_parameters = _numpy.array([fit_output[0]])
+                    else:   fit_parameters = fit_output[0]
 
                 # Now that the fitting is done, show the output
 
                 # grab all the information from fit_output
-                fit_parameters = fit_output[0]
                 fit_covariance = fit_output[1]
                 fit_reduced_chi_squared = self.residuals_variance(fit_parameters,x,y,ye)
                 if fit_covariance is not None:
@@ -546,6 +494,72 @@ class model_base:
 
 
 
+class curve(model_base):
+
+    globs={} # globals such as sin and cos...
+
+    def __init__(self, f='a+b*x+c*x**2; a; b=2.0; c=1.5', bg='0.0', globs={}):
+        """
+        This class takes the function string you specify and generates
+        a model based on it.
+
+        f must be a semicolon-delimited string, with the
+        first element being the function and the remaining elements being
+        the parameters with possible default settings.
+
+        You can specify a background (bg) other than 0.0 using the same
+        variables (no need to re-specify).
+
+        If you want to do something a little more fancy with a guessing algorithm,
+        it's relatively straightforward to write one of the model classes similar
+        to the examples given in spinmob.models
+        """
+
+        # start by parsing the f string
+        f_split = f.split(';')
+
+        # get the function
+        self.function_string   = f_split.pop(0)
+        self.background_string = bg
+
+        # Loop over the parameters, get their names and possible default values
+        self.pnames     = []
+        self.defaults   = []
+        for p in f_split:
+            p_split = p.split('=')
+
+            self.pnames.append(p_split[0].strip())
+
+            if len(p_split)==2: self.defaults.append(float(p_split[1]))
+            else:               self.defaults.append(1.0)
+
+        # set up the guess
+        self.p0 = _numpy.array(self.defaults)
+
+        # store the globals
+        self.globs = globs
+
+        # override the function and background
+        args = 'x,'+_fun.join(self.pnames,',')
+        self.f  = eval('lambda ' + args + ': '+self.function_string,   self.globs)
+        self.bg = eval('lambda ' + args + ': '+self.background_string, self.globs)
+
+
+    def evaluate(self,   p, x):
+        return self.f( x, *p)
+    def background(self, p, x):
+        return self.bg(x, *p)
+
+    # You can override this if you want the guess to be something fancier.
+    def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
+        """
+        This function takes the supplied data (and two indices from which to
+        estimate the background should you want them) and returns a best guess
+        of the parameters, then stores this guess in p0.
+        """
+
+        self.write_to_p0(self.defaults)
+        return
 
 
 
@@ -557,6 +571,7 @@ class model_base:
 
 class complete_lorentz_flat_background(model_base):
 
+    function_string = "p[0]+p[3]*((x-p[1])/p[2]))/(1.0+((x-p[1])/p[2])**2)+p[4]"
     pnames = ["height", "center", "width", "height2", "offset"]
 
     # define the function
@@ -577,7 +592,7 @@ class complete_lorentz_flat_background(model_base):
 
         # guess the height and center from the max
         p[0] = max(ydata - p[4])
-        p[1] = xdata[index(max(ydata-p[4]), ydata-p[4])] # center
+        p[1] = xdata[(ydata-p[4]).index(max(ydata-p[4]))] # center
 
         # guess the asymmetric part from the minimum and background
         p[3] = 0
@@ -591,47 +606,9 @@ class complete_lorentz_flat_background(model_base):
 
 
 
-class even_polynomial(model_base):
-
-    # set up the parameter structure here
-    def __init__(self, order=4):
-        self.order = order
-
-        # create the pnames based on the supplied order
-        self.pnames = []
-        self.p0     = []
-        for n in range(0, self.order/2+1):
-            self.pnames.append("p"+str(n*2))
-            self.p0.append(0)
-
-    # define the function
-    def background(self, p, x):
-        return(0.0*x + p[0])
-
-    def evaluate(self, p, x):
-        y = 0.0
-        for n in range(0,len(p)):
-            y += p[n] * x**(2*n)
-        return(y)
-
-    # come up with a routine for guessing p0
-    def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
-        # first get the appropriate size array
-        p=self.p0
-
-        # this one's easy to guess.
-        p[0] = ydata[_fun.index_nearest(0, xdata)]
-
-        # make the rest 0
-        for n in range(1, len(p)):
-            p[n] = 0.0
-
-        # write these values to self.p0, but avoid the guessed_list
-        self.write_to_p0(p)
-
-
 class exponential_offset(model_base):
 
+    function_string = "p[0]*_numpy.exp(-x/p[1])+p[2]"
     pnames = ["amplitude", "tau", "offset"]
 
     # define the function
@@ -656,36 +633,12 @@ class exponential_offset(model_base):
 
 
 
-class kittel_medium_axis(model_base):
-
-    global hbar, pi, uB
-    pnames = ["Bzy", "Byx"]
-
-    # define the function
-    def background(self, p, x): return 0*x # the 0.0*x is so you get an array from an array
-
-    # main function
-    def evaluate(self, p, x):
-        xa = _numpy.absolute(x)
-        return 2*1e-9*(uB/hbar)*((xa+p[0])*(xa-p[1]))**0.5/(2*pi)
-
-    # come up with a routine for guessing p0
-    def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
-        # first get the appropriate size array
-        p=self.p0
-
-        # guess the background
-        p[0] = 1.0
-        p[1] = 0.05
-
-        # write these values to self.p0, but avoid the guessed_list
-        self.write_to_p0(p)
-
 
 
 
 class linear(model_base):
 
+    function_string = "p[0]*x + p[1]"
     pnames = ["slope", "offset"]
 
     # this must return an array!
@@ -714,6 +667,7 @@ class linear(model_base):
 
 class lorentz_linear_background(model_base):
 
+    function_string = "p[0]/(1.0+((x-p[1])/p[2])**2)+p[3]*x+p[4]"
     pnames = ["height", "center", "width", "slope", "offset"]
 
     # define the function
@@ -733,7 +687,7 @@ class lorentz_linear_background(model_base):
 
         # guess the height and center from the max
         p[0] = max(ydata - p[4])
-        p[1] = xdata[index(max(ydata-p[4]), ydata-p[4])] # center
+        p[1] = xdata[(ydata-p[4]).index(max(ydata-p[4]))] # center
 
         # guess the halfwidth
         p[2] = (max(xdata)-min(xdata))/12.0
@@ -745,6 +699,7 @@ class lorentz_linear_background(model_base):
 
 class parabola(model_base):
 
+    function_string = "p[0]*(x-p[1])**2 + p[2]"
     pnames = ["A", "x0", "y0"]
 
     # this must return an array!
@@ -768,6 +723,7 @@ class parabola(model_base):
 
 class sine(model_base):
 
+    function_string = "p[0]*sin(2*pi*x/p[1]+p[2]) + p[3]"
     pnames = ["A", "lambda", "phi","offset"]
 
     # this must return an array!
@@ -804,6 +760,7 @@ class sine(model_base):
 
 class sine_no_phase(model_base):
 
+    function_string = "p[0]*sin(2*pi*x/p[1]) + p[2]"
     pnames = ["A", "lambda", "offset"]
 
     # this must return an array!
@@ -839,6 +796,7 @@ class sine_no_phase(model_base):
 
 class sine_stretched_3(model_base):
 
+    function_string = "p[0]*_numpy.sin(2*pi*(p[1]*(x-p[4]) + p[2]*(x-p[4])**2 + p[3]*(x-p[4])**3)) + p[5]"
     pnames = ["A", "a1", "a2", "a3", "x0","y0"]
 
     # this must return an array!
@@ -878,6 +836,7 @@ class sine_stretched_3(model_base):
 
 class sine_stretched_4(model_base):
 
+    function_string = "p[0]*_numpy.sin(2*pi*(p[1]*(x-p[5]) + p[2]*(x-p[5])**2 + p[3]*(x-p[5])**3 + p[4]*(x-p[5])**4)) + p[6]"
     pnames = ["A", "a1", "a2", "a3", "a4", "x0","y0"]
 
     # this must return an array!
@@ -917,6 +876,7 @@ class sine_stretched_4(model_base):
 
 class sine_plus_linear(model_base):
 
+    function_string = "p[0]*_numpy.sin(2*pi*x/p[1]+p[2]) + p[3] + p[4]*x"
     pnames = ["A", "lambda", "phi","offset","slope"]
 
     # this must return an array!
@@ -960,6 +920,7 @@ class sine_plus_linear(model_base):
 
 class quadratic(model_base):
 
+    function_string = "p[0] + p[1]*x + p[2]*x*x"
     pnames = ["a0", "a1", "a2"]
 
     # this must return an array!
@@ -983,6 +944,7 @@ class quadratic(model_base):
 
 class cubic(model_base):
 
+    function_string = "p[0] + p[1]*x + p[2]*x*x + p[3]*x*x*x"
     pnames = ["a0", "a1", "a2", "a3"]
 
     # this must return an array!
@@ -1008,6 +970,7 @@ class cubic(model_base):
 
 class quartic(model_base):
 
+    function_string = "p[0] + p[1]*x + p[2]*x*x + p[3]*x*x*x + p[4]*x*x*x*x"
     pnames = ["a0", "a1", "a2", "a3", "a4"]
 
     # this must return an array!
@@ -1035,15 +998,4 @@ class quartic(model_base):
 
 
 
-
-#
-# Handy Functions
-#
-def index(value, array):
-    # simply returns the index of the first
-    # we need this to deal with numpy arrays too
-    for n in range(0,len(array)):
-        if value == array[n]:
-            return(n)
-    return(-1)
 
