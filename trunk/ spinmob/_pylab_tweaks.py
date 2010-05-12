@@ -557,7 +557,7 @@ def shift(xshift=0, yshift=0, progressive=0, axes="gca"):
     yshift          amount to shift vertically
     xshift          amount to shift horizontally
     axes="gca"      axes to do this on, "gca" means "get current axes"
-    progressive=1   progressive means each line gets more offset
+    progressive=0   progressive means each line gets more offset
                     set to 0 to shift EVERYTHING
 
     """
@@ -571,22 +571,22 @@ def shift(xshift=0, yshift=0, progressive=0, axes="gca"):
     for m in range(0,len(lines)):
         if isinstance(lines[m], _mpl.lines.Line2D):
             # get the actual data values
-            xdata = lines[m].get_xdata()
-            ydata = lines[m].get_ydata()
+            xdata = _numpy.array(lines[m].get_xdata())
+            ydata = _numpy.array(lines[m].get_ydata())
 
-            # loop over the ydata to add the offset
-            for n in range(0,len(ydata)):
-                if progressive:
-                    xdata[n] += m*xshift
-                    ydata[n] += m*yshift
-                else:
-                    xdata[n] += xshift
-                    ydata[n] += yshift
+            # add the offset
+            if progressive:
+                xdata += m*xshift
+                ydata += m*yshift
+            else:
+                xdata += xshift
+                ydata += yshift
 
             # update the data for this line
             lines[m].set_data(xdata, ydata)
 
     # zoom to surround the data properly
+
     auto_zoom()
 
 
@@ -852,7 +852,7 @@ def set_line_attribute(line=-1, attribute="lw", value=2, axes="current", refresh
     # update the plot
     if refresh: _pylab.draw()
 
-def smooth_line(line, smoothing=1, trim=True):
+def smooth_line(line, smoothing=1, trim=True, draw=True):
     """
 
     This takes a line instance and smooths its data with nearest neighbor averaging.
@@ -860,8 +860,8 @@ def smooth_line(line, smoothing=1, trim=True):
     """
 
     # get the actual data values
-    xdata = list(line.get_xdata())
-    ydata = list(line.get_ydata())
+    xdata = line.get_xdata()
+    ydata = line.get_ydata()
 
     _fun.smooth_array(ydata, smoothing)
 
@@ -878,10 +878,10 @@ def smooth_line(line, smoothing=1, trim=True):
         line.set_data(xdata, ydata)
 
     # we refresh in real time for giggles
-    _pylab.draw()
+    if draw: _pylab.draw()
 
 
-def coarsen_line(line, coarsen=1):
+def coarsen_line(line, coarsen=1, draw=True):
     """
 
     This takes a line instance and smooths its data with nearest neighbor averaging.
@@ -889,8 +889,8 @@ def coarsen_line(line, coarsen=1):
     """
 
     # get the actual data values
-    xdata = list(line.get_xdata())
-    ydata = list(line.get_ydata())
+    xdata = line.get_xdata()
+    ydata = line.get_ydata()
 
     xdata = _fun.coarsen_array(xdata, coarsen)
     ydata = _fun.coarsen_array(ydata, coarsen)
@@ -903,7 +903,7 @@ def coarsen_line(line, coarsen=1):
         line.set_data(xdata, ydata)
 
     # we refresh in real time for giggles
-    _pylab.draw()
+    if draw: _pylab.draw()
 
 def smooth_selected_trace(trim=True, axes="gca"):
     """
@@ -923,13 +923,13 @@ def smooth_selected_trace(trim=True, axes="gca"):
         if isinstance(line, _mpl.lines.Line2D):
             # first highlight it
             fatten_line(line)
-            get_figure_window()
-            get_pyshell()
+            raise_figure_window()
+            raise_pyshell()
 
             # get the smoothing factor
             ready = 0
             while not ready:
-                response = raw_input("Smoothing Factor (<enter> to skip) ")
+                response = raw_input("Smoothing Factor (<enter> to skip): ")
                 try:
                     int(response)
                     ready=1
@@ -957,7 +957,8 @@ def smooth_all_traces(smoothing=1, trim=True, axes="gca"):
     # loop over the lines and trim the data
     for line in lines:
         if isinstance(line, _mpl.lines.Line2D):
-            smooth_line(line, smoothing, trim)
+            smooth_line(line, smoothing, trim, draw=False)
+    _pylab.draw()
 
 def coarsen_all_traces(coarsen=1, axes="gca"):
     """
@@ -973,7 +974,8 @@ def coarsen_all_traces(coarsen=1, axes="gca"):
     # loop over the lines and trim the data
     for line in lines:
         if isinstance(line, _mpl.lines.Line2D):
-            coarsen_line(line, coarsen)
+            coarsen_line(line, coarsen, draw=False)
+    _pylab.draw()
 
 def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     """
