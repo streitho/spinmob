@@ -32,17 +32,44 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", autoformat=True, paths="ask", debug=0, data=_data.standard(), plot='plot', **kwargs):
+def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, data=_data.standard(), **kwargs):
     """
 
     This selects a bunch of files, and plots them.
 
-    xscript, yscript    the scripts supplied to the data
-    yshift=0.0          artificial yshift
-    clear=1             clear existing plot first
-    yaxis='left'        if 'right', this will make an overlay axis on the right (also doesn't clear)
-    paths='ask'         list of full paths to data files (or we'll ask for a list)
-    data                instance of data class used to extract plot from the files
+    xscript, yscript, eyscript      the scripts supplied to the data
+
+    yshift=0.0                      artificial (progressive) yshift
+
+    yshift_every=1                  how many lines to plot before each shift
+
+    axes='gca'                      axes instance. 'gca' uses current axes
+
+    clear=2                         clear=2: clear existing figure first
+                                    clear=1: only clear existing plots on axes
+                                    clear=0: do not clear first
+
+    autoformat=True                 autoformat the figure after plotting
+                                    NOTE: clear is set to 1 (if it's 2) and
+                                    autoformat is set to False if you specify
+                                    axes! Usually you don't want to clear the
+                                    figure or use the auto_format() feature in
+                                    this case.
+
+    yaxis='left'                    if 'right', this will make an overlay axis
+                                    on the right (also doesn't clear)
+
+    xlabel=None, ylabel=None        x and y labels if you want to override
+                                    from xscript and yscript.
+
+    legend_max='auto'               maximum number of legend entries (if you're
+                                    selecting a lot of files)
+
+    paths='ask'                     list of full paths to data files (or we'll
+                                    ask for a list)
+
+    data                            instance of data class used to extract plot
+                                    from the files
 
     **kwargs are sent to data.standard().plot()
 
@@ -57,13 +84,23 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, cl
     if not isinstance(paths, type([])): paths = [paths]
 
 
-    # get and clear the figure and axes
+    # get the figure
     f = _pylab.gcf()
-    if clear and yaxis=='left': f.clf()
 
-    # setup the right-hand axis
-    a = _pylab.gca()
+    # setup axes
+    if axes=="gca":
+        # only clear the figure if we didn't specify an axes
+        if clear==2 and yaxis=='left': f.clear()
+        a = _pylab.gca()
+    else:
+        a = axes
+        autoformat=False
+
     if yaxis=='right':  a = _pylab.twinx()
+
+    # if we're clearing the axes
+    if clear: a.clear()
+
 
     # determine the max legend entries
     if legend_max == "auto":

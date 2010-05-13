@@ -15,7 +15,7 @@ except:
 
 import pylab
 pylab.ion()          # turn on interactive mode
-from pylab import gca, gcf, figure, axes, draw, subplot
+from pylab import gca, gcf, figure, axes, draw, subplot, xscale, yscale
 
 import scipy
 import numpy
