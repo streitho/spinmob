@@ -183,17 +183,20 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
 
         # set the position of the legend
         _pylab.axes(axes) # set the current axes
-        if len(axes.lines)>0: _pylab.legend(loc=[legend_position, 1.0*n/len(figure.get_axes())], borderpad=0.02, prop=_FontProperties(size=7))
+        if len(axes.lines)>0:
+            _pylab.legend(loc=[legend_position, 1.0*n/len(figure.get_axes())], borderpad=0.02, prop=_FontProperties(size=7))
 
         # set the label spacing in the legend
         if axes.get_legend():
             if tall: axes.get_legend().labelsep = 0.007
             else:    axes.get_legend().labelsep = 0.01
+            axes.get_legend().set_visible(1)
 
         # set up the title label
         axes.title.set_horizontalalignment('right')
         axes.title.set_size(8)
         axes.title.set_position([1.5,1.02])
+        axes.title.set_visible(1)
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
 
