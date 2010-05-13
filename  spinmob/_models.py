@@ -505,40 +505,41 @@ class curve(model_base):
 
     globs={} # globals such as sin and cos...
 
-    def __init__(self, f='a+b*x+c*x**2; a; b=2.0; c=1.5', bg='0.0', globs={}):
+    def __init__(self, f='a+b*x+c*x**2', p='a=1.5, b, c=1.5', bg=None, globs={}):
         """
         This class takes the function string you specify and generates
         a model based on it.
 
-        f must be a semicolon-delimited string, with the
-        first element being the function and the remaining elements being
-        the parameters with possible default settings.
+        f is a string of the curve to fit, p is a comma-delimited string of
+        parameters (with default values if you're into that), and bg is the
+        background function should you want to use it (leaving it as None
+        sets it equal to f).
 
-        You can specify a background (bg) other than 0.0 using the same
-        variables (no need to re-specify).
+        globs is a list of globals should you wish to have these visible to f.
 
         If you want to do something a little more fancy with a guessing algorithm,
         it's relatively straightforward to write one of the model classes similar
         to the examples given in spinmob.models
         """
 
-        # start by parsing the f string
-        f_split = f.split(';')
-
         # get the function
-        self.function_string   = f_split.pop(0)
-        self.background_string = bg
+        self.function_string                = f
+        if bg==None: self.background_string = f
+        else:        self.background_string = bg
+
+        # start by parsing the f string
+        p_split = p.split(',')
 
         # Loop over the parameters, get their names and possible default values
         self.pnames     = []
         self.defaults   = []
-        for p in f_split:
-            p_split = p.split('=')
+        for parameter in p_split:
+            parameter_split = parameter.split('=')
 
-            self.pnames.append(p_split[0].strip())
+            self.pnames.append(parameter_split[0].strip())
 
-            if len(p_split)==2: self.defaults.append(float(p_split[1]))
-            else:               self.defaults.append(1.0)
+            if len(parameter_split)==2: self.defaults.append(float(parameter_split[1]))
+            else:                       self.defaults.append(1.0)
 
         # set up the guess
         self.p0 = _numpy.array(self.defaults)
