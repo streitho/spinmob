@@ -16,7 +16,7 @@ from numpy import *
 #
 # Fit function based on the model class
 #
-def fit(f='a*x+b; a; b', bg='0.0', command="", settings={}, **kwargs):
+def fit(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
     are then sent to "data.standard()". Useful ones to keep in mind:
@@ -26,14 +26,16 @@ def fit(f='a*x+b; a; b', bg='0.0', command="", settings={}, **kwargs):
 
     See the above mentioned functions for more information.
 
-    f (the function) must be a semicolon-delimted string with the first element being the function
-    and the remainder being the variables to fit.
+    f is a string of the curve to fit, p is a comma-delimited string of
+    parameters (with default values if you're into that), and bg is the
+    background function should you want to use it (leaving it as None
+    sets it equal to f).
 
-    bg (the background) is also a function string like the first element of f.
+    This function f will be able to see all the mathematical funcions of numpy.
     """
 
     # generate the model
-    model = _s.models.curve(f, bg, globals())
+    model = _s.models.curve(f, p, bg, globals())
     fit_model(model, command,    settings,    **kwargs)
 
 def fit_model(model, command="", settings={}, **kwargs):
