@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", coarsen=0, debug=0, data=_data.standard(), plot='plot', **kwargs):
+def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, clear=1, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", autoformat=True, paths="ask", debug=0, data=_data.standard(), plot='plot', **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -72,18 +72,20 @@ def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clea
 
 
     # for each path, open the file, get the data, and plot it
+    _pylab.hold(True)
     for m in range(0, len(paths)):
 
         # fill up the xdata, ydata, and key
         if debug: print "FILE: "+paths[m]
         data.load_file(paths[m])
-        data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, format=0, coarsen=coarsen, xscript=xscript, yscript=yscript, yerror=yerror, **kwargs)
+        data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
         # now fix the legend up nice like
         if m > legend_max-2 and m != len(paths)-1:
             a.get_lines()[-1].set_label('_nolegend_')
         elif m == legend_max-2:
             a.get_lines()[-1].set_label('...')
+    _pylab.hold(False)
 
     # add the axis labels
     if not xlabel==None: a.set_xlabel(xlabel)
@@ -94,8 +96,12 @@ def xy_files(xscript=0, yscript=1, yerror=None, yshift=0.0, yshift_every=1, clea
     if yaxis=="right": data.title = data.title + "\n"
     a.set_title(data.title)
 
-    if yshift: _pt.format_figure(f, tall=True)
-    else:      _pt.format_figure(f, tall=False)
+    # leave it unformatted unless the user tells us to autoformat
+    a.title.set_visible(0)
+
+    if autoformat:
+        if yshift: _pt.format_figure(f, tall=True)
+        else:      _pt.format_figure(f, tall=False)
 
     _pylab.draw()
     _pt.get_figure_window()

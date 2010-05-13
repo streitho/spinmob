@@ -750,16 +750,16 @@ class standard:
 
 
 
-    def plot(self, xscript=0, yscript=1, yerror=None, clear=True, format=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', label=None, **kwargs):
+    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', label=None, **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
 
-        xscript, yscript, yerror    These are the scripts to generate the three columns of data
+        xscript, yscript, eyscript    These are the scripts to generate the three columns of data
 
         axes="gca"                  Which set of axes to use. "gca" means use the current axes.
         clear=True                  Clear the axes first?
-        format=True                 Format the axes/labels/legend/title when done plotting?
+        autoformat=True             Format the axes/labels/legend/title when done plotting?
         coarsen=0                   Should we coarsen the data?
         yshift=0                    How much vertical artificial offset should we add?
 
@@ -800,31 +800,31 @@ class standard:
         else:
 
             # use the expected error column if we're supposed to
-            if yerror == "auto": yerror = yscript+"_error"
+            if eyscript == "auto": eyscript = yscript+"_error"
 
             # if yerror doesn't exist and we haven't specified no error
             # try to generate the column
-            if  not yerror in self.columns.keys() \
-            and not yerror==None                  \
-            and not type(yerror) in [int,long]:
-                if self.debug: print yerror, "is not a column"
-                self.generate_column(yerror, "temp_yerror")
-                yerror="temp_yerror"
+            if  not eyscript in self.columns.keys() \
+            and not eyscript==None                  \
+            and not type(eyscript) in [int,long]:
+                if self.debug: print eyscript, "is not a column"
+                yerror = self.generate_column(eyscript, None)
+
 
             [xpression, xvars] = self.parse_script(xscript)
             if xvars == None: return
             [ypression, yvars] = self.parse_script(yscript)
             if yvars == None: return
 
-            if not yerror == None:
-                [spression, svars] = self.parse_script(yerror)
+            if not eyscript == None:
+                [spression, svars] = self.parse_script(eyscript)
                 if svars == None: yerror = None
 
             # try to evaluate the data
             self.xdata  = eval(xpression, xvars)
             self.ydata  = eval(ypression, yvars)
-            if yerror == None:  self.yerror = None
-            else:               self.yerror = eval(spression, svars)
+            if eyscript == None:  self.yerror = None
+            else:                 self.yerror = eval(spression, svars)
 
             xdata  = self.xdata
             ydata  = self.ydata
@@ -938,12 +938,12 @@ class standard:
         axes.set_ylabel(self.ylabel)
         axes.set_title(self.title)
 
-        if format: _pt.format_figure()
+        if autoformat: _pt.format_figure()
         return axes
 
 
 
-    def plot_columns(self, start=1, end=-1, yshift=0.0, yshift_every=1, xcolumn=0, legend=None, clear=1, axes="gca", legend_max=30, tall="auto", **kwargs):
+    def plot_columns(self, start=1, end=-1, yshift=0.0, yshift_every=1, xcolumn=0, legend=None, clear=1, axes="gca", legend_max=30, autoformat=True, tall="auto", **kwargs):
         """
         This does a line plot of a range of columns.
 
@@ -983,7 +983,7 @@ class standard:
             else:               self.legend_string = str(self.h(legend)[n-1]).replace("_","")
 
             # now plot it
-            self.plot(yshift=((n-start)/yshift_every)*yshift, axes=axes, clear=0, format=False, **kwargs)
+            self.plot(yshift=((n-start)/yshift_every)*yshift, axes=axes, clear=0, autoformat=False, **kwargs)
 
             # now fix the legend up real nice like
             if   n-start >  legend_max-2 and n != end: axes.get_lines()[-1].set_label('_nolegend_')
@@ -996,7 +996,7 @@ class standard:
 
         # make it look nice
         if tall=="auto": tall = yshift
-        _pt.format_figure(axes.figure, tall=tall)
+        if autoformat: _pt.format_figure(axes.figure, tall=tall)
 
         # bring it to the front, but keep the command line up too
         _pt.get_figure_window()
