@@ -78,7 +78,7 @@ class standard:
 
     def __setitem__(self, n, x):
         """
-        set's the n'th column to x
+        set's the n'th column to x (n can be a column name too)
         """
         if type(n) == str:
             self.insert_column(data_array=x, ckey=n, index='end')
@@ -748,6 +748,19 @@ class standard:
 
 
 
+    def rename_header(self, old_name, new_name):
+        """
+        This will rename the header. The supplied names need to be strings.
+        """
+        self.hkeys[self.hkeys.index(old_name)] = new_name
+        self.headers[new_name] = self.headers.pop(old_name)
+
+    def rename_column(self, old_name, new_name):
+        """
+        This will rename the column. The supplied names need to be strings.
+        """
+        self.ckeys[self.ckeys.index(old_name)] = new_name
+        self.columns[new_name] = self.columns.pop(old_name)
 
 
     def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', label=None, **kwargs):
