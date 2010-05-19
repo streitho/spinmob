@@ -80,8 +80,8 @@ class standard:
         """
         set's the n'th column to x (n can be a column name too)
         """
-        if type(n) == str:
-            self.insert_column(data_array=x, ckey=n, index='end')
+        if type(n) == str or int(n) > len(self.ckeys)-1:
+            self.insert_column(data_array=x, ckey=str(n), index='end')
         else:
             self.columns[self.ckeys[n]] = _numpy.array(x)
 
