@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, data=_data.standard(), **kwargs):
+def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, data=_data.standard(), **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -42,6 +42,9 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, ax
     yshift=0.0                      artificial (progressive) yshift
 
     yshift_every=1                  how many lines to plot before each shift
+
+    xscale, yscale                  can be 'linear' or 'log' or 'symlog'
+                                    see the xscale() function in matplotlib.
 
     axes='gca'                      axes instance. 'gca' uses current axes
 
@@ -123,6 +126,10 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, ax
         elif m == legend_max-2:
             a.get_lines()[-1].set_label('...')
     _pylab.hold(False)
+
+    # set the scale
+    if not xscale=='linear': _pylab.xscale(xscale)
+    if not yscale=='linear': _pylab.yscale(yscale)
 
     # add the axis labels
     if not xlabel==None: a.set_xlabel(xlabel)
@@ -243,7 +250,7 @@ def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True
     return
 
 
-def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, plot='plot', yaxis='left', **kwargs):
+def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', **kwargs):
     """
     Plots specified data.
 
@@ -283,8 +290,10 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, 
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
-        eval('axes.'+plot+'(xdata[n], ydata[n],  label=l, **kwargs)')
+        axes.plot(xdata[n], ydata[n],  label=l, **kwargs)
 
+    _pylab.xscale(xscale)
+    _pylab.yscale(yscale)
     axes.legend(loc='best')
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
