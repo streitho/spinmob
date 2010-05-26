@@ -6,6 +6,7 @@ import pylab                        as _pylab
 import cPickle                      as _cPickle
 import os                           as _os
 import thread                       as _thread
+import time
 
 from scipy.integrate import quad
 from scipy.integrate import inf
@@ -537,10 +538,13 @@ def append_to_file(path, string):
     file.close()
 
 def read_lines(path):
-    file = open(path, 'r')
-    a = file.readlines()
-    file.close()
+    f = open(path, 'rU')
+    a = f.readlines()
+    f.close()
+
     return(a)
+
+
 
 def data_to_file(path, xarray, yarray, delimiter=" ", mode="w"):
     file = open(path, mode)
