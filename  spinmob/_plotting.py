@@ -125,7 +125,6 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
             a.get_lines()[-1].set_label('_nolegend_')
         elif m == legend_max-2:
             a.get_lines()[-1].set_label('...')
-    _pylab.hold(False)
 
     # set the scale
     if not xscale=='linear': _pylab.xscale(xscale)
