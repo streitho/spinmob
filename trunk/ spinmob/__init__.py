@@ -15,7 +15,7 @@ except:
 
 import pylab
 pylab.ion()          # turn on interactive mode
-from pylab import gca, gcf, figure, axes, draw, subplot, xscale, yscale
+from pylab import gca, gcf, figure, axes, draw, subplot
 
 import scipy
 import numpy
@@ -50,5 +50,8 @@ import _common_math as math
 printer                 = fun.printer
 fit                     = _fitting.fit
 fit_model               = _fitting.fit_model
+
+xscale = plot.tweaks.xscale
+yscale = plot.tweaks.yscale
 
 print "\nSpinmob Analysis Kit X-TREEEME\n"

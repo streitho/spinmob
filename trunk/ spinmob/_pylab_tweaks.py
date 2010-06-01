@@ -106,7 +106,7 @@ def image_sliders(image="top", colormap="_last"):
     close_sliders()
     _pc.GuiColorMap(image, colormap)
 
-def auto_zoom(axes="gca", x_space=0.04, y_space=0.04):
+def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
     if axes=="gca": axes = _pylab.gca()
 
     a = axes
@@ -115,32 +115,43 @@ def auto_zoom(axes="gca", x_space=0.04, y_space=0.04):
     # get all the lines
     lines = a.get_lines()
 
+    # get the current limits
+    x1, x2 = a.get_xlim()
+    y1, y2 = a.get_ylim()
+
     xdata = []
     ydata = []
-    # get all the data into one giant array
     for n in range(0,len(lines)):
         # store this line's data
 
+        # build up a huge data array
         if isinstance(lines[n], _mpl.lines.Line2D):
-            x = lines[n].get_xdata()
-            y = lines[n].get_ydata()
+            x, y = lines[n].get_data()
 
-            # now append it to the BIG data set
-            for m in range(0,len(x)):
-                xdata.append(x[m])
-                ydata.append(y[m])
+            for n in range(len(x)):
+                # if we're not zooming x and we're in range, append
+                if not zoomx and x[n] >= x1 and x[n] <= x2:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
 
-    if len(xdata)==0 or len(ydata)==0: return
+                elif not zoomy and y[n] >= y1 and y[n] <= y2:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
+
+                elif zoomy and zoomx:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
 
     xmin = min(xdata)
     xmax = max(xdata)
     ymin = min(ydata)
     ymax = max(ydata)
 
+
     # we want a 3% white space boundary surrounding the data in our plot
     # so set the range accordingly
-    a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
-    a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
+    if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
+    if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
 
     _pylab.draw()
 
@@ -1048,6 +1059,14 @@ def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):
     # zoom to surround the data properly
     auto_zoom()
 
+def xscale(scale='log'):
+    _pylab.xscale(scale)
+    _pylab.draw()
+
+def yscale(scale='log'):
+    _pylab.yscale(scale)
+    _pylab.draw()
+
 def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontsize=20, fontweight='bold', fontname='Arial',
              borderwidth=3, tickwidth=2, ticks_point="out", xlabel_pad=0.018, ylabel_pad=0.013, window_size=[550,550]):
     """
@@ -1351,20 +1370,7 @@ def get_figure_window(figure='gcf'):
 
     if figure == 'gcf': figure = _pylab.gcf()
 
-    # starting from the top, grab ALL the wx windows available
-    w = _wx.GetTopLevelWindows()
-
-    # find all the windows that are plot windows for wxagg
-    plot_windows = []
-    for x in w:
-        if type(x) == _mpl.backends.backend_wxagg.FigureFrameWxAgg:
-            plot_windows.append(x)
-
-    # look for the one with the same figure
-    for z in plot_windows:
-        if z.canvas.figure == figure: return z
-
-    return False
+    return figure.canvas.GetParent()
 
 
 def get_pyshell():
@@ -1375,7 +1381,7 @@ def get_pyshell():
     # starting from the top, grab ALL the wx windows available
     w = _wx.GetTopLevelWindows()
 
-    # find all the windows that are plot windows for wxagg
+    # find all the windows that are pyshells
     plot_windows = []
     for x in w:
         if type(x) == _wx.py.shell.ShellFrame: return x
