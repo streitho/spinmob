@@ -50,8 +50,8 @@ import _common_math as math
 printer                 = fun.printer
 fit                     = _fitting.fit
 fit_model               = _fitting.fit_model
+array                   = numpy.array
+
 
 xscale = plot.tweaks.xscale
 yscale = plot.tweaks.yscale
-
-print "\nSpinmob Analysis Kit X-TREEEME\n"

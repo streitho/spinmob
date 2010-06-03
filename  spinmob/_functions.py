@@ -150,7 +150,9 @@ def coarsen_matrix(Z, xlevel=0, ylevel=0):
 def derivative(xdata, ydata):
     """
     performs d(ydata)/d(xdata) with nearest-neighbor slopes
-    must be well-ordered, returns [xdata, D_ydata]
+    must be well-ordered, returns new arrays [xdata, dydx_data]
+
+    neighbors:
     """
     D_ydata = []
     D_xdata = []
@@ -160,6 +162,37 @@ def derivative(xdata, ydata):
 
     return [D_xdata, D_ydata]
 
+def derivative_fit(xdata, ydata, neighbors=1):
+    """
+    loops over the data points, performing a least-squares linear fit of the
+    nearest neighbors at each point. Returns an array of x-values and slopes.
+
+    xdata should probably be well-ordered.
+
+    neighbors   How many data point on the left and right to include.
+    """
+
+
+    x    = []
+    dydx = []
+    nmax = len(xdata)-1
+
+    for n in range(nmax+1):
+        # get the indices of the data to fit
+        i1 = max(0, n-neighbors)
+        i2 = min(nmax, n+neighbors)
+
+        # get the sub data to fit
+        xmini = _numpy.array(xdata[i1:i2+1])
+        ymini = _numpy.array(ydata[i1:i2+1])
+
+        slope, intercept = fit_linear(xmini, ymini)
+
+        # make x the average of the xmini
+        x.append(float(sum(xmini))/len(xmini))
+        dydx.append(slope)
+
+    return _numpy.array(x), _numpy.array(dydx)
 
 def difference(ydata1, ydata2):
     """
@@ -693,15 +726,15 @@ def avg(array):
 
 
 
-def fit_linear(xdata, ydata, xrange=None):
+def fit_linear(xdata, ydata):
     """
 
-    Returns [slope, intercept] of line of best fit, excluding data
+    Returns slope and intercept of line of best fit, excluding data
     outside the range defined by xrange
 
     """
-
-    [x,y,e] = trim_data(xdata, ydata, None, xrange)
+    x = xdata
+    y = ydata
 
     ax  = avg(x)
     ay  = avg(y)
@@ -712,7 +745,7 @@ def fit_linear(xdata, ydata, xrange=None):
     slope     = (ayx - ay*ax) / (axx - ax*ax)
     intercept = ay - slope*ax
 
-    return([slope, intercept])
+    return slope, intercept
 
 
 
