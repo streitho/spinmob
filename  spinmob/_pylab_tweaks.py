@@ -102,6 +102,38 @@ def close_sliders():
         if x.__class__.__name__ == _pc._pcf.ColorSliderFrame.__name__:
             x.Close()
 
+
+def differentiate_shown_data(neighbors=1, fyname=1, **kwargs):
+    """
+    Differentiates the data visible on the specified axes using
+    fun.derivative_fit() (if neighbors > 0), and derivative() otherwise.
+    Modifies the visible data using manipulate_shown_data(**kwargs)
+    """
+
+    if neighbors:
+        def D(x,y): return _fun.derivative_fit(x,y,neighbors)
+    else:
+        def D(x,y): return _fun.derivative(x,y)
+
+    if fyname==1: fyname = str(neighbors)+'-neighbor D'
+
+    manipulate_shown_data(D, fxname=None, fyname=fyname, **kwargs)
+
+def integrate_shown_data(scale=1, fyname=1, **kwargs):
+    """
+    Numerically integrates the data visible on the current/specified axes using
+    xscale*fun.integrate_data(x,y). Modifies the visible data using
+    manipulate_shown_data(**kwargs)
+    """
+
+    def I(x,y): return x, scale*_fun.integrate_data(x,y)
+
+    if fyname==1: fyname = str(scale)+" * I"
+
+    manipulate_shown_data(I, fxname=None, fyname=fyname, **kwargs)
+
+
+
 def image_sliders(image="top", colormap="_last"):
     close_sliders()
     _pc.GuiColorMap(image, colormap)
@@ -563,6 +595,82 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
 def is_a_number(s):
     try: eval(s); return 1
     except:       return 0
+
+
+def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fyname=1, **kwargs):
+    """
+    Loops over the visible data on the specified axes and modifies it based on
+    the function f(xdata, ydata), which must return new_xdata, new_ydata
+
+    input_axes  which axes to pull the data from
+    output_axes which axes to dump the manipulated data (None for new figure)
+
+    fxname      the name of the function on x
+    fyname      the name of the function on y
+                1 means "use f.__name__"
+                0 or None means no change.
+                otherwise specify a string
+
+    **kwargs are sent to axes.plot
+    """
+
+    # get the axes
+    if input_axes == "gca": a1 = _pylab.gca()
+    else:                   a1 = input_axes
+
+    # get the xlimits
+    xmin, xmax = a1.get_xlim()
+
+    # get the name to stick on the x and y labels
+    if fxname==1: fxname = f.__name__
+    if fyname==1: fyname = f.__name__
+
+    # get the output axes
+    if output_axes == None:
+        _pylab.figure(a1.figure.number+1)
+        a2 = _pylab.axes()
+    else:
+        a2 = output_axes
+
+    # loop over the data
+    for line in a1.get_lines():
+        if isinstance(line, _mpl.lines.Line2D):
+            x, y = line.get_data()
+            x, y, e = _fun.trim_data(x,y,None,[xmin,xmax])
+            new_x, new_y = f(x,y)
+            a2.plot(new_x, new_y, label=line.get_label(), **kwargs)
+
+    # set the labels and title.
+    if fxname in [0,None]:  a2.set_xlabel(a1.get_xlabel())
+    else:                   a2.set_xlabel(fxname+"[ "+a1.get_xlabel()+" ]")
+
+    if fyname in [0,None]:  a2.set_ylabel(a1.get_ylabel())
+    else:                   a2.set_ylabel(fyname+"[ "+a1.get_ylabel()+" ]")
+
+    a2.title = a1.title
+
+    _pylab.draw()
+
+def manipulate_shown_xdata(fx, fxname=1, **kwargs):
+    """
+    This defines a function f(xdata,ydata) returning fx(xdata), ydata and
+    runs manipulate_shown_data() with **kwargs sent to this. See
+    manipulate_shown_data() for more info.
+    """
+    def f(x,y): return fx(x), y
+    f.__name__ = fx.__name__
+    manipulate_shown_data(f, fxname=fxname, fyname=None, **kwargs)
+
+def manipulate_shown_ydata(fy, fyname=1, **kwargs):
+    """
+    This defines a function f(xdata,ydata) returning xdata, fy(ydata) and
+    runs manipulate_shown_data() with **kwargs sent to this. See
+    manipulate_shown_data() for more info.
+    """
+    def f(x,y): return x, fy(y)
+    f.__name__ = fy.__name__
+    manipulate_shown_data(f, fxname=None, fyname=fyname, **kwargs)
+
 
 
 def shift(xshift=0, yshift=0, progressive=0, axes="gca"):

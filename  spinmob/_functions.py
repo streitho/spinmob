@@ -397,6 +397,22 @@ def insert_ordered(value, array):
     array.insert(index, value)
     return index
 
+def integrate_data(xdata,ydata):
+    """
+    Numerically sums up the ydata using the trapezoid approximation.
+    estimate the bin width (scaled by the specified amount).
+    Returns integrated ydata
+    """
+
+    # initialize the integrated array
+    yint = _numpy.array(ydata)*0.0
+
+    # the first point is different because it has 1 neighbor
+    for n in range(1,len(yint)):
+        yint[n] = yint[n-1]+0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1])
+
+    return yint
+
 def integrate(f, x1, x2):
     """
     f(x) = ...
