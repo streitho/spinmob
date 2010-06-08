@@ -7,6 +7,7 @@ import cPickle                      as _cPickle
 import os                           as _os
 import thread                       as _thread
 import time
+import shutil                       as _shutil
 
 from scipy.integrate import quad
 from scipy.integrate import inf
@@ -171,7 +172,6 @@ def derivative_fit(xdata, ydata, neighbors=1):
 
     neighbors   How many data point on the left and right to include.
     """
-
 
     x    = []
     dydx = []
@@ -1073,17 +1073,17 @@ def load_object(path="ask", text="Load a pickled object."):
 def replace_lines_in_files(search_string, replacement_line):
 
     # have the user select some files
-    paths = _dialog.MultipleFiles('DIS AND DAT|*.*')
+    paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
     if paths == []: return
 
     for path in paths:
-        shutil.copy(path, path+".backup")
-        lines = _fun.read_lines(path)
+        _shutil.copy(path, path+".backup")
+        lines = read_lines(path)
         for n in range(0,len(lines)):
             if lines[n].find(search_string) >= 0:
                 print lines[n]
                 lines[n] = replacement_line.strip() + "\n"
-        _fun.write_to_file(path, _fun.join(lines, ''))
+        write_to_file(path, join(lines, ''))
 
     return
 

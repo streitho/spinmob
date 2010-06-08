@@ -8,6 +8,7 @@ from matplotlib.font_manager import FontProperties as _FontProperties
 import _dialogs                                 ;reload(_dialogs)
 import _functions as _fun                       ;reload(_fun)
 import _pylab_colorslider as _pc                ;reload(_pc)
+import _plotting
 
 
 line_attributes = ["linestyle","linewidth","color","marker","markersize","markerfacecolor","markeredgewidth","markeredgecolor"]
@@ -174,18 +175,22 @@ def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
                     xdata.append(x[n])
                     ydata.append(y[n])
 
-    xmin = min(xdata)
-    xmax = max(xdata)
-    ymin = min(ydata)
-    ymax = max(ydata)
+    if len(xdata):
+        xmin = min(xdata)
+        xmax = max(xdata)
+        ymin = min(ydata)
+        ymax = max(ydata)
 
 
-    # we want a 3% white space boundary surrounding the data in our plot
-    # so set the range accordingly
-    if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
-    if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
+        # we want a 3% white space boundary surrounding the data in our plot
+        # so set the range accordingly
+        if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
+        if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
 
-    _pylab.draw()
+        _pylab.draw()
+
+    else:
+        print "no data."
 
 
 def format_figure(figure='gcf', tall=False, autozoom=True):
@@ -638,7 +643,7 @@ def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fynam
             x, y = line.get_data()
             x, y, e = _fun.trim_data(x,y,None,[xmin,xmax])
             new_x, new_y = f(x,y)
-            a2.plot(new_x, new_y, label=line.get_label(), **kwargs)
+            _plotting.data(new_x,new_y, **kwargs)
 
     # set the labels and title.
     if fxname in [0,None]:  a2.set_xlabel(a1.get_xlabel())
@@ -1099,6 +1104,24 @@ def coarsen_all_traces(coarsen=1, axes="gca"):
     for line in lines:
         if isinstance(line, _mpl.lines.Line2D):
             coarsen_line(line, coarsen, draw=False)
+    _pylab.draw()
+
+def line_math(fx=None, fy=None, axes='gca'):
+    """
+    applies function fx to all xdata and fy to all ydata.
+    """
+
+    if axes=='gca': axes = _pylab.gca()
+
+    lines = axes.get_lines()
+
+    for line in lines:
+        if isinstance(line, _mpl.lines.Line2D):
+            xdata, ydata = line.get_data()
+            if not fx==None: xdata = fx(xdata)
+            if not fy==None: ydata = fy(ydata)
+            line.set_data(xdata,ydata)
+
     _pylab.draw()
 
 def trim(xmin="auto", xmax="auto", ymin="auto", ymax="auto", axes="current"):

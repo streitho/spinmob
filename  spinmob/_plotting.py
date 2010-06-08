@@ -118,6 +118,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
         # fill up the xdata, ydata, and key
         if debug: print "FILE: "+paths[m]
         data.load_file(paths[m])
+
         data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
         # now fix the legend up nice like

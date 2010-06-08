@@ -1222,6 +1222,8 @@ def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file,
     """
     d = standard(**kwargs)
     d.load_file(path, first_data_line, filters, text, default_directory)
+    print "loaded", d.path
+    _wx.Yield()
     return d
 
 def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Select some files, FACEHEAD.", default_directory="default_directory", **kwargs):
