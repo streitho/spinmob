@@ -159,7 +159,7 @@ class standard:
 
         self.xdata   = None
         self.ydata   = None
-        self.yerror  = None
+        self.eydata  = None
 
         if path=="ask": path = _dialogs.SingleFile(self.file_extension, default_directory=self.directory)
         self.path = path
@@ -511,7 +511,7 @@ class standard:
         """
         This function is mostly used for the fitting routine, whose only
         restriction on the data class is that it can load_file(), and get_data()
-        storing the results in self.xdata, self.ydata, self.yerror.
+        storing the results in self.xdata, self.ydata, self.eydata.
 
         It has no parameters because the fit function doesn't need to know.
         Uses self.xscript, self.yscript, and self.eyscript.
@@ -519,8 +519,8 @@ class standard:
 
         self.xdata  = self.generate_column(self.xscript, name=None)
         self.ydata  = self.generate_column(self.yscript, name=None)
-        if self.eyscript:
-            self.eydata = self.generate_column(self.eyscript)
+        if self.eyscript:   self.eydata = self.generate_column(self.eyscript)
+        else:               self.eydata = None
         self.xlabel = self.xscript
         self.ylabel = self.yscript
 
@@ -807,7 +807,7 @@ class standard:
 
             xdata = self.xdata
             ydata = self.ydata
-            yerror= self.yerror
+            eydata= self.eydata
 
         # if we're doing a scripted plot
         else:
@@ -815,13 +815,13 @@ class standard:
             # use the expected error column if we're supposed to
             if eyscript == "auto": eyscript = yscript+"_error"
 
-            # if yerror doesn't exist and we haven't specified no error
+            # if eydata doesn't exist and we haven't specified no error
             # try to generate the column
             if  not eyscript in self.columns.keys() \
             and not eyscript==None                  \
             and not type(eyscript) in [int,long]:
                 if self.debug: print eyscript, "is not a column"
-                yerror = self.generate_column(eyscript, None)
+                eydata = self.generate_column(eyscript, None)
 
 
             [xpression, xvars] = self.parse_script(xscript)
@@ -831,17 +831,17 @@ class standard:
 
             if not eyscript == None:
                 [spression, svars] = self.parse_script(eyscript)
-                if svars == None: yerror = None
+                if svars == None: eydata = None
 
             # try to evaluate the data
             self.xdata  = eval(xpression, xvars)
             self.ydata  = eval(ypression, yvars)
-            if eyscript == None:  self.yerror = None
-            else:                 self.yerror = eval(spression, svars)
+            if eyscript == None:  self.eydata = None
+            else:                 self.eydata = eval(spression, svars)
 
             xdata  = self.xdata
             ydata  = self.ydata
-            yerror = self.yerror
+            eydata = self.eydata
 
             self.xlabel = xscript
             self.ylabel = yscript
@@ -849,7 +849,7 @@ class standard:
 
 
         # coarsen the data if we're supposed to
-        if coarsen: [xdata, ydata, yerror]=_fun.coarsen_data(xdata, ydata, yerror, coarsen)
+        if coarsen: [xdata, ydata, eydata]=_fun.coarsen_data(xdata, ydata, eydata, coarsen)
 
         # assumes we've gotten data already
         if axes=="gca": axes = _pylab.gca()
@@ -872,15 +872,15 @@ class standard:
         line_color = None
 
 
-        # no yerror.
-        if yerror == None:
+        # no eydata.
+        if eydata == None:
             # if we're to use the style object to get the line attributes
             if linestyle in ['auto', 'style']:
                 # get the linestyle from the style cycle
                 linestyle  = _pt.style.get_linestyle(1)
                 line_color = _pt.style.get_line_color(1)
 
-            # only make markers without yerror if we're not in auto mode
+            # only make markers without eydata if we're not in auto mode
             if marker in ['auto']:
                 marker = ''
 
@@ -921,7 +921,7 @@ class standard:
 
             # handle to plotter and error argument
             plotter = axes.errorbar
-            plot_kwargs['yerr']   = yerror
+            plot_kwargs['yerr']   = eydata
             plot_kwargs['ecolor'] = mec
 
         # only add these new arguments to plot_kwargs if they don't already exist
@@ -991,7 +991,7 @@ class standard:
             # store this trace
             self.ydata = self.c(n)
 
-            self.yerror = None
+            self.eydata = None
             if legend == None:  self.legend_string = self.ckeys[n].replace("_","")
             else:               self.legend_string = str(self.h(legend)[n-1]).replace("_","")
 
