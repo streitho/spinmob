@@ -4,6 +4,7 @@ import numpy as _numpy
 import pylab as _pylab
 from matplotlib.font_manager import FontProperties as _FontProperties
 import spinmob as _spinmob
+import _dialogs
 
 _tweaks = _spinmob.plot.tweaks
 
@@ -59,17 +60,17 @@ class model_base:
     #  These functions are generally not overwritten
     #
     #
-    def chi_squared(self, p, xdata, ydata, yerror=None):
+    def chi_squared(self, p, xdata, ydata, eydata=None):
         """
         This returns a single number that is the chi squared for a given set of parameters p
 
         This is currently not in use for the optimization.  That uses residuals.
         """
 
-        if yerror==None: yerror=1
-        return sum( (ydata - self.evaluate(p,xdata))**2 / yerror**2)
+        if eydata==None: eydata=1
+        return sum( (ydata - self.evaluate(p,xdata))**2 / eydata**2)
 
-    def optimize(self, xdata, ydata, yerror=None, p0="internal"):
+    def optimize(self, xdata, ydata, eydata=None, p0="internal"):
         """
         This actually performs the optimization on xdata and ydata.
         p0="internal"   is the initial parameter guess, such as [1,2,44.3].
@@ -78,24 +79,24 @@ class model_base:
         returns the fit p from scipy.optimize.leastsq()
         """
         if p0 == "internal": p0 = self.p0
-        if self.D == None: return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,yerror,), full_output=1)
-        else:              return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,yerror,), full_output=1, Dfun=self.jacobian, col_deriv=1)
+        if self.D == None: return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,eydata,), full_output=1)
+        else:              return _scipy.optimize.leastsq(self.residuals, p0, args=(xdata,ydata,eydata,), full_output=1, Dfun=self.jacobian, col_deriv=1)
 
-    def residuals(self, p, xdata, ydata, yerror=None):
+    def residuals(self, p, xdata, ydata, eydata=None):
         """
         This function returns a vector of the differences between the model and ydata, scaled by the error
-        (yerror could be a scalar or a vector of length equal to ydata)
+        (eydata could be a scalar or a vector of length equal to ydata)
         """
 
-        if yerror==None: yerror=1
-        return (ydata - self.evaluate(p,xdata))/_numpy.absolute(yerror)
+        if eydata==None: eydata=1
+        return (ydata - self.evaluate(p,xdata))/_numpy.absolute(eydata)
 
-    def residuals_variance(self, p, xdata, ydata, yerror=None):
+    def residuals_variance(self, p, xdata, ydata, eydata=None):
         """
         This returns the variance of the residuals, or chi^2/DOF.
         """
 
-        return self.chi_squared(p, xdata, ydata, yerror)/(len(xdata)-len(p))
+        return self.chi_squared(p, xdata, ydata, eydata)/(len(xdata)-len(p))
 
     # this returns the jacobian given the xdata.  Derivatives across rows, data down columns.
     # (so jacobian[len(xdata)-1] is len(p) wide)
@@ -152,7 +153,7 @@ class model_base:
 
     def fit(self, data, command="", settings={}):
         """
-        This generates xdata, ydata, and yerror from the three scripts
+        This generates xdata, ydata, and eydata from the three scripts
         (or auto-sets the error and updates it depending on the fit),
         fits the data, stores the results (and scripts) in the data file's header
         and saves the data in a new file.
@@ -181,7 +182,8 @@ class model_base:
                             "save_file"         : True,
                             "file_tag"          : 'fit_',
                             "figure"            : 1,
-                            "autofit"           : False}
+                            "autofit"           : False,
+                            "autopath"          : True}
         if d.eyscript == None: default_settings["auto_error"] = True
 
         # fill in the non-supplied settings with defaults
@@ -216,12 +218,14 @@ class model_base:
             # second line of the title is the model
             title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:]
 
-            title3 = "(no fit performed)"
+            title3 = str(self.function_string)+": "
             if not settings["skip"] and not fit_parameters==None:
-                title3 = []
+                t = []
                 for i in range(0,len(self.pnames)):
-                    title3.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
-                title3 = _fun.join(title3,", ")
+                    t.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
+                title3 = title3+_fun.join(t,", ")
+            else:
+                title3 = title3+"(no fit performed)"
 
             axes2.set_title(title1+"\n"+title2+"\nFit: "+title3)
             axes1.set_xlabel(d.xscript)
@@ -312,11 +316,15 @@ class model_base:
                     d.insert_header("fit_coarsen",  settings['coarsen'])
 
                     # auto-generate the new file name
-                    directory, filename = os.path.split(d.path)
-                    new_path = directory + os.sep + settings['file_tag'] + filename
+                    if settings['autopath']:
+                        directory, filename = os.path.split(d.path)
+                        new_path = directory + os.sep + settings['file_tag'] + filename
+
+                    else:
+                        new_path = _dialogs.SingleFile()
 
                     # save the file
-                    d.save_file(new_path)
+                    if new_path: d.save_file(new_path)
 
                 # Return the information
                 return_value = {"command"                   :'y',
@@ -365,21 +373,22 @@ class model_base:
             else:                print "Beginning fit routine..."
 
             # if we're doing auto error, start with an array of 1's
-            if d.yerror==None: d.yerror = d.xdata*0.0 + 1.0
+            if d.eydata==None: d.eydata = d.xdata*0.0 + 1.0
 
             # now sort the data in case it's jaggy!
-            matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.yerror])
+            matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
             sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
             d.xdata  = sorted_matrix[0]
             d.ydata  = sorted_matrix[1]
-            d.yerror = sorted_matrix[2]
+            d.eydata = sorted_matrix[2]
 
             # now trim all the data based on xmin and xmax
             xmin = settings["min"]
             xmax = settings["max"]
-            if xmin==None: xmin = min(d.xdata)+1
+            if xmin==None: xmin = min(d.xdata)-1
             if xmax==None: xmax = max(d.xdata)+1
-            [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.yerror, [xmin, xmax])
+            [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.eydata, [xmin, xmax])
+
 
             # smooth and coarsen
             [x,y,ye] = _fun.smooth_data( x,y,ye,settings["smooth"])
@@ -396,6 +405,7 @@ class model_base:
 
             # now do the first optimization
             if not settings["skip"]:
+
                 fit_output = self.optimize(x, y, ye, self.p0)
                 # optimize puts out a float if there's only one parameter. Annoying.
                 if getattr(fit_output[0], '__iter__', False) == False:
@@ -412,7 +422,7 @@ class model_base:
                     print "    initial reduced chi^2 =", sigma_y**2
                     print "    scaling error by", sigma_y, "and re-optimizing..."
                     ye       = sigma_y*ye
-                    d.yerror = sigma_y*d.yerror
+                    d.eydata = sigma_y*d.eydata
 
                     # optimize with new improved errors, using the old fit to start
                     fit_output = self.optimize(x,y,ye,p0=fit_parameters)
@@ -446,7 +456,7 @@ class model_base:
             if settings["plot_all"]:
                 x_plot  = d.xdata
                 y_plot  = d.ydata
-                ye_plot = d.yerror*sigma_y
+                ye_plot = d.eydata*sigma_y
 
                 # smooth and coarsen
                 [x_plot, y_plot, ye_plot] = _fun.smooth_data( x_plot, y_plot, ye_plot, settings["smooth"])

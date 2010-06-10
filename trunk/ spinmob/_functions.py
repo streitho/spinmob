@@ -8,6 +8,7 @@ import os                           as _os
 import thread                       as _thread
 import time
 import shutil                       as _shutil
+import wx                           as _wx
 
 from scipy.integrate import quad
 from scipy.integrate import inf
@@ -1071,6 +1072,11 @@ def load_object(path="ask", text="Load a pickled object."):
     return object
 
 def replace_lines_in_files(search_string, replacement_line):
+    """
+    Finds lines containing the search string and replaces the whole line with
+    the specified replacement string.
+    """
+
 
     # have the user select some files
     paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
@@ -1087,30 +1093,35 @@ def replace_lines_in_files(search_string, replacement_line):
 
     return
 
-def search_and_replace_in_files(search, replace, depth=100, paths="ask", confirm=True):
+def replace_in_files(search, replace, depth=0, paths="ask", confirm=True):
+    """
+    Does a line-by-line search and replace, but only up to the "depth" line.
+    """
 
     # have the user select some files
     if paths=="ask":
-        paths = _dialog.MultipleFiles('DIS AND DAT|*.*')
+        paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
     if paths == []: return
 
     for path in paths:
-        lines = _fun.read_lines(path)
+        lines = read_lines(path)
 
         if depth: N=min(len(lines),depth)
         else:     N=len(lines)
 
         for n in range(0,N):
             if lines[n].find(search) >= 0:
-                lines[n] = lines[n].replace(search,replace).strip()
-                print path.split('\\')[-1]+ ': "'+lines[n]+'"'
+                lines[n] = lines[n].replace(search,replace)
+                print path.split(_os.path.pathsep)[-1]+ ': "'+lines[n]+'"'
                 _wx.Yield()
 
         # only write if we're not confirming
-        if not confirm: _fun.write_to_file(path, _fun.join(lines, '\n'))
+        if not confirm:
+            _os.rename(path, path+".backup")
+            write_to_file(path, join(lines, ''))
 
     if confirm:
-        if raw_input("ja? ")=="yes":
-            search_and_replace_in_files(search,replace,depth,paths,False)
+        if raw_input("yes? ")=="yes":
+            replace_in_files(search,replace,depth,paths,False)
 
     return
