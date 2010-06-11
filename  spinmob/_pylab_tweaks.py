@@ -127,9 +127,12 @@ def integrate_shown_data(scale=1, fyname=1, **kwargs):
     manipulate_shown_data(**kwargs)
     """
 
-    def I(x,y): return x, scale*_fun.integrate_data(x,y)
+    def I(x,y):
+        xout, iout = _fun.integrate_data(x,y)
+        print "Total =", scale*iout[-1]
+        return xout, scale*iout
 
-    if fyname==1: fyname = str(scale)+" * I"
+    if fyname==1: fyname = str(scale)+" * Integral"
 
     manipulate_shown_data(I, fxname=None, fyname=fyname, **kwargs)
 
@@ -602,7 +605,7 @@ def is_a_number(s):
     except:       return 0
 
 
-def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fyname=1, clear=1, **kwargs):
+def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fyname=1, clear=1, pause=False, **kwargs):
     """
     Loops over the visible data on the specified axes and modifies it based on
     the function f(xdata, ydata), which must return new_xdata, new_ydata
@@ -645,7 +648,11 @@ def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fynam
             x, y = line.get_data()
             x, y, e = _fun.trim_data(x,y,None,[xmin,xmax])
             new_x, new_y = f(x,y)
-            _plotting.data(new_x,new_y, clear=0, **kwargs)
+            _plotting.data(new_x,new_y, clear=0, label=line.get_label(), draw=pause, **kwargs)
+            if pause:
+                format_figure()
+                raise_pyshell()
+                raw_input("<enter> ")
 
     # set the labels and title.
     if fxname in [0,None]:  a2.set_xlabel(a1.get_xlabel())
