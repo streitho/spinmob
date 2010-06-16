@@ -70,6 +70,15 @@ class Prefs():
     def keys(self): return self.prefs.keys()
     def has_key(self, key): return self.prefs.has_key(key)
 
+    def List(self):
+        """
+        Lists the keys and values.
+        """
+        print
+        for key in self.keys():
+            print key,'=',self[key]
+        print
+
     def Get(self, key):
         """
         Checks if the key exists and returns it. Returns None if it doesn't

@@ -38,13 +38,13 @@ prefs = _prefs.Prefs()
 import _functions as fun               ;fun._prefs               = prefs
 import _plotting as plot               ;plot._prefs              = prefs
 import _dialogs as dialogs             ;dialogs._prefs           = prefs
-import _data_types as data             ;data._prefs              = prefs
 import _models as models               ;models.prefs             = prefs
 import _constants as constants
 import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
 import _fitting                        ;_fitting._prefs          = prefs
-import _common_math as math
 
+import _data as data                   ;data._prefs              = prefs
+data._data_types._prefs = prefs
 
 # pull some of the common functions to the top
 printer                 = fun.printer

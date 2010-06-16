@@ -10,7 +10,7 @@ from matplotlib.font_manager import FontProperties as _FontProperties
 
 
 import _functions as _fun
-import _data_types as _data
+import _data
 import _pylab_tweaks as _pt
 import _dialogs
 
@@ -32,7 +32,7 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, data=_data.standard(), **kwargs):
+def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
     """
 
     This selects a bunch of files, and plots them.
@@ -71,16 +71,13 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
     paths='ask'                     list of full paths to data files (or we'll
                                     ask for a list)
 
-    data                            instance of data class used to extract plot
-                                    from the files
-
-    **kwargs are sent to data.standard().plot()
+    **kwargs are sent to data.databox().plot()
 
     """
 
     # have the user select a file
     if paths=="ask":
-        paths = _dialogs.MultipleFiles(data.file_extension, default_directory=data.directory)
+        paths = _dialogs.MultipleFiles("*.*", default_directory='default_directory')
 
     if paths in [[], None]: return
 
@@ -117,7 +114,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
 
         # fill up the xdata, ydata, and key
         if debug: print "FILE: "+paths[m]
-        data.load_file(paths[m])
+        data = _data.load(paths[m])
 
         data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
