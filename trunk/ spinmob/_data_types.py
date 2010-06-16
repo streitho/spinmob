@@ -1,18 +1,15 @@
-import numpy as _numpy
 import pylab as _pylab
 import time
 import wx as _wx
 import os as _os
 from mpl_toolkits.mplot3d import Axes3D
 
-# import some of the more common numpy functions (this is for the scripting!)
-from _common_math import *
-
 import _functions as _fun             ;reload(_fun)
 import _pylab_tweaks as _pt           ;reload(_pt)
 import _dialogs                       ;reload(_dialogs)
 
-
+# do this so all the scripts will work with all the numpy functions
+from numpy import *
 
 #
 # This is the base class, which currently rocks.
@@ -83,7 +80,7 @@ class standard:
         if type(n) == str or int(n) > len(self.ckeys)-1:
             self.insert_column(data_array=x, ckey=str(n), index='end')
         else:
-            self.columns[self.ckeys[n]] = _numpy.array(x)
+            self.columns[self.ckeys[n]] = array(x)
 
 
     def __len__(self):
@@ -312,7 +309,7 @@ class standard:
         if self.debug: print time.time()-t0, "seconds: yeah."
 
         # now loop over the columns and make them all hard-core numpy columns!
-        for k in self.ckeys: self.columns[k] = _numpy.array(self.columns[k])
+        for k in self.ckeys: self.columns[k] = array(self.columns[k])
 
         if self.debug: print time.time()-t0, "seconds: totally."
 
@@ -347,7 +344,7 @@ class standard:
         f = open(path, 'w')
         for k in self.hkeys:
             # if this is a numpy array, turn it into a list
-            if type(self.headers[k]) == type(_numpy.array([])):
+            if type(self.headers[k]) == type(array([])):
                 self.headers[k] = self.headers[k].tolist()
 
             f.write(k + delimiter)
@@ -537,7 +534,7 @@ class standard:
         if type(ckey) in [int, long]: ckey = self.ckeys[ckey]
 
         # append/overwrite the column value
-        self.columns[ckey] = _numpy.array(data_array)
+        self.columns[ckey] = array(data_array)
         if not ckey in self.ckeys:
             if index=='end':
                 self.ckeys.append(ckey)
@@ -1082,7 +1079,7 @@ class standard:
 
         # otherwise, if we specified a row from the header, use that
         elif not xaxis==None:
-            X = _numpy.array(self.h(xaxis))
+            X = array(self.h(xaxis))
 
             # trim X down to the length of the Zd.ZX row
             X.resize(len(Z[:])-1)
@@ -1153,7 +1150,7 @@ class standard:
         f.clear()
 
         if plot.lower() == "mountains":
-            X, Y = _numpy.meshgrid(self.X, self.Y)
+            X, Y = meshgrid(self.X, self.Y)
             a = Axes3D(f)
             a.plot_surface(X, Y, self.Z, rstride=2, cstride=2, cmap=colormap, **kwargs)
 
@@ -1168,7 +1165,7 @@ class standard:
             Z = self.Z
 
             # reverse the Z's
-            Z = list(Z); Z.reverse(); Z = _numpy.array(Z)
+            Z = list(Z); Z.reverse(); Z = array(Z)
 
             _pylab.imshow(Z, cmap=colormap,
                       extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
@@ -1211,37 +1208,4 @@ class standard:
         return None
 
 
-
-
-
-def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEHEAD.", default_directory="default_directory", **kwargs):
-    """
-    Loads a data file into the standard data class. Returns the data object.
-
-    **kwargs are sent to standard()
-    """
-    d = standard(**kwargs)
-    d.load_file(path, first_data_line, filters, text, default_directory)
-    print "loaded", d.path
-    _wx.Yield()
-    return d
-
-def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Select some files, FACEHEAD.", default_directory="default_directory", **kwargs):
-    """
-    Loads a list of data files into a list of standard data objects.
-    Returns said list.
-
-    **kwargs are sent to standard()
-    """
-    if paths=="ask": paths = _dialogs.MultipleFiles(filters, text, default_directory)
-
-    if paths==None: return
-
-    datas = []
-    for path in paths:
-        print "Loading " + path.split(_os.path.sep)[-1] + " ..."
-        _wx.Yield()
-        datas.append(load(path, first_data_line, **kwargs))
-
-    return datas
 
