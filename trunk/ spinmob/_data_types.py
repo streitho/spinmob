@@ -53,12 +53,10 @@ class standard:
     delimiter      = None   # delimiter of the ascii file. If "None" this will just use any whitespace
     file_extension = "*"    # when asking the user for a file, use this as the filter
 
-    constants = {"file":0}  # This is not used much, but holds random info, like the file name or whatever else you like
     headers = {}            # this dictionary will hold the header information
     columns = {}            # this dictionary will hold the data columns
     ckeys   = []            # we need a special list of column keys to keep track of their order during data assembly
     hkeys   = []            # ordered list of header keys
-
     extra_globals = {}
 
     def __call__(self, column):
@@ -106,6 +104,12 @@ class standard:
             try:    eval(key + "=" + kwargs[key])
             except: plot_kwargs[key] = kwargs[key]
 
+        # this keeps the dictionaries from getting all jumbled with each other
+        self.clear_columns()
+        self.clear_headers()
+        self.obnoxious_ckeys = {}
+        self.extra_globals   = {}
+
         self.xscript   = xscript
         self.yscript   = yscript
         self.eyscript  = eyscript
@@ -149,7 +153,6 @@ class standard:
 
         # this loads the file, getting the header and the column values,
         if self.debug: print "resetting all the file-specific stuff, path =", path
-        self.constants = {"file":0}
 
         self.clear_columns()
         self.clear_headers()
@@ -172,8 +175,7 @@ class standard:
         if self.debug: print time.time()-t0, "seconds: done."
 
         # break up the path into parts and take the last bit (and take a stab at the legend string)
-        self.constants["file"] = path.split("\\")[-1]
-        self.legend_string     = "./"+str(self.constants["file"])
+        self.legend_string = path.split(_os.path.sep)[-1]
 
 
 
