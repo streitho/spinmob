@@ -14,7 +14,8 @@ def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file,
     """
     Loads a data file into the standard data class. Returns the data object.
 
-    **kwargs are sent to standard()
+    **kwargs are sent to databox(), so check there for more information (i.e.
+    about delimiters)
     """
     d = standard(**kwargs)
     d.load_file(path, first_data_line, filters, text, default_directory)
