@@ -1209,8 +1209,13 @@ class standard:
 
         Also can take integers, returning the key'th header value.
         """
+        # if this is an index
         if type(hkey) in [int, long]: return self.headers[self.hkeys[hkey]]
 
+        # if this is an exact match
+        if hkey in self.hkeys: return self.headers[hkey]
+
+        # Look for a fragment.
         for k in self.hkeys:
             if k.find(hkey) >= 0:
                 return self.headers[k]
