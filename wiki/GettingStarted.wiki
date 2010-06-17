@@ -1,4 +1,4 @@
-#summary A few things to try right away.
+#summary Setting up the environment and getting started with spinmob.
 #labels Featured
 
 = Installing and Running =
