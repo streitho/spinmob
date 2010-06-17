@@ -1,15 +1,22 @@
 #summary A few things to try right away.
 #labels Featured
 
-= Install and Run =
+= Installing and Running =
 
-(1) Install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). Then make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either swipe the latest version from google's fancy SVN server or get a less-frequently-updated version from the downloads section.
+1. Install all the packages.
 
-(2) [PyShell Start pyshell].
+Download and install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). If you don't care about long downloads or hard drive space, you can also get all of these packages in the [http://www.enthought.com/ enthought python distribution].
 
-(3) `>>> import spinmob as s`
+Then, if you have windows, you can use the spinmob windows installer from the downloads page. Otherwise, just make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either swipe the latest version from google's fancy SVN server (this is ideal) or get a less-frequently-updated version from the downloads section.
 
-= A Few Commands to Hit the Ground Running =
+2. [PyShell Start pyshell].
+
+3. Import spinmob and start playing:
+{{{
+>>> import spinmob as s`
+}}}
+
+= A Quick Tutorial =
 
 In general, I tried to design this library so that everything running in the background starts with an underscore, such as "`_plotting`" or "`_numpy`". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the underscore libraries but I have not tested these functions. They will make their way back into the main library as time progresses.
 
