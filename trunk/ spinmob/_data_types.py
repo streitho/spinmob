@@ -75,8 +75,10 @@ class standard:
         """
         set's the n'th column to x (n can be a column name too)
         """
-        if type(n) == str or int(n) > len(self.ckeys)-1:
-            self.insert_column(data_array=x, ckey='c'+str(n), index='end')
+        if type(n) == str:
+            self.insert_column(data_array=x, ckey=str(n), index='end')
+        elif type(n) in [int, long] and n > len(self.ckeys)-1:
+            self.insert_column(data_array=x, ckey='_column'+str(len(self.ckeys)), index='end')
         else:
             self.columns[self.ckeys[n]] = array(x)
 
@@ -356,19 +358,21 @@ class standard:
 
         # now write the ckeys line
         f.write("\n")
-        for ckey in self.ckeys: f.write(str(ckey)+delimiter)
-        f.write("\n")
+        elements = []
+        for ckey in self.ckeys: elements.append(str(ckey))
+        f.write(_fun.join(elements,delimiter)+"\n")
 
         # now loop over the data
         for n in range(0, len(self[0])):
             # loop over each column
+            elements = []
             for m in range(0, len(self)):
                 # write the data if there is any, otherwise, placeholder ("x")
                 if n < len(self[m]):
-                    f.write(str(self[m][n])+delimiter)
+                    elements.append(str(self[m][n]))
                 else:
-                    f.write('x'+delimiter)
-            f.write("\n")
+                    elements.append('_')
+            f.write(_fun.join(elements, delimiter)+"\n")
 
 
         f.close()
