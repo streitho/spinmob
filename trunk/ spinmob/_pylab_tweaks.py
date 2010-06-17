@@ -5,9 +5,9 @@ import wx as _wx
 import time as _time
 from matplotlib.font_manager import FontProperties as _FontProperties
 
-import _dialogs                                 ;reload(_dialogs)
-import _functions as _fun                       ;reload(_fun)
-import _pylab_colorslider as _pc                ;reload(_pc)
+import _dialogs
+import _functions as _fun
+import _pylab_colorslider as _pc
 import _plotting
 
 
