@@ -696,7 +696,14 @@ class standard:
             # try to evaluate the script
 
             # first try to evaluate it as a simple column label
-            # Let this raise an exception to help the user troubleshoot.
+            if n==0 and script in self.ckeys:
+                # only try this on the zero'th attempt
+                # if this is a recursive call, there can be ambiguities if the
+                # column names are number strings
+                return ['___', {'___':self[script]}]
+
+
+            # Otherwise, evaluate it.
             try:
                 b = eval(script, globbies)
                 return ['___', {'___':b}]
