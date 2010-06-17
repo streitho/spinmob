@@ -13,8 +13,8 @@ import wx                           as _wx
 from scipy.integrate import quad
 from scipy.integrate import inf
 
-import _dialogs                         ;reload(_dialogs)
-import _pylab_tweaks               ;reload(_dialogs)
+import _dialogs                    ;reload(_dialogs)
+import _pylab_tweaks               ;reload(_pylab_tweaks)
 
 # Functions from other libraries
 average = _numpy.average

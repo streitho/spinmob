@@ -1,6 +1,6 @@
 import os as _os
 
-import _functions as _fun
+from _functions import read_lines
 
 
 class Prefs():
@@ -49,7 +49,7 @@ class Prefs():
             _os.mkdir(self.colormaps_dir)
 
         # now read in the prefs file
-        lines = _fun.read_lines(self.prefs_path)
+        lines = read_lines(self.prefs_path)
         self.prefs = {}
         for n in range(0,len(lines)):
             s = lines[n].split('=')
