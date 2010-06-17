@@ -11,10 +11,12 @@ Then, if you have windows, you can use the spinmob windows installer from the do
 
 2. [PyShell Start pyshell].
 
-3. Import spinmob and start playing:
+3. From the command line, mport spinmob and start playing:
 {{{
->>> import spinmob as s`
+>>> import spinmob as s
 }}}
+
+
 
 = A Quick Tutorial =
 
