@@ -13,7 +13,7 @@
 
 In general, I tried to design this library so that everything running in the background starts with an underscore, such as "`_plotting`" or "`_numpy`". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the underscore libraries but I have not tested these functions. They will make their way back into the main library as time progresses.
 
-== Data Analysis ==
+== Basic Data Handling ==
 
 By far the most useful part of this project is the data importing and analysis library. I need to write the documentation for the types of data files it can read and include a test file before I tackle this section.
 
@@ -71,6 +71,24 @@ The only overall structural rule for data files, really, is that the header has 
  * The columns can be different lengths or have placeholders with no data.
 
 Play with it and see what you can get away with. Currently databox prefers equal-length columns, but we're working on that.
+
+== Scripting ==
+
+It is also possible to generate new columns of data using a databox script such as the following.
+
+{{{
+d.generate_column('3*c(0)+cos(c("my_column2")/h("test_header"))', 'my_new_column')
+}}}
+
+This will return 3 times the 0'th column plus the cosine of "my_column2" over header element "test_header", and insert the result into the databox as the column named "my_new_column". If this name is omitted, it will simply return the result.
+
+The scripts are basically python syntax with a few additions. First, the scripts can see all the numpy functions like sin(), cos(), and sqrt(), along with the databox column and header query functions c() and h(). Second, you can write scripts with a new keyword "where", such as
+
+{{{
+>>> d.generate_column('cos(a*x*x) + b*x+45 where x=c(0); a=3.2; b=h("test_header")/2.0; c=c(1)')
+}}}
+
+This is mostly useful if you want to easily see the functional form and/or have a lot of long variable names. Often times scripts are much shorter when written this way.
 
 
 == Plotting ==
