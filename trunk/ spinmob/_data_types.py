@@ -76,7 +76,7 @@ class standard:
         set's the n'th column to x (n can be a column name too)
         """
         if type(n) == str or int(n) > len(self.ckeys)-1:
-            self.insert_column(data_array=x, ckey=str(n), index='end')
+            self.insert_column(data_array=x, ckey='c'+str(n), index='end')
         else:
             self.columns[self.ckeys[n]] = array(x)
 
@@ -462,7 +462,7 @@ class standard:
 
         Scripts are of the form:
 
-        "3.0 + x/y - self[0] where x=3.0*c('my_column')+h('setting'), y=c(1)"
+        "3.0 + x/y - self[0] where x=3.0*c('my_column')+h('setting'); y=c(1)"
 
         "self" refers to the data object, giving access to everything, enabling
         complete control over the universe. c() and h() give quick reference
@@ -484,16 +484,16 @@ class standard:
         they are already column and header functions!
 
         """
-        if self.debug: print "Generating column '"+name+"' = "+script+"..."
+        if self.debug: print "Generating column '"+str(name)+"' = "+str(script)+"..."
 
         # get the expression and variables
-        [expression, vars] = self.parse_script(script)
-        if vars == None:
-            print "ERROR: invalid script!"
+        [expression, v] = self.parse_script(script)
+        if v == None:
             return None
 
         # generate the new column
-        new_column = eval(expression, vars)
+        if self.debug: print expression
+        new_column = eval(expression, v)
 
         # only insert it if someone gave it a name!
         if name==None: return new_column
@@ -638,25 +638,29 @@ class standard:
         self.headers  = {}
 
 
-    def parse_script(self, script):
+    def parse_script(self, script, n=0):
         """
-        This takes a script such as "a/b where a=current, b=3.3" and returns
+        This takes a script such as "a/b where a=c('current'), b=3.3" and returns
         ["a/b", {"a":self.columns["current"], "b":3.3}]
-
-        use "... where a=h(current)" for the header data
-
-        use "... where a=c(n)" for column number n"
 
         You can also just use an integer for script to reference columns by number
         or use the column label as the script.
+
+        n is for internal use. Don't use it. In fact, don't use this function, user.
         """
 
-        if script=="None" or script==None: return [None, None]
+        if n > 1000:
+            print "This script ran recursively 1000 times!"
+            a = raw_input("<enter> or (q)uit: ")
+            if a.strip().lower() in ['q', 'quit']:
+                script = None
+
+        if script==None: return [None, None]
 
         # check if the script is simply an integer
         if type(script)==int:
             if script<0: script = script+len(self.ckeys)
-            return ["column"+str(script), {"column"+str(script):self[script]}]
+            return ["___"+str(script), {"___"+str(script):self[script]}]
 
 
 
@@ -670,10 +674,6 @@ class standard:
 
         # add in the supplied globals
         globbies.update(self.extra_globals)
-
-        if self.debug: print globbies.keys()
-
-
 
         # first split up by "where"
         split_script = script.split(" where ")
@@ -692,14 +692,15 @@ class standard:
             # try to evaluate the script
 
             # first try to evaluate it as a simple column label
+            # Let this raise an exception to help the user troubleshoot.
             try:
-                return ["a", {"a":self.c(script)}]
+                b = eval(script, globbies)
+                return ['___', {'___':b}]
             except:
-                if self.debug: print "can't make direct column call."
-
-                # it's more complicated...
-                # let it raise an exception to help troubleshoot!
-                return ["a", {"a":eval(script, globbies)}]
+                print
+                print "ERROR: Could not evaluate '"+str(script)+"'"
+                _wx.Yield()
+                return [None, None]
 
 
         # ######################################
@@ -712,10 +713,10 @@ class standard:
         expression = split_script[0].strip()
 
         # now split the variables list up by ,
-        varsplit = split_script[1].split(',')
+        varsplit = split_script[1].split(';')
 
         # loop over the entries in the list of variables, storing the results
-        # of eval in the "stuff" dictionary
+        # of evaluation in the "stuff" dictionary
         stuff = {}
         for var in varsplit:
 
@@ -730,13 +731,16 @@ class standard:
             c = s[1].strip()
 
             # now try to evaluate c, given our current globbies
-            try:
-                eval(c, globbies)
-                stuff[v] = eval(c, globbies)
 
-            except:
-                print "could not evaluate variable",v,"=",script
-                return [None, None]
+            # recursively call this sub-script. At the end of all this mess
+            # we want the final return value to be the first expression
+            # and a full dictionary of variables to fill it
+            [x,y] = self.parse_script(c, n+1)
+
+            # if it's not working, just quit out.
+            if y==None: return [None, None]
+
+            stuff[v] = y[x]
 
         # incorporate the globbies so other functions can eval() with things
         # like c('this')
