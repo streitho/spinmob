@@ -13,6 +13,10 @@ import _functions as _fun
 import _data
 import _pylab_tweaks as _pt
 import _dialogs
+import _plot_function
+
+function = _plot_function.function_1D
+zfunction = _plot_function.function_2D
 
 # for the user to get at
 tweaks = _pt
@@ -300,55 +304,6 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, 
     if draw: _pylab.draw()
     return axes
 
-def function(function, xmin=-1, xmax=1, steps=200, clear=True, silent=False, axes="gca", legend=True, plot='plot', **kwargs):
-    """
-
-    Plots the function over the specified range
-
-    function            function or list of functions to plot
-    xmin, xmax, steps   range over which to plot, and how many points to plot
-    clear=True          clear the previous plot
-    silent=False        whether or not to update the plot after we're done
-    axes='gca'          instance of axes on which to plot (or 'gca' for current axes)
-    legend=True         should we attempt to construct a legend for the plot?
-    plot='plot'         plot method, can be 'plot', 'semilogx', 'semilogy', or 'loglog'
-
-    """
-
-    if axes=="gca": axes = _pylab.gca()
-    if clear:
-        axes.figure.clear()
-        axes=_pylab.gca()
-
-    # if the x-axis is a log scale, use erange
-    if plot in ['semilogx', 'loglog']: r = _fun.erange(xmin, xmax, steps)
-    else:                              r = _fun.frange(xmin, xmax, (float(xmax)-float(xmin))/float(steps))
-
-    # make sure it's a list so we can loop over it
-    try:
-        function[0]
-    except:
-        function = [function]
-
-    # loop over the list of functions
-    for f in function:
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(f(z))
-
-        # add the line to the plot
-        eval('axes.'+plot+'(x, y, label=f.__name__, **kwargs)')
-
-    if legend: axes.legend()
-
-    if not silent:
-        _pt.auto_zoom()
-        _pt.raise_figure_window()
-        _pt.raise_pyshell()
-
-    return axes
 
 
 def xyz(X, Y, Z, plot="image", **kwargs):
@@ -405,45 +360,6 @@ def zgrid(Z, xmin=0, xmax=1, ymin=0, ymax=1, plot="image", **kwargs):
     Y = _numpy.linspace(ymin,ymax,len(Z[0]))
 
     return xyz(X,Y,Z,plot)
-
-
-def zfunction(z, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, plot="image", **kwargs):
-    """
-    Plots a 2-d function over the specified range
-
-    f                       takes two inputs and returns one value
-    xmin,xmax,ymin,ymax     range over which to generate/plot the data
-    xsteps,ysteps           how many points to plot on the specified range
-    plot                    What type of surface data to plot ("image", "mountains")
-    """
-
-    # generate the grid x and y coordinates
-    xones = _numpy.linspace(1,1,ysteps)
-    x     = _numpy.linspace(xmin, xmax, xsteps)
-    xgrid = _numpy.outer(xones, x)
-
-    yones = _numpy.linspace(1,1,xsteps)
-    y     = _numpy.linspace(ymin, ymax, ysteps)
-    ygrid = _numpy.outer(y, yones)
-
-    # now get the z-grid
-    try:
-        # try it the fast numpy way. Add 0 to assure dimensions
-        zgrid = z(xgrid, ygrid) + xgrid*0.0
-    except:
-        print "Notice: function is not rocking hardcore. Generating grid the slow way..."
-        # manually loop over the data to generate the z-grid
-        zgrid = []
-        for ny in range(0, len(y)):
-            zgrid.append([])
-            for nx in range(0, len(x)):
-                zgrid[ny].append(z(x[nx], y[ny]))
-
-        zgrid = _numpy.array(zgrid)
-
-    # now plot!
-    return xyz(x,y,zgrid,plot,**kwargs)
-
 
 
 
