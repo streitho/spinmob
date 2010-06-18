@@ -348,7 +348,17 @@ def erange(start, end, steps):
 
     return _numpy.array(a)
 
+def imax(array):
+    """
+    Returns the index of the maximum of array.
+    """
+    return index(max(array), array)
 
+def imin(array):
+    """
+    Returns the index of the minimum of array.
+    """
+    return index(min(array), array)
 
 def index(value, array):
     for n in range(0,len(array)):
@@ -639,6 +649,18 @@ def join(array_of_strings, delimiter=' '):
         output += delimiter + str(array_of_strings[n])
     return(output)
 
+
+def shift_feature_to_x0(xdata, ydata, x0=0, feature=imax):
+    """
+    Finds a feature in the the ydata and shifts xdata so the feature is centered
+    at x0. Returns shifted xdata, ydata. Try me with plot.tweaks.manipulate_shown_data()!
+
+    xdata,ydata     data set
+    x0=0            where to shift the peak
+    feature=imax    function taking an array/list and returning the index of said feature
+    """
+    i = feature(ydata)
+    return xdata-xdata[i]+x0, ydata
 
 
 

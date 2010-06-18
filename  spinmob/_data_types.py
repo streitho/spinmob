@@ -59,11 +59,6 @@ class standard:
     hkeys   = []            # ordered list of header keys
     extra_globals = {}
 
-    def __call__(self, column):
-        """
-        Returns the specified column. Can be an index or a label.
-        """
-        return self.c(column)
 
     def __getitem__(self, n):
         try:
@@ -459,10 +454,9 @@ class standard:
 
 
 
-    def generate_column(self, script, name=None):
+    def execute_script(self, script):
         """
-        Generates a new column of your specification. If name=None it will just
-        return the data without inserting it into the data object.
+        Runs a script, returning the result.
 
         Scripts are of the form:
 
@@ -472,17 +466,20 @@ class standard:
         complete control over the universe. c() and h() give quick reference
         to self.c() and self.h() to get columns and header lines
 
-        You can also access globals in this module, such as _numpy and for
-        convenience, many common functions like sin() and sqrt() are imported
-        explicitly. If you would like access to additional globals, set
-        self.extra_globals to the appropriate globals dictionary.
+        Additionally, these scripts can see all of the numpy functions like sin,
+        cos, sqrt, etc.
 
-        Another acceptable script is simply "F", if there's a column labeled "F".
-        However, I only added this functionality as a shortcut, and something like
+        Finally, if you would like access to additional globals, set
+        self.extra_globals to the appropriate globals dictionary or add globals
+        using insert_global()
+
+        There are a few shorthand scripts available as well. You can simply type
+        a column name such as "my_column" or a column number like 2. However, I
+        only added this functionality as a shortcut, and something like
         "2.0*a where a=F" will not work unless F is defined somehow. I figure
         since you're already writing a complicated script, you don't want to
         accidentally shortcut your way into using a column instead of a constant!
-        Use "2.0*a where a=c(F)" instead.
+        Use "2.0*a where a=c('F')" instead.
 
         NOTE: You shouldn't try to use variables like 'c=...' or 'h=...' because
         they are already column and header functions!
@@ -491,24 +488,14 @@ class standard:
         if self.debug: print "Generating column '"+str(name)+"' = "+str(script)+"..."
 
         # get the expression and variables
-        [expression, v] = self.parse_script(script)
+        [expression, v] = self._parse_script(script)
         if v == None:
             return None
 
-        # generate the new column
-        if self.debug: print expression
-        new_column = eval(expression, v)
+        return eval(expression, v)
 
-        # only insert it if someone gave it a name!
-        if name==None: return new_column
-        else:
-            self.columns[name] = new_column
-
-            # if we don't already have a column of this label, add it to the ckeys
-            if not name in self.ckeys:
-                self.ckeys.append(name)
-
-            return self.columns[name]
+    # Define this so you can quickly call a script
+    __call__ = execute_script
 
     def get_data(self):
         """
@@ -520,9 +507,9 @@ class standard:
         Uses self.xscript, self.yscript, and self.eyscript.
         """
 
-        self.xdata  = self.generate_column(self.xscript, name=None)
-        self.ydata  = self.generate_column(self.yscript, name=None)
-        if self.eyscript:   self.eydata = self.generate_column(self.eyscript)
+        self.xdata  = self.execute_script(self.xscript)
+        self.ydata  = self.execute_script(self.yscript)
+        if self.eyscript:   self.eydata = self.execute_script(self.eyscript)
         else:               self.eydata = None
         self.xlabel = self.xscript
         self.ylabel = self.yscript
@@ -570,7 +557,7 @@ class standard:
         """
         Appends or overwrites the supplied object in the self.extra_globals.
 
-        Use this to expose generate_column() or parse_script() etc... to external
+        Use this to expose execute_script() or _parse_script() etc... to external
         objects and functions.
 
         If name=None, use thing.__name__
@@ -642,7 +629,7 @@ class standard:
         self.headers  = {}
 
 
-    def parse_script(self, script, n=0):
+    def _parse_script(self, script, n=0):
         """
         This takes a script such as "a/b where a=c('current'), b=3.3" and returns
         ["a/b", {"a":self.columns["current"], "b":3.3}]
@@ -746,7 +733,7 @@ class standard:
             # recursively call this sub-script. At the end of all this mess
             # we want the final return value to be the first expression
             # and a full dictionary of variables to fill it
-            [x,y] = self.parse_script(c, n+1)
+            [x,y] = self._parse_script(c, n+1)
 
             # if it's not working, just quit out.
             if y==None: return [None, None]
@@ -835,16 +822,16 @@ class standard:
             and not eyscript==None                  \
             and not type(eyscript) in [int,long]:
                 if self.debug: print eyscript, "is not a column"
-                eydata = self.generate_column(eyscript, None)
+                eydata = self.execute_script(eyscript)
 
 
-            [xpression, xvars] = self.parse_script(xscript)
+            [xpression, xvars] = self._parse_script(xscript)
             if xvars == None: return
-            [ypression, yvars] = self.parse_script(yscript)
+            [ypression, yvars] = self._parse_script(yscript)
             if yvars == None: return
 
             if not eyscript == None:
-                [spression, svars] = self.parse_script(eyscript)
+                [spression, svars] = self._parse_script(eyscript)
                 if svars == None: eydata = None
 
             # try to evaluate the data
