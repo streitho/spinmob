@@ -61,10 +61,10 @@ class standard:
 
 
     def __getitem__(self, n):
-        try:
+        if type(n) == str:
+            return self.columns[n]
+        else:
             return self.columns[self.ckeys[n]]
-        except:
-            return self.c(n)
 
     def __setitem__(self, n, x):
         """
