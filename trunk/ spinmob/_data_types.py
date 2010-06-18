@@ -64,7 +64,7 @@ class standard:
         try:
             return self.columns[self.ckeys[n]]
         except:
-            return self(n)
+            return self.c(n)
 
     def __setitem__(self, n, x):
         """
