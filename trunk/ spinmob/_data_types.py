@@ -60,11 +60,6 @@ class standard:
     extra_globals = {}
 
 
-    def __getitem__(self, n):
-        if type(n) == str:
-            return self.columns[n]
-        else:
-            return self.columns[self.ckeys[n]]
 
     def __setitem__(self, n, x):
         """
@@ -1186,15 +1181,15 @@ class standard:
 
 
 
-    def c(self, ckey):
+    def c(self, n):
         """
-        Returns the n'th column if it's an integer, returns the column based on key
+        Returns the n'th column if it's an integer, otherwis the column based
+        on key.
         """
-        if type(ckey) in [int, long]: return self.columns[self.ckeys[ckey]]
+        if type(n) == str:  return self.columns[n]
+        else:               return self.columns[self.ckeys[n]]
 
-        # if it's not an integer, search through the columns for a matching string
-        return self.columns[ckey]
-
+    __getitem__ = c
 
     def h(self, hkey):
         """
