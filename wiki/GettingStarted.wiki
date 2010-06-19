@@ -85,17 +85,22 @@ Heads up! These data columns are just numpy arrays, which follow all the numpy r
 
 should fix that. :)
 
-
-
-
 Now the databox has two columns. Try adding some header information:
 
 {{{
 >>> d.insert_header('test_header', 32)
 >>> d.insert_header('test_header2', [1,"test",45.3])
 >>> d.hkeys
+['test_header2', 'test_header']
+}}}
+
+Similar to columns, a list of header elements are contained in d.hkeys. You can access header elements using the d.h() function.
+
+{{{
 >>> d.h('test_header')
+32
 >>> d.h('ader2')
+[1, 'test', 45.299999999999997]
 }}}
 
 Notice for headers you just need to specify enough of the string to distinguish it from the others. Now that we have a databox with some data in it, save it to a file:
