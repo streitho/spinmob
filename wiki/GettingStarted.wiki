@@ -22,7 +22,7 @@ In all of the following we assuming spinmob is imported as "s".
 
 = A Quick Tutorial =
 
-In general, I tried to design this library so that everything running in the background starts with an underscore, such as "`_plotting`" or "`_numpy`". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "spinmob." and navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the underscore libraries but I have not tested these functions. They will make their way back into the main library as time progresses.
+In general, I tried to design this library so that everything running in the background starts with an underscore, such as "_plotting" or "_numpy". Everything the user (you) should play with does not. So essentially if there's something you want to do, try typing "s." and then navigating through the lists in pyshell to see what's available. There is additional functionality hidden in the underscore libraries but I have not tested these functions. They will make their way back into the main library as time progresses.
 
 == Basic Data Handling ==
 
@@ -103,7 +103,11 @@ Similar to columns, a list of header elements are contained in d.hkeys. You can 
 [1, 'test', 45.299999999999997]
 }}}
 
-Notice for headers you just need to specify enough of the string to distinguish it from the others. Now that we have a databox with some data in it, save it to a file:
+Notice for headers you just need to specify enough of the string to distinguish it from the others.
+
+== Saving and Loading ==
+
+Now that we have a databox with some data in it, save it to a file:
 
 {{{
 >>> d.save_file()
@@ -125,6 +129,14 @@ You can also load similarly-formatted data files. Try loading the first one you 
 >>> d2[-1]
 }}}
 
+You can also use d.load_file() to load data into an existing databox, and 
+
+{{{
+>>> s.data.load_multiple()
+}}}
+
+will return an array of databoxes.
+
 The only overall structural rule for data files, really, is that the header has to come first, and the data columns come last:
 
  * Header lines begin with strings and must come before the data columns.
@@ -139,29 +151,52 @@ Play with it and see what you can get away with. Currently databox prefers equal
 It is also possible to generate new columns of data using a databox script such as the following.
 
 {{{
-d.generate_column('3*c(0)+cos(c("my_column2")/h("test_header"))', 'my_new_column')
+>>> d('3*c(1)+cos(c("my_column")/h("test_header"))')
+array([ 30.99987793,  60.99951176,  35.49890157])
 }}}
 
-This will return 3 times the 0'th column plus the cosine of "my_column2" over header element "test_header", and insert the result into the databox as the column named "my_new_column". If this name is omitted, it will simply return the result.
+This will return 3 times column 1 plus the cosine of "my_column" over header element "test_header".
 
 The scripts are basically python syntax with a few additions. First, the scripts can see all the numpy functions like sin(), cos(), and sqrt(), along with the databox column and header query functions c() and h(). Second, you can write scripts with a new keyword "where", such as
 
 {{{
->>> d.generate_column('cos(a*x*x) + b*x+45 where x=c(0); a=3.2; b=h("test_header")/2.0; c=c(1)')
+>>> d('3*a+cos(b) where a=c(1); b=c("my_column")/h("test_header")')
+array([ 30.99987793,  60.99951176,  35.49890157])
 }}}
 
-This is mostly useful if you want to easily see the functional form and/or have a lot of long variable names. Often times scripts are much shorter when written this way.
+which does the same thing. Just make sure not to assign c or h as a variable :).
 
+It might seem silly to have the ability to execute scripts (i.e. why not just do them without the strings?) but they do have a purpose. They can shorten or organize a long expression, and they can be used in other automated scripts such as plotting, discussed below.
 
 == Plotting ==
 
-|| `>>> s.plot.data([1,2,3],[1,5,4])` || Generate a simple data plot ||
-|| `>>> s.plot.data([[1,2,3],[1,2,3]], [[1,3,2],[4,1,3]])` || Generate a few data lines. ||
-|| `>>> s.plot.function(spinmob.math.sin)` || Plot sin(x) ||
-|| `>>> s.plot.function([spinmob.math.sin, spinmob.math.cos])` || Plot sin(x) and cos(x) ||
-|| `>>> s.plot.tweaks.auto_zoom()` || Auto-scale the data. ||
-|| `>>> s.plot.tweaks.ubertidy()` || Prepare the plot for presentation. (I save as ps or svg and use [http://www.inkscape.org/ Inkscape]) ||
-|| `>>> def f(x,y): return x*x*y*y` || to define a 2-variable function ||
-|| `>>> s.plot.surface_function(f,-1,1,-1,1)` || to make a 2-d color plot of this function. The GUI sliders are very useful, but look ugly in Linux. I have to overhaul them ||
+It is pretty easy to plot from spinmob, either from a databox directly or using one of the canned plot functions. Since spinmob uses matplotlib/pylab to plot, you can also access all of these things by typing "s.pylab."
 
-more to come...
+Databoxes have some plotting capabilities. 
+
+{{{
+d.plot(0,1)
+d.plot('my_column','_column1')
+}}}
+
+will do the same thing, plotting the 0 column on the x-axis, and the 1 column on the y-axis. You can also enter scripts like
+
+{{{
+>>> d.plot('c(0)+cos(c(1))', 'h(0)*y + b where y=c(1)*27; b=h("eader2")[2]')
+}}}
+
+If you want to plot the same analysis script from many similar data files,
+
+{{{
+>>> s.plot.files('c(0)+cos(c(1))', 'h(0)*y + b where y=c(1)*27; b=h("eader2")[2]')
+}}}
+
+Is a quick way to get it done. If you have a bunch of files and want to plot one data point per file, this is also possible, with scripts like
+
+{{{
+>>> s.plot.files('max(c(0))','h(0)',marker='o')
+}}}
+
+Check out the help(d.plot) and help(s.plot.files) to learn about the various options. In fact, use help() on everything.
+
+Up next: fitting, and other useful random functions, in order of awesomeness.
