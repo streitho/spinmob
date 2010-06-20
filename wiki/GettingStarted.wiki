@@ -168,7 +168,7 @@ which does the same thing. Just make sure not to assign c or h as a variable :).
 
 It might seem silly to have the ability to execute scripts (i.e. why not just do them without the strings?) but they do have a purpose. They can shorten or organize a long expression, and they can be used in other automated scripts such as plotting, discussed below.
 
-== Plotting ==
+== Databox Plotting ==
 
 It is pretty easy to plot from spinmob, either from a databox directly or using one of the canned plot functions. Since spinmob uses matplotlib/pylab to plot, you can also access all of these things by typing "s.pylab."
 
@@ -198,5 +198,45 @@ Is a quick way to get it done. If you have a bunch of files and want to plot one
 }}}
 
 Check out the help(d.plot) and help(s.plot.files) to learn about the various options. In fact, use help() on everything.
+
+== General Plotting ==
+
+Under s.plot there are a few other plotting functions I wrote to get things done quickly. It is possible to plot functions in 1d or 2d, data arrays in 1d or 2d, and more. 1d functions are relatively straightforward:
+
+{{{
+>>> s.plot.function('sin(x)')
+>>> s.plot.function(['sin(x)','5*cos(x*3)','sqrt(x)'], -1, 10)
+}}}
+
+It is possible to change the dependent variable using the kwarg 'p'. You can also define your own functions:
+
+{{{
+>>> def my_f(x): return x**2
+>>> s.plot.function([my_f,'arcsin(x)'])
+}}}
+
+Similarly, in 2d
+
+{{{
+>>> s.plot.surface_function('sin(x*y)')
+}}}
+
+or define your own. surface_function() currently only makes colorplots.
+
+Once you have data plotted, there are a whole mess of functions to tweak these plots (most apply to 1d plots) found in 
+
+{{{
+>>> s.plot.tweaks
+}}}
+
+Try, for example, manipulate_shown_data() or set_all_line_attributes(). The tweaks are all documented via help(). 
+
+I use tweaks so often I put them directly into the global namespace in my startup script with a line like
+
+{{{
+>>> import spinmob as s
+>>> st = s.plot.tweaks
+}}}
+
 
 Up next: fitting, and other useful random functions, in order of awesomeness.
