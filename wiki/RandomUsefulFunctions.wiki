@@ -1,4 +1,4 @@
-## other miscellaneous functions, listed roughly in order of how useful I personally find them.
+#other miscellaneous functions, listed roughly in order of how useful I personally find them.
 
 Once you have [GettingStarted explored spinmob] a little, it is helpful to use the pyshell auto-complete to see what functions are available and just try them out. 
 
