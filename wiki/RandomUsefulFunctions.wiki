@@ -1,6 +1,8 @@
 # other miscellaneous functions, listed roughly in order of how useful I personally find them.
 
-Once you have [GettingStarted explored spinmob] a little, it is helpful to use the pyshell auto-complete to see what functions are available, using help() to print out the documentation on the complicated ones. There are a few commonly-used-by-me functions in the global namespace "s.", along with some categories (assuming, in [GettingStarted] we've already typed "import spinmob as s") and extra functions. Below are the spinmob-specific 
+Once you have [GettingStarted explored spinmob] a little, it is helpful to use the pyshell auto-complete to see what functions are available and just try them out. 
+
+There are a few commonly-used-by-me functions in the global spinmob namespace, along with some categories (assuming, in [GettingStarted] we've already typed "import spinmob as s") and extra functions:
 
 || s.constants   || list of physical constants, in mks       ||     
 || s.data        || databox data handler (see [GettingStarted]) ||  
