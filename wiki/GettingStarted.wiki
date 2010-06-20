@@ -239,4 +239,4 @@ I use tweaks so often I put them directly into the global namespace in my startu
 }}}
 
 
-Up next: fitting, and other useful random functions, in order of awesomeness.
+Up next: [RandomUsefulFunctions]
