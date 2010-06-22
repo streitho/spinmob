@@ -157,61 +157,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
 
 
 
-def _files_as_points(xscript, yscript, clear=True):
-    """
 
-    This is antiquated and will be updated when I need it again.
-
-    This selects a bunch of files, and plots some quantity, one data point per file.
-
-    xscript  is an instance of a data class that takes a file
-                list and assembles header data
-    yscript  is the same type, but will be the y-values.
-
-    clear=True  should we clear the axes?
-
-    """
-
-    # have the user select a file
-    if paths=="ask":
-        paths = _dialogs.MultipleFiles(data.file_extension, default_directory=data.directory)
-
-    if paths in [[], None]: return
-
-    if not isinstance(paths, type([])): paths = [paths]
-
-    # get the header data arrays
-    datax.get_data(paths)
-    datay.get_data(paths)
-
-    # get and clear the figure and axes
-    f = _pylab.gcf()
-    if clear: f.clf()
-    a = _pylab.gca()
-
-    # plot it
-    a.plot(datax.data, datay.data)
-
-    # now get the pieces of the string for the plot title
-    pathparts = paths[-1].split('\\')
-
-    # now add the path to the title (either the full path or back a few steps
-    x = min([5, len(pathparts)])
-    title = ".../"
-    for n in range(0, x-2): title += pathparts[n-x+1] + '/'
-
-    # now split the first line and use it to get the axes title
-    s     = datax.lines[0].split(' ')
-    title += '\nLast trace on:'+s[2]+'/'+s[3]+'/'+s[4]
-
-    # format the axes and refresh
-    # set the axis labels
-    axes.set_title(title)
-    axes.set_xlabel(datax.xlabel)
-    axes.set_ylabel(datay.ylabel)
-    format_figure(axes.figure)
-
-    return axes
 
 
 
