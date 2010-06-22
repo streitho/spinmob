@@ -1,6 +1,6 @@
 #############################################################
 # various functions that I like to use
-import numpy                        as _numpy
+import numpy                        as _n
 import matplotlib                   as _matplotlib
 import pylab                        as _pylab
 import cPickle                      as _cPickle
@@ -17,7 +17,7 @@ import _dialogs                    ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_pylab_tweaks)
 
 # Functions from other libraries
-average = _numpy.average
+average = _n.average
 
 
 
@@ -34,15 +34,15 @@ def array_shift(a, n, fill="average"):
     fill=37.2           fill the new empty elements with the value 37.2
     """
 
-    new_a = _numpy.array(a)
+    new_a = _n.array(a)
 
     if n==0: return new_a
 
-    fill_array = _numpy.array([])
-    fill_array.resize(_numpy.abs(n))
+    fill_array = _n.array([])
+    fill_array.resize(_n.abs(n))
 
     # fill up the fill array before we do the shift
-    if   fill is "average": fill_array = 0.0*fill_array + _numpy.average(a)
+    if   fill is "average": fill_array = 0.0*fill_array + _n.average(a)
     elif fill is "wrap" and n >= 0:
         for i in range(0,n): fill_array[i] = a[i-n]
     elif fill is "wrap" and n < 0:
@@ -69,7 +69,7 @@ def coarsen_array(array, level=1):
     Returns a shorter array of binned data (every level+1 data points).
     """
 
-    if level is 0: return _numpy.array(array)
+    if level is 0: return _n.array(array)
 
     new_array = []
 
@@ -89,7 +89,7 @@ def coarsen_array(array, level=1):
         # append the average to the new array
         new_array.append(x / count)
 
-    return _numpy.array(new_array)
+    return _n.array(new_array)
 
 
 
@@ -126,9 +126,9 @@ def coarsen_data(xdata, ydata, yerror=None, level=1):
         new_ydata.append(sumy/count)
         new_error.append(sume2**0.5/count)
 
-    xdata = _numpy.array(new_xdata)
-    ydata = _numpy.array(new_ydata)
-    if not yerror==None: yerror = _numpy.array(new_error)
+    xdata = _n.array(new_xdata)
+    ydata = _n.array(new_ydata)
+    if not yerror==None: yerror = _n.array(new_error)
     return [xdata,ydata,yerror]
 
 
@@ -138,7 +138,7 @@ def coarsen_matrix(Z, xlevel=0, ylevel=0):
     """
     This returns a coarsened numpy matrix.
     """
-    Z_ycoarsened = _numpy.array(Z)
+    Z_ycoarsened = _n.array(Z)
 
     # first coarsen the columns (if necessary)
     if ylevel:
@@ -147,7 +147,7 @@ def coarsen_matrix(Z, xlevel=0, ylevel=0):
 
     # now coarsen the rows
     if xlevel: return coarsen_array(Z_ycoarsened, xlevel)
-    else:      return _numpy.array(Z_ycoarsened)
+    else:      return _n.array(Z_ycoarsened)
 
 def derivative(xdata, ydata):
     """
@@ -184,8 +184,8 @@ def derivative_fit(xdata, ydata, neighbors=1):
         i2 = min(nmax, n+neighbors)
 
         # get the sub data to fit
-        xmini = _numpy.array(xdata[i1:i2+1])
-        ymini = _numpy.array(ydata[i1:i2+1])
+        xmini = _n.array(xdata[i1:i2+1])
+        ymini = _n.array(ydata[i1:i2+1])
 
         slope, intercept = fit_linear(xmini, ymini)
 
@@ -193,7 +193,7 @@ def derivative_fit(xdata, ydata, neighbors=1):
         x.append(float(sum(xmini))/len(xmini))
         dydx.append(slope)
 
-    return _numpy.array(x), _numpy.array(dydx)
+    return _n.array(x), _n.array(dydx)
 
 def difference(ydata1, ydata2):
     """
@@ -202,8 +202,8 @@ def difference(ydata1, ydata2):
 
     """
 
-    y1 = _numpy.array(ydata1)
-    y2 = _numpy.array(ydata2)
+    y1 = _n.array(ydata1)
+    y2 = _n.array(ydata2)
 
     return(sum(y2-y1)/len(ydata1))
 
@@ -224,8 +224,8 @@ def distort_matrix_X(Z, X, f, new_xmin, new_xmax, subsample=3):
     points is how many elements the stretched Z should have. "auto" means use the same number of bins
     """
 
-    Z = _numpy.array(Z)
-    X = _numpy.array(X)
+    Z = _n.array(Z)
+    X = _n.array(X)
     points = len(Z)*subsample
 
 
@@ -234,9 +234,9 @@ def distort_matrix_X(Z, X, f, new_xmin, new_xmax, subsample=3):
 
     # do a simple search to find the new_x that gives old_x = min(X)
     target_old_x = min(X)
-    new_xmin = find_zero_bisect(zero_me, new_xmin, new_xmax, _numpy.abs(new_xmax-new_xmin)*0.0001)
+    new_xmin = find_zero_bisect(zero_me, new_xmin, new_xmax, _n.abs(new_xmax-new_xmin)*0.0001)
     target_old_x = max(X)
-    new_xmax = find_zero_bisect(zero_me, new_xmin, new_xmax, _numpy.abs(new_xmax-new_xmin)*0.0001)
+    new_xmax = find_zero_bisect(zero_me, new_xmin, new_xmax, _n.abs(new_xmax-new_xmin)*0.0001)
 
     # now loop over all the new x values
     new_X = []
@@ -253,7 +253,7 @@ def distort_matrix_X(Z, X, f, new_xmin, new_xmax, subsample=3):
             # get the interpolated column
             new_Z.append( interpolate(X,Z,f(new_x)) )
 
-    return _numpy.array(new_Z), _numpy.array(new_X)
+    return _n.array(new_Z), _n.array(new_X)
 
 
 
@@ -302,14 +302,18 @@ def elements_are_strings(array, start_index=0, end_index=-1):
     return 1
 
 def frange(start, end, inc=1.0):
-    """A range function, that does accept float increments..."""
+    """
+    A range function, that does accept float increments...
+
+    This is legacy; I'd use numpy.linspace or something like that.
+    """
 
     start = 1.0*start
     end   = 1.0*end
     inc   = 1.0*inc
 
     # if we got a dumb increment
-    if not inc: return _numpy.array([start,end])
+    if not inc: return _n.array([start,end])
 
     # if the increment is going the wrong direction
     if 1.0*(end-start)/inc < 0.0:
@@ -322,7 +326,7 @@ def frange(start, end, inc=1.0):
     for n in range(0,steps):
         L.append(start+inc*n)
 
-    return _numpy.array(L)
+    return _n.array(L)
 
 
 def erange(start, end, steps):
@@ -346,7 +350,74 @@ def erange(start, end, steps):
     # tidy up the last element (there's often roundoff error)
     a[-1] = end
 
-    return _numpy.array(a)
+    return _n.array(a)
+
+
+def psd(t, y, pow2=False, window=None):
+    """
+    This goes through the numpy fourier transform process, assembling and returning
+    (frequencies, psd) given time and signal data y. Use psdfreq() to get the frequencies.
+
+    powers_of_2     Set this to true if you only want to keep the first 2^n data
+                    points (speeds up the FFT substantially)
+
+    window          can be set to any of the windowing functions in numpy,
+                    e.g. window="hanning"
+    """
+    # make sure they're numpy arrays
+    y = _n.array(y)
+
+    # if we're doing the power of 2, do it
+    if pow2:
+        keep  = 2**int(_n.log2(len(y)))
+
+        # now resize the data
+        y.resize(keep)
+        t.resize(keep)
+
+    # try to get the windowing function
+    w = None
+    if window:
+        try:
+            w = eval("_n."+window, globals())
+        except:
+            print "ERROR: Bad window!"
+            return
+
+    # apply the window
+    if w:
+        a = w(len(y))
+        y = len(y) * a * y / sum(a)
+
+    # do the actual fft, and normalize the power
+    fft = _n.fft.fft(y)
+    P = _n.real(fft*fft.conj())
+    P = P / len(y)**2
+
+    Fpos = psdfreq(t, pow2=False)
+    Ppos = P[0:len(P)/2] + P[0:-len(P)/2]
+    Ppos[0] = Ppos[0]/2.0
+
+    # get the normalized power in y^2/Hz
+    Ppos  = Ppos/(Fpos[1]-Fpos[0])
+
+    return Fpos, Ppos
+
+def psdfreq(t, pow2=False):
+    """
+    Given time array t, returns the positive frequencies of the FFT, including zero.
+    """
+    # if we're doing the power of 2, do it
+    if pow2:
+        keep  = 2**int(_n.log2(len(t)))
+        t.resize(keep)
+
+    # get the frequency array
+    F = _n.fft.fftfreq(len(t), t[1]-t[0])
+
+    # now add the positive and negative frequency components
+    return F[0:len(F)/2]
+
 
 def imax(array):
     """
@@ -368,7 +439,7 @@ def index(value, array):
 
 def index_nearest(value, array):
     """
-    expects a _numpy.array
+    expects a _n.array
     returns the global minimum of (value-array)^2
     """
 
@@ -429,7 +500,7 @@ def integrate_data(xdata,ydata,xmin=None,xmax=None):
                 xint.append(xdata[n])
                 yint.append(0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
 
-    return _numpy.array(xint), _numpy.array(yint)
+    return _n.array(xint), _n.array(yint)
 
 def integrate(f, x1, x2):
     """
@@ -515,7 +586,7 @@ def invert_increasing_function(f, f0, xmin, xmax, tolerance, max_iterations=100)
         x = 0.5*(xmin+xmax)
 
         df = f(x)-f0
-        if _numpy.fabs(df) < tolerance: return x
+        if _n.fabs(df) < tolerance: return x
 
         # if we're high, set xmin to x etc...
         if df > 0: xmin=x
@@ -592,7 +663,7 @@ def reverse(array):
     """
     l = list(array)
     l.reverse()
-    return _numpy.array(l)
+    return _n.array(l)
 
 def write_to_file(path, string):
     file = open(path, 'w')
@@ -636,7 +707,7 @@ def data_from_file(path, delimiter=" "):
        if len(s) > 1:
            x.append(float(s[0]))
            y.append(float(s[1]))
-    return([_numpy.array(x), _numpy.array(y)])
+    return([_n.array(x), _n.array(y)])
 
 
 def join(array_of_strings, delimiter=' '):
@@ -700,7 +771,7 @@ def smooth_array(array, amount=1):
 
     # we have to store the old values in a temp array to keep the
     # smoothing from affecting the smoothing
-    new_array = _numpy.array(array)
+    new_array = _n.array(array)
 
     for n in range(len(array)):
         new_array[n] = smooth(array, n, amount)
@@ -713,10 +784,10 @@ def smooth_data(xdata, ydata, yerror, amount=1):
     Returns smoothed [xdata, ydata, yerror]. Does not destroy the input arrays.
     """
 
-    new_xdata  = smooth_array(_numpy.array(xdata), amount)
-    new_ydata  = smooth_array(_numpy.array(ydata), amount)
+    new_xdata  = smooth_array(_n.array(xdata), amount)
+    new_ydata  = smooth_array(_n.array(ydata), amount)
     if yerror == None:  new_yerror = None
-    else:               new_yerror = smooth_array(_numpy.array(yerror), amount)
+    else:               new_yerror = smooth_array(_n.array(yerror), amount)
 
     return [new_xdata, new_ydata, new_yerror]
 
@@ -755,7 +826,7 @@ def submatrix(matrix,i1,i2,j1,j2):
     new = []
     for i in range(i1,i2+1):
         new.append(matrix[i][j1:j2+1])
-    return _numpy.array(new)
+    return _n.array(new)
 
 
 
@@ -805,8 +876,8 @@ def find_two_peaks(data, remove_background=True):
 
     """
 
-    y  = _numpy.array( data            )
-    x  = _numpy.array( range(0,len(y)) )
+    y  = _n.array( data            )
+    x  = _n.array( range(0,len(y)) )
 
     # if we're supposed to, remove the linear background
     if remove_background:
@@ -899,18 +970,18 @@ def decompose_covariance(c):
     """
 
     # make it a kickass copy of the original
-    c = _numpy.array(c)
+    c = _n.array(c)
 
     # first get the error vector
     e = []
-    for n in range(0, len(c[0])): e.append(_numpy.sqrt(c[n][n]))
+    for n in range(0, len(c[0])): e.append(_n.sqrt(c[n][n]))
 
     # now cycle through the matrix, dividing by e[1]*e[2]
     for n in range(0, len(c[0])):
         for m in range(0, len(c[0])):
             c[n][m] = c[n][m] / (e[n]*e[m])
 
-    return [_numpy.array(e), _numpy.array(c)]
+    return [_n.array(e), _n.array(c)]
 
 def assemble_covariance(error, correlation):
     """
@@ -922,7 +993,7 @@ def assemble_covariance(error, correlation):
         covariance.append([])
         for m in range(0, len(error)):
             covariance[n].append(correlation[n][m]*error[n]*error[m])
-    return _numpy.array(covariance)
+    return _n.array(covariance)
 def ubersplit(s, delimiters=['\t','\r',' ']):
 
     # run through the string, replacing all the delimiters with the first delimiter
@@ -935,7 +1006,7 @@ def trim_data(xdata, ydata, yerror, xrange):
     This does not destroy the input arrays.
     """
 
-    if xrange == None: return [_numpy.array(xdata), _numpy.array(ydata), _numpy.array(yerror)]
+    if xrange == None: return [_n.array(xdata), _n.array(ydata), _n.array(yerror)]
 
     xmax = max(xrange)
     xmin = min(xrange)
@@ -950,8 +1021,8 @@ def trim_data(xdata, ydata, yerror, xrange):
             if not yerror == None: ye.append(yerror[n])
 
     if yerror == None: ye = None
-    else: ye = _numpy.array(ye)
-    return [_numpy.array(x), _numpy.array(y), ye]
+    else: ye = _n.array(ye)
+    return [_n.array(x), _n.array(y), ye]
 
 def find_peaks(array, baseline=0.1, return_subarrays=False):
     """

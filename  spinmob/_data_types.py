@@ -10,6 +10,7 @@ import _dialogs                       ;reload(_dialogs)
 
 # do this so all the scripts will work with all the numpy functions
 from numpy import *
+fun = _fun
 
 #
 # This is the base class, which currently rocks.
@@ -100,7 +101,6 @@ class standard:
         self.clear_columns()
         self.clear_headers()
         self.obnoxious_ckeys = {}
-        self.extra_globals   = {}
 
         self.xscript   = xscript
         self.yscript   = yscript
@@ -759,7 +759,7 @@ class standard:
         self.columns[new_name] = self.columns.pop(old_name)
 
 
-    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', label=None, **kwargs):
+    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', labelscript=None, **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -782,7 +782,8 @@ class standard:
                                     "style" means definitely use markers from spinmob style
                                     otherwise just specify a marker
 
-        label=None                  None means use self.legend_string (usually file name)
+        labelscript=None            None means use self.legend_string (usually file name), otherwise,
+                                    this runs the script and takes the str() of the result
 
         kwargs
 
@@ -852,7 +853,8 @@ class standard:
         if clear: axes.clear()
 
         # modify the legend string
-        if label == None: label=self.legend_string
+        if labelscript == None: label = self.legend_string
+        else:                   label = str(self.execute_script(labelscript))
         if yshift: label = label + " ("+str(yshift)+")"
 
 
