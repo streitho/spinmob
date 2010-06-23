@@ -48,7 +48,7 @@ class standard:
     ylabel         = "ylabel"
     legend_string  = "(no legend_string set)"
     title          = "title"
-    path           = "path"
+    path           = "(no path)"
 
     debug          = False  # Use this to print debug info in various places
     delimiter      = None   # delimiter of the ascii file. If "None" this will just use any whitespace

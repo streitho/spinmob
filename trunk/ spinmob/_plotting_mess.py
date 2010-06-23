@@ -34,12 +34,47 @@ def _image():
     return data
 
 
-def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
+def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
     """
 
-    This selects a bunch of files, and plots them.
+    This selects a bunch of files, and plots them using plot.databoxes(**kwargs).
+    Returns the databoxes as a list.
 
     xscript, yscript, eyscript      the scripts supplied to the data
+    **kwargs                        sent to plot.databoxes
+
+    """
+
+    # have the user select a file
+    if paths=="ask":
+        paths = _dialogs.MultipleFiles("*.*", default_directory='default_directory')
+
+    if paths in [[], None]: return
+
+    if not isinstance(paths, type([])): paths = [paths]
+
+    # for each path, open the file, get the data, and plot it
+    databoxes = []
+    for m in range(0, len(paths)):
+
+        # fill up the xdata, ydata, and key
+        databoxes.append(_data.load(paths[m]))
+
+    # now plot everything
+    xy_databoxes(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
+
+    # return the data
+    return databoxes
+
+
+
+def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
+    """
+
+    This loops over the supplied databoxes and plots them. Databoxes can either
+    be a list or a single databox.
+
+    xscript, yscript, eyscript      the scripts evaluated for the x and y data
 
     yshift=0.0                      artificial (progressive) yshift
 
@@ -77,14 +112,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
 
     """
 
-    # have the user select a file
-    if paths=="ask":
-        paths = _dialogs.MultipleFiles("*.*", default_directory='default_directory')
-
-    if paths in [[], None]: return
-
-    if not isinstance(paths, type([])): paths = [paths]
-
+    if not type(databoxes) in [list]: databoxes = [databoxes]
 
     # get the figure
     f = _pylab.gcf()
@@ -103,20 +131,16 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
     # if we're clearing the axes
     if clear: a.clear()
 
-
     # determine the max legend entries
     if legend_max == "auto":
         if yshift: legend_max=40
         else:      legend_max=30
 
+    # for each databox, open the file, get the data, and plot it
+    for m in range(0, len(databoxes)):
 
-    # for each path, open the file, get the data, and plot it
-    _pylab.hold(True)
-    for m in range(0, len(paths)):
-
-        # fill up the xdata, ydata, and key
-        if debug: print "FILE: "+paths[m]
-        data = _data.load(paths[m])
+        # get the databox
+        data = databoxes[m]
 
         data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
@@ -150,13 +174,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xs
     _pt.get_figure_window()
     _pt.get_pyshell()
 
-    # return the axes
-    return data
-
-
-
-
-
+    return
 
 
 

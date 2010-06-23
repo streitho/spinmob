@@ -41,15 +41,13 @@ import _dialogs as dialogs             ;dialogs._prefs           = prefs
 import _models as models               ;models.prefs             = prefs
 import _constants as constants
 import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
-import _fitting                        ;_fitting._prefs          = prefs
+import _fitting as fit                 ;_fitting._prefs          = prefs
 
 import _data as data                   ;data._prefs              = prefs
 data._data_types._prefs = prefs
 
 # pull some of the common functions to the top
 printer                 = fun.printer
-fit                     = _fitting.fit
-fit_model               = _fitting.fit_model
 array                   = numpy.array
 
 

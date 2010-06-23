@@ -25,6 +25,60 @@ def add_text(text, x=0.01, y=0.01, axes="gca", draw=True, **kwargs):
     axes.text(x, y, text, transform=axes.transAxes, **kwargs)
     if draw: _pylab.draw()
 
+def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
+    if axes=="gca": axes = _pylab.gca()
+
+    a = axes
+    f = a.figure
+
+    # get all the lines
+    lines = a.get_lines()
+
+    # get the current limits
+    x1, x2 = a.get_xlim()
+    y1, y2 = a.get_ylim()
+
+    xdata = []
+    ydata = []
+    for n in range(0,len(lines)):
+        # store this line's data
+
+        # build up a huge data array
+        if isinstance(lines[n], _mpl.lines.Line2D):
+            x, y = lines[n].get_data()
+
+            for n in range(len(x)):
+                # if we're not zooming x and we're in range, append
+                if not zoomx and x[n] >= x1 and x[n] <= x2:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
+
+                elif not zoomy and y[n] >= y1 and y[n] <= y2:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
+
+                elif zoomy and zoomx:
+                    xdata.append(x[n])
+                    ydata.append(y[n])
+
+    if len(xdata):
+        xmin = min(xdata)
+        xmax = max(xdata)
+        ymin = min(ydata)
+        ymax = max(ydata)
+
+
+        # we want a 3% white space boundary surrounding the data in our plot
+        # so set the range accordingly
+        if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
+        if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
+
+        _pylab.draw()
+
+    else:
+        return
+
+
 
 def click_estimate_slope():
     """
@@ -141,59 +195,6 @@ def integrate_shown_data(scale=1, fyname=1, **kwargs):
 def image_sliders(image="top", colormap="_last"):
     close_sliders()
     _pc.GuiColorMap(image, colormap)
-
-def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
-    if axes=="gca": axes = _pylab.gca()
-
-    a = axes
-    f = a.figure
-
-    # get all the lines
-    lines = a.get_lines()
-
-    # get the current limits
-    x1, x2 = a.get_xlim()
-    y1, y2 = a.get_ylim()
-
-    xdata = []
-    ydata = []
-    for n in range(0,len(lines)):
-        # store this line's data
-
-        # build up a huge data array
-        if isinstance(lines[n], _mpl.lines.Line2D):
-            x, y = lines[n].get_data()
-
-            for n in range(len(x)):
-                # if we're not zooming x and we're in range, append
-                if not zoomx and x[n] >= x1 and x[n] <= x2:
-                    xdata.append(x[n])
-                    ydata.append(y[n])
-
-                elif not zoomy and y[n] >= y1 and y[n] <= y2:
-                    xdata.append(x[n])
-                    ydata.append(y[n])
-
-                elif zoomy and zoomx:
-                    xdata.append(x[n])
-                    ydata.append(y[n])
-
-    if len(xdata):
-        xmin = min(xdata)
-        xmax = max(xdata)
-        ymin = min(ydata)
-        ymax = max(ydata)
-
-
-        # we want a 3% white space boundary surrounding the data in our plot
-        # so set the range accordingly
-        if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
-        if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
-
-        _pylab.draw()
-
-    else:
-        print "no data."
 
 
 def format_figure(figure='gcf', tall=False, autozoom=True):
@@ -598,11 +599,11 @@ def image_ubertidy(figure="gcf", aspect=1.0, fontsize=18, fontweight='bold', fon
 
 
 
-
-
 def is_a_number(s):
     try: eval(s); return 1
     except:       return 0
+
+
 
 
 def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fyname=1, clear=1, pause=False, **kwargs):
