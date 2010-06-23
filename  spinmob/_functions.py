@@ -596,8 +596,8 @@ def invert_increasing_function(f, f0, xmin, xmax, tolerance, max_iterations=100)
     return 0.5*(xmin+xmax)
 
 def is_a_number(s):
-    try: float(s); return 1
-    except:        return 0
+    try: float(s); return True
+    except:        return False
 
 
 def dumbguy_minimize(f, xmin, xmax, xstep):
