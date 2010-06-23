@@ -38,7 +38,8 @@ def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
     """
 
     This selects a bunch of files, and plots them using plot.databoxes(**kwargs).
-    Returns the databoxes as a list.
+    Returns the databoxes as a list, and if the plot of a single value per
+    databox, the first entry is the summary databox.
 
     xscript, yscript, eyscript      the scripts supplied to the data
     **kwargs                        sent to plot.databoxes
@@ -61,11 +62,11 @@ def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
         databoxes.append(_data.load(paths[m]))
 
     # now plot everything
-    xy_databoxes(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
+    value = xy_databoxes(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
 
     # return the data
+    if value: databoxes.insert(0,value)
     return databoxes
-
 
 
 def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
@@ -112,6 +113,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
 
     """
 
+    if databoxes == None: return
     if not type(databoxes) in [list]: databoxes = [databoxes]
 
     # get the figure
@@ -136,19 +138,56 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
         if yshift: legend_max=40
         else:      legend_max=30
 
+    # test and see what kind of script it is.
+    if _fun.is_a_number(databoxes[0].execute_script(xscript)):  singlemode=True
+    else:                                                       singlemode=False
+
+    # only used in single mode
+    xdata = []
+    ydata = []
+    eydata= []
+    sd    = _data.databox()
+
     # for each databox, open the file, get the data, and plot it
     for m in range(0, len(databoxes)):
 
         # get the databox
         data = databoxes[m]
 
-        data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
+        if singlemode:
+            xdata.append(data(xscript))
+            ydata.append(data(yscript))
+            if eyscript: eydata.append(data(eyscript))
+        else:
+            data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
-        # now fix the legend up nice like
-        if m > legend_max-2 and m != len(paths)-1:
-            a.get_lines()[-1].set_label('_nolegend_')
-        elif m == legend_max-2:
-            a.get_lines()[-1].set_label('...')
+            # now fix the legend up nice like
+            if m > legend_max-2 and m != len(paths)-1:
+                a.get_lines()[-1].set_label('_nolegend_')
+            elif m == legend_max-2:
+                a.get_lines()[-1].set_label('...')
+
+    if singlemode:
+        sd.insert_header('xscript',xscript)
+        sd.insert_header('yscript',yscript)
+        sd['x']  = xdata
+        sd['y']  = ydata
+        if eyscript:
+            sd.insert_header('eyscript',eyscript)
+            sd['ey'] = eydata
+            e = 'ey'
+        else: e = None
+
+        # massage the kwargs
+        if not kwargs.has_key('xlabel'):  kwargs['xlabel']  = xscript
+        if not kwargs.has_key('ylabel'):  kwargs['ylabel']  = yscript
+        if not kwargs.has_key('lscript'):
+            # if the user supplied script uses '' to reference elements
+            if yscript.find("'") > 0:     kwargs['lscript'] = '"'+yscript+'"'
+            else:                         kwargs['lscript'] = "'"+yscript+"'"
+
+        sd.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript='x', yscript='y', eyscript=e, autoformat=False, **kwargs)
+
 
     # set the scale
     if not xscale=='linear': _pylab.xscale(xscale)
@@ -174,43 +213,12 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
     _pt.get_figure_window()
     _pt.get_pyshell()
 
-    return
+    if singlemode:  return sd
+    else:           return None
 
 
 
 
-def _massive(data, offset=0.0, print_plots=False, arguments="-color", pause=True, threaded=False, f=xy_files):
-    """
-
-    This selects a directory full of directories, and makes a series of plots, one per subdirectory.
-
-    data                (class) data to extract from the files
-    offset=0.0          artificial offset
-    clear=1             clear existing plot first
-    line=''             line specifier for pylab
-    marker=''           symbol specifier for pylab
-    yaxis='left'        if 'right', this will make an overlay axis on the right (also doesn't clear)
-    paths='ask'         list of full paths to data files (or we'll ask for a list)
-    style=None          matplotlib plotting style, such as '-o'
-
-    """
-
-
-    d = _dialogs.Directory();
-    if d == "": return
-    contents = _os.listdir(d) # doesn't include root path
-    contents.sort()
-
-    for file in contents:
-        if _os.path.isdir(d+"\\"+file):
-            paths = _glob.glob(d+"\\"+file+"\\*.DAT")
-            f(data, offset, paths=paths)
-            if pause:
-                if raw_input("<enter>") == "q": return
-
-            if print_plots: printer(arguments, threaded)
-
-    return
 
 
 def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', **kwargs):

@@ -759,7 +759,7 @@ class standard:
         self.columns[new_name] = self.columns.pop(old_name)
 
 
-    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', labelscript=None, **kwargs):
+    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', lscript=None, **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -782,7 +782,7 @@ class standard:
                                     "style" means definitely use markers from spinmob style
                                     otherwise just specify a marker
 
-        labelscript=None            None means use self.legend_string (usually file name), otherwise,
+        lscript=None            None means use self.legend_string (usually file name), otherwise,
                                     this runs the script and takes the str() of the result
 
         kwargs
@@ -845,6 +845,12 @@ class standard:
             self.title  = self.assemble_title()
 
 
+        # trump the x and y labels
+        if plot_kwargs.has_key('xlabel'): self.xlabel = plot_kwargs.pop('xlabel')
+        if plot_kwargs.has_key('ylabel'): self.ylabel = plot_kwargs.pop('ylabel')
+
+
+
         # coarsen the data if we're supposed to
         if coarsen: [xdata, ydata, eydata]=_fun.coarsen_data(xdata, ydata, eydata, coarsen)
 
@@ -853,8 +859,8 @@ class standard:
         if clear: axes.clear()
 
         # modify the legend string
-        if labelscript == None: label = self.legend_string
-        else:                   label = str(self.execute_script(labelscript))
+        if lscript == None: label = self.legend_string
+        else:                   label = str(self.execute_script(lscript))
         if yshift: label = label + " ("+str(yshift)+")"
 
 
@@ -1210,7 +1216,11 @@ class standard:
         for k in self.hkeys:
             if k.find(hkey) >= 0:
                 return self.headers[k]
-        print "Couldn't find",hkey,"in headers."
+        print
+        print "ERROR: Couldn't find '"+str(hkey) + "' in header."
+        print "Possible values:"
+        print self.hkeys
+        print
         return None
 
 
