@@ -23,15 +23,6 @@ from numpy import *
 #
 # General plotting routines
 #
-def _image():
-    """
-    This asks for a file and plots a color image of the data grid.
-    """
-    data.load_file()
-    data.get_XYZ(None,None)
-    data.plot_image(map='_last')
-    _pt.image_sliders()
-    return data
 
 
 def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
