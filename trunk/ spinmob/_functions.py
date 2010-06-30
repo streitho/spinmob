@@ -479,17 +479,28 @@ def insert_ordered(value, array):
     array.insert(index, value)
     return index
 
-def integrate_data(xdata,ydata,xmin=None,xmax=None):
+def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     """
-    Numerically sums up the ydata using the trapezoid approximation.
+    Numerically integrates up the ydata using the trapezoid approximation.
     estimate the bin width (scaled by the specified amount).
-    Returns integrated ydata
+    Returns integrated ydata.
+
+    autozero is what fraction of the data to use as an estimate of the background
+    (then subtracted before integrating).
     """
+
+    xdata = _n.array(xdata)
+    ydata = _n.array(ydata)
 
     xint = []
     yint = []
     if xmin==None: xmin = min(xdata)
     if xmax==None: xmax = max(xdata)
+
+    # get the autozero
+    if autozero > 0:
+        zero = _n.average(ydata[0:int(len(ydata)*autozero)])
+        ydata = ydata-zero
 
     for n in range(1,len(xdata)):
         if xdata[n] >= xmin and xdata[n] <= xmax:
