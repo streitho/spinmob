@@ -174,7 +174,7 @@ def differentiate_shown_data(neighbors=1, fyname=1, **kwargs):
 
     manipulate_shown_data(D, fxname=None, fyname=fyname, **kwargs)
 
-def integrate_shown_data(scale=1, fyname=1, **kwargs):
+def integrate_shown_data(scale=1, fyname=1, autozero=0, **kwargs):
     """
     Numerically integrates the data visible on the current/specified axes using
     xscale*fun.integrate_data(x,y). Modifies the visible data using
@@ -182,7 +182,7 @@ def integrate_shown_data(scale=1, fyname=1, **kwargs):
     """
 
     def I(x,y):
-        xout, iout = _fun.integrate_data(x,y)
+        xout, iout = _fun.integrate_data(x,y, autozero=autozero)
         print "Total =", scale*iout[-1]
         return xout, scale*iout
 
