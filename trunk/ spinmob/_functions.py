@@ -483,7 +483,7 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     """
     Numerically integrates up the ydata using the trapezoid approximation.
     estimate the bin width (scaled by the specified amount).
-    Returns integrated ydata.
+    Returns (xdata, integrated ydata).
 
     autozero is what fraction of the data to use as an estimate of the background
     (then subtracted before integrating).
@@ -492,24 +492,28 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     xdata = _n.array(xdata)
     ydata = _n.array(ydata)
 
-    xint = []
-    yint = []
     if xmin==None: xmin = min(xdata)
     if xmax==None: xmax = max(xdata)
 
+    # find the index range
+    imin = xdata.searchsorted(xmin)
+    imax = xdata.searchsorted(xmax)
+
+    xint = [xdata[imin]]
+    yint = [0]
+
     # get the autozero
     if autozero > 0:
-        zero = _n.average(ydata[0:int(len(ydata)*autozero)])
+        zero = _n.average(ydata[imin:imin+int((imax-imin)*autozero)])
         ydata = ydata-zero
 
-    for n in range(1,len(xdata)):
-        if xdata[n] >= xmin and xdata[n] <= xmax:
-            if len(yint):
-                xint.append(xdata[n])
-                yint.append(yint[-1]+0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
-            else:
-                xint.append(xdata[n])
-                yint.append(0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
+    for n in range(imin+1,imax):
+        if len(yint):
+            xint.append(xdata[n])
+            yint.append(yint[-1]+0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
+        else:
+            xint.append(xdata[n])
+            yint.append(0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
 
     return _n.array(xint), _n.array(yint)
 
