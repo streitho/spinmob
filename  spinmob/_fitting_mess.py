@@ -56,11 +56,14 @@ def fit_files_model(model, command="", settings={}, **kwargs):
 
     for d in ds:
         print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
+        print str(d.path)
         model.fit_parameters = None
         result = model.fit(d, command, settings)
 
         # make sure we didn't quit.
-        if result['command'] == 'q': return
+        if result['command'] == 'q':
+            settings = {}
+            return
 
         # prepare for the next file.
         command=''
