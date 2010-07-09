@@ -25,6 +25,8 @@ class model_base:
     pnames          = []
     function_string = None
     D               = None
+    output_columns  = []
+    output_path     = None
 
     # this function just creates a p0 array based on the size of the pnames array
     def __init__(self):
@@ -60,15 +62,6 @@ class model_base:
     #  These functions are generally not overwritten
     #
     #
-    def chi_squared(self, p, xdata, ydata, eydata=None):
-        """
-        This returns a single number that is the chi squared for a given set of parameters p
-
-        This is currently not in use for the optimization.  That uses residuals.
-        """
-
-        if eydata==None: eydata=1
-        return sum( (ydata - self.evaluate(p,xdata))**2 / eydata**2)
 
     def optimize(self, xdata, ydata, eydata=None, p0="internal"):
         """
@@ -97,6 +90,16 @@ class model_base:
         """
 
         return self.chi_squared(p, xdata, ydata, eydata)/(len(xdata)-len(p))
+
+    def chi_squared(self, p, xdata, ydata, eydata=None):
+        """
+        This returns a single number that is the chi squared for a given set of parameters p
+
+        This is currently not in use for the optimization.  That uses residuals.
+        """
+
+        return sum( self.residuals(p,xdata,ydata,eydata)**2 )
+
 
     # this returns the jacobian given the xdata.  Derivatives across rows, data down columns.
     # (so jacobian[len(xdata)-1] is len(p) wide)
@@ -183,7 +186,7 @@ class model_base:
                             "file_tag"          : 'fit_',
                             "figure"            : 1,
                             "autofit"           : False,
-                            "autopath"          : True}
+                            "fullsave"          : False}
         if d.eyscript == None: default_settings["auto_error"] = True
 
         # fill in the non-supplied settings with defaults
@@ -193,6 +196,7 @@ class model_base:
 
         # Initialize the fit_parameters (we haven't any yet!)
         fit_parameters = None
+        fit_errors     = None
 
         # set up the figure
         fig = _pylab.figure(settings["figure"])
@@ -274,6 +278,8 @@ class model_base:
                 print "COMMANDS"
                 print "  <enter>    Do more iterations."
                 print "  g          Guess and show the guess."
+                print "  z          Use current zoom to set xmin and xmax."
+                print "  o          Choose and output summary file."
                 print "  n          No, this is not a good fit. Move on."
                 print "  y          Yes, this is a good fit. Move on."
                 print "  u          Same as 'y' but use fit as the next guess."
@@ -294,9 +300,49 @@ class model_base:
                 settings['guess'] = None
                 settings['show_guess'] = True
 
+            elif command.lower() in ['z', 'zoom']:
+                settings['min'] = axes1.get_xlim()[0]
+                settings['max'] = axes1.get_xlim()[1]
+
+            elif command.lower() in ['o', 'output']:
+                # print all the header elements of the current databox
+                # and have the user choose as many as they want.
+                print "\n\nChoose which header elements to include as columns in the summary file:"
+                for n in range(len(d.hkeys)):
+                    print "  "+str(n)+": "+str(d.hkeys[n])
+
+                # get a list of numbers from the user
+                key_list = raw_input("pick headers by number: ").split(',')
+                try:
+                    # get the list of keys.
+                    self.output_columns = []
+                    for n in key_list: self.output_columns.append(d.hkeys[int(n.strip())])
+
+                    # now have the user select a file
+                    self.output_path = _dialogs.Save()
+                    if not self.output_path==None:
+                        # write the column names
+                        f = open(self.output_path, 'w')
+                        f.write('function_string\t'+self.function_string+
+                                '\nmodel\t'+str(self.__class__)+
+                                '\nxscript\t'+str(d.xscript)+
+                                '\nyscript\t'+str(d.yscript)+
+                                '\neyscript\t'+str(d.eyscript)+'\n\n')
+                        for k in self.output_columns: f.write(k+'\t')
+                        for n in self.pnames: f.write(n+'\t'+n+'_error\t')
+                        f.write('reduced_chi_squared\n')
+                        f.close()
+
+                    # all set. It will now start appending to this file.
+
+                except:
+                    print "\nOOPS. OOPS."
+
+
+
             elif command.lower() in ['y', 'yes','u','use']:
 
-                if fit_parameters==None:
+                if fit_parameters==None or fit_errors==None:
                     print "Can't say a fit is good with no fit!"
 
                 elif settings['save_file']:
@@ -316,15 +362,25 @@ class model_base:
                     d.insert_header("fit_coarsen",  settings['coarsen'])
 
                     # auto-generate the new file name
-                    if settings['autopath']:
+                    if settings['fullsave'] in [1, True, 'auto']:
                         directory, filename = os.path.split(d.path)
                         new_path = directory + os.sep + settings['file_tag'] + filename
+                        if new_path: d.save_file(new_path)
 
-                    else:
+                    elif settings['fullsave'] in [2, 'ask']:
                         new_path = _dialogs.SingleFile()
+                        if new_path: d.save_file(new_path)
 
-                    # save the file
-                    if new_path: d.save_file(new_path)
+                    # append to the summary file
+                    if self.output_path:
+                        f = open(self.output_path,'a')
+                        for k in self.output_columns:
+                            f.write(str(d.h(k))+'\t')
+                        for n in range(len(fit_parameters)):
+                            f.write(str(fit_parameters[n])+'\t'+str(fit_errors[n])+'\t')
+                        f.write(str(fit_reduced_chi_squared)+'\n')
+                        f.close()
+
 
                 # Return the information
                 return_value = {"command"                   :'y',
@@ -681,6 +737,69 @@ class linear(model_base):
 
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
+
+
+class noisy_lorentzian_with_offset(model_base):
+    function_string = "h/(1.0+((x-x0)/w)**2)+b"
+    pnames = ["h", "x0", "w", "b"]
+
+    # this function just creates a p0 array based on the size of the pnames array
+    def __init__(self):
+        """
+        This model assumes the error on the Lorentzian is proportional to the
+        height at x (including the offset). It's a rough guess, I know but it's
+        much better than constant error bars for FFT's fluctuating resonators.
+        """
+        model_base.__init__(self)
+
+
+    # define the function
+    def background(self, p, x):
+        return(p[3])
+    def evaluate(self, p, x):
+        return(p[0]/(1.0+((x-p[1])/p[2])**2)+p[3])
+
+    # come up with a routine for guessing p0
+    def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
+        # first get the appropriate size array
+        p=self.p0
+
+        # guess the slope and background
+        p[3] = ydata[xbi1]
+
+        # guess the height and center from the max
+        p[0] = max(ydata - p[3])
+        p[1] = xdata[list(ydata-p[3]).index(max(ydata-p[3]))] # center
+
+        # guess the halfwidth
+        p[2] = (max(xdata)-min(xdata))/12.0
+
+        # write these values to self.p0
+        self.write_to_p0(p)
+
+
+
+    def residuals(self, p, xdata, ydata, eydata=None):
+        """
+        This function returns a vector of the differences between the model and ydata, scaled by the error
+        (eydata could be a scalar or a vector of length equal to ydata)
+        """
+
+        # the eydata can be a number or None
+        if eydata == None: eydata = 1.0
+
+        # get the model y-values
+        ymodel = self.evaluate(p,xdata)
+
+        # scale the error by the ymodel values
+        yscale = ymodel/max(ymodel)
+        eydata = eydata*yscale
+
+        return (ydata - ymodel)/_numpy.absolute(eydata)
+
+
+
+
 
 
 class lorentz_linear_background(model_base):
