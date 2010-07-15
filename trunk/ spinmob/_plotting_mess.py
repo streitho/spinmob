@@ -35,6 +35,8 @@ def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
     xscript, yscript, eyscript      the scripts supplied to the data
     **kwargs                        sent to plot.databoxes
 
+    setting xscript or yscript=None plots as a function of file number.
+
     """
 
     # have the user select a file
@@ -67,6 +69,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
     be a list or a single databox.
 
     xscript, yscript, eyscript      the scripts evaluated for the x and y data
+                                    setting to None plots as a function databox index+1
 
     yshift=0.0                      artificial (progressive) yshift
 
@@ -130,8 +133,9 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
         else:      legend_max=30
 
     # test and see what kind of script it is.
-    if _fun.is_a_number(databoxes[0].execute_script(xscript)):  singlemode=True
-    else:                                                       singlemode=False
+    if xscript==None or yscript==None or _fun.is_a_number(databoxes[0].execute_script(yscript)):
+          singlemode=True
+    else: singlemode=False
 
     # only used in single mode
     xdata = []
@@ -146,8 +150,10 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
         data = databoxes[m]
 
         if singlemode:
-            xdata.append(data(xscript))
-            ydata.append(data(yscript))
+            if xscript: xdata.append(data(xscript))
+            else:       xdata.append(m+1)
+            if yscript: ydata.append(data(yscript))
+            else:       ydata.append(m+1)
             if eyscript: eydata.append(data(eyscript))
         else:
             data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
