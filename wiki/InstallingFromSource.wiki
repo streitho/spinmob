@@ -1,4 +1,4 @@
-#How to install the latest spinmob using SVN
+#summary How to install the latest spinmob using SVN
 
 The source code for spinmob is constantly changing and improving. If you find a bug in one of the official distributions, it may have already been fixed. This page outlines how to install the latest version of spinmob using an SVN client.
 
