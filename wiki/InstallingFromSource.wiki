@@ -1,4 +1,4 @@
-#How to install the latest spinmob using SVN
+#how to install the latest spinmob using SVN
 
 The source code for spinmob is constantly changing and improving. If you find a bug in one of the official distributions, it may have already been fixed. This page outlines how to install the latest version of spinmob using an SVN client.
 
@@ -11,3 +11,9 @@ The source code for spinmob is constantly changing and improving. If you find a 
  * Click OK.
 
 All done. Any time you want to update, simply right-click this folder and select "SVN Update".
+
+== Linux & Mac ==
+
+ * I don't know what is the best SVN client. I remember at one point I used a clunky one in linux, but it worked.
+ * Still, use http://spinmob.googlecode.com/svn/trunk as the SVN repository URL.
+ * Best of luck!
