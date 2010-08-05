@@ -7,7 +7,7 @@
 
 Download and install [http://www.python.org/ python], [http://www.scipy.org scipy and numpy], [http://matplotlib.sourceforge.net matplotlib], and [http://www.wxpython.org wxpython] (telling it to generate the tool scripts during install if possible). If you don't care about long downloads or hard drive space, you can also get all of these packages in the [http://www.enthought.com/ enthought python distribution].
 
-Then, if you have windows, you can use the spinmob windows installer from the downloads page. Otherwise, just make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either [InstallingFromSource swipe the latest version from google's fancy SVN server] (this is ideal) or get a less-frequently-updated version from the downloads section.
+Then, if you have windows, you can use the spinmob windows installer from the downloads page. Otherwise, just make a "spinmob" folder in your [SitePackages python site-packages] directory and stick the source files there. You can either [InstallingFromSource swipe the latest version from google's fancy SVN server] (this is ideal) or get a less-frequently-updated version from the [https://code.google.com/p/spinmob/downloads/list downloads] section.
 
 2. [PyShell Start pyshell].
 
