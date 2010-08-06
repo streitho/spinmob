@@ -226,7 +226,8 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, 
     label               string or array of strings for the line labels
     xlabel, ylabel      axes labels
     title               axes title
-    clear=1             clear the axes first
+    clear=1             1=clear the axes first
+                        2=clear the figure
     axes="gca"          which axes to use, or "gca" for the current axes
     draw=1              whether or not to draw the plot after plotting
     plot='plot'         plot style: can be 'plot', 'semilogx', 'semilogy', 'loglog'
@@ -241,14 +242,15 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, 
         ydata = [ydata]
         if label: label = [label]
 
-    # get the current axes
-    if axes=="gca": axes = _pylab.gca()
-    _pylab.figure(axes.figure.number)
+    # clear the figure?
+    if clear==2: _pylab.gcf().clear()
 
-    # get rid of the old plot
-    if clear:
-        axes.figure.clear()
-        axes = _pylab.gca()
+    # setup axes
+    if axes=="gca":     axes = _pylab.gca()
+    if yaxis=='right':  axes = _pylab.twinx()
+
+    # if we're clearing the axes
+    if clear: axes.clear()
 
     # if yaxis is 'right' set up the twinx()
     if yaxis=='right':
