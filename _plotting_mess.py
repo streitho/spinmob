@@ -436,6 +436,67 @@ def function_1D(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kw
 
 
 
+def function_parametric(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erange=False, **kwargs):
+    """
+
+    Plots the parametric function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the t data?
+
+    **kwargs are sent to plot.data()
+
+    """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: r = _fun.erange(tmin, tmax, steps)
+    else:      r = _numpy.linspace(tmin, tmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(fy) in [type([]), type(())]: fy = [fy]
+    if not type(fx) in [type([]), type(())]: fx = [fx]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in fx:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        x = []
+        for z in r: x.append(a(z))
+
+        xdatas.append(x)
+        labels.append(a.__name__)
+
+    for n in range(len(fy)):
+        fs = fy[n]
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        y = []
+        for z in r: y.append(a(z))
+
+        ydatas.append(y)
+        labels[n] = labels[n]+', '+a.__name__
+
+
+    # plot!
+    return xy(xdatas, ydatas, label=labels, **kwargs)
 
 
 
