@@ -330,7 +330,7 @@ def zgrid(Z, xmin=0, xmax=1, ymin=0, ymax=1, plot="image", **kwargs):
 
 
 
-def function_2D(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="x,y", plot="image", **kwargs):
+def function_2D(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="x,y", g=None, plot="image", **kwargs):
     """
     Plots a 2-d function over the specified range
 
@@ -339,11 +339,17 @@ def function_2D(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="
     xmin,xmax,ymin,ymax     range over which to generate/plot the data
     xsteps,ysteps           how many points to plot on the specified range
     p                       if using strings for functions, this is a string of parameters.
+    g                       Optional additional globals. Try g=globals()!
     plot                    What type of surface data to plot ("image", "mountains")
     """
 
+    # aggregate globals
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
     if type(f) == str:
-        f = eval('lambda ' + p + ': ' + f, globals())
+        f = eval('lambda ' + p + ': ' + f, g)
 
 
     # generate the grid x and y coordinates
@@ -374,7 +380,7 @@ def function_2D(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="
     return xyz(x,y,zgrid,plot,**kwargs)
 
 
-def function_1D(f, xmin=-1, xmax=1, steps=200, p='x', erange=False, **kwargs):
+def function_1D(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -382,11 +388,16 @@ def function_1D(f, xmin=-1, xmax=1, steps=200, p='x', erange=False, **kwargs):
     f                   function or list of functions to plot; can be string functions
     xmin, xmax, steps   range over which to plot, and how many points to plot
     p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
     erange              Use exponential spacing of the x data?
 
     **kwargs are sent to plot.data()
 
     """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
 
     # if the x-axis is a log scale, use erange
     if erange: r = _fun.erange(xmin, xmax, steps)
@@ -401,7 +412,7 @@ def function_1D(f, xmin=-1, xmax=1, steps=200, p='x', erange=False, **kwargs):
     labels = []
     for fs in f:
         if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, globals())
+            a = eval('lambda ' + p + ': ' + fs, g)
             a.__name__ = fs
         else:
             a = fs
