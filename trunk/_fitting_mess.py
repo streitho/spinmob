@@ -84,6 +84,10 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
 
     xlabel=axes.get_xlabel()
     ylabel=axes.get_ylabel()
+    if xlabel == '' :
+        xlabel='x'
+    if ylabel == '' :
+        ylabel='y'
 
     # get the xlimits
     xmin, xmax = axes.get_xlim()
