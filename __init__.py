@@ -11,7 +11,7 @@ try:
 except:
     # pylab is not around. Set the backend!
     import matplotlib as _mpl
-    _mpl.use('WXAgg') # set the backend (must do this first)
+    _mpl.use('wxAgg') # set the backend (must do this first)
 
 import pylab
 pylab.ion()          # turn on interactive mode
