@@ -218,7 +218,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
 
 
 
-def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="y(x)", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', **kwargs):
+def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', **kwargs):
     """
     Plots specified data.
 
