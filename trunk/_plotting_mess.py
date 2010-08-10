@@ -218,7 +218,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
 
 
 
-def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', **kwargs):
+def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', **kwargs):
     """
     Plots specified data.
 
@@ -230,8 +230,10 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
                         2=clear the figure
     axes="gca"          which axes to use, or "gca" for the current axes
     draw=1              whether or not to draw the plot after plotting
-    plot='plot'         plot style: can be 'plot', 'semilogx', 'semilogy', 'loglog'
+    xscale,yscale       'linear' by default. Set either to 'log' for log axes
     yaxis='left'        set to 'right' for a pylab twinx() plot
+    legend='best'       where to place the legend (see pylab.legend())
+                        Set this to None to ignore the legend.
 
     """
 
@@ -264,7 +266,7 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
 
     _pylab.xscale(xscale)
     _pylab.yscale(yscale)
-    axes.legend(loc='best')
+    if legend: axes.legend(loc=legend)
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_title(title)
