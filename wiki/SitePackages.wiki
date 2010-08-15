@@ -14,3 +14,12 @@ I had a heck of a time finding the site-packages directory when I switched to Li
 
 || Windows  || C:\python25\Lib\site-packages || 
 || Ubuntu 8.10 || /usr/lib/python2.5/site-packages ||
+
+The easiest way to find this is to start python and type
+
+{{{
+import sys
+sys.path
+}}}
+
+which will display a list of python search paths. One of them ends with "site-packages". Look there! 
