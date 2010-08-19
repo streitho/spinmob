@@ -956,7 +956,6 @@ class standard:
         and not plot_kwargs.has_key('mew'):             plot_kwargs['mew']          = 1.0
 
 
-        print xdata, ydata
         # actually do the plotting
         plotter(xdata, ydata + yshift, label=label, **plot_kwargs)
         axes.set_xlabel(self.xlabel)
