@@ -284,13 +284,22 @@ def distort_matrix_Y(Z, Y, f, new_ymin, new_ymax, subsample=3):
 def elements_are_numbers(array, start_index=0, end_index=-1):
     if len(array) == 0: return 0
 
-    if end_index < 0: end_index=len(array)-1
-    try:
-        for n in range(start_index, end_index+1): float(array[n])
-        return 1
+    output_value=1
 
-    except:
-        return 0
+    if end_index < 0: end_index=len(array)-1
+    for n in array:
+        try: float(n)
+        except:
+            try:
+                complex(n)
+                output_value=2
+            except:
+                try:
+                    complex(n.replace('(','').replace(')',''))
+                    output_value=2
+                except:
+                    return 0
+    return output_value
 
 def elements_are_strings(array, start_index=0, end_index=-1):
     if len(array) == 0: return 0

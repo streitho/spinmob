@@ -298,7 +298,9 @@ class standard:
             # now start filling the column, ignoring the empty or bad data lines
             for m in range(len(s)):
                 try:    self.columns[self.ckeys[m]].append(float(s[m]))
-                except: pass
+                except:
+                    try:    self.columns[self.ckeys[m]].append(complex(s[m].replace('(','').replace(')','')))
+                    except: pass
 
         if self.debug: print time.time()-t0, "seconds: yeah."
 
