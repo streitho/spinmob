@@ -214,8 +214,12 @@ class standard:
                     # Also assume it is a header line. Here should be at least two elements in a header element
                     if len(s) == 2:
                         # If there are exactly two elemenents, just store the header constant
-                        try:    self.headers[s[0]] = float(s[1]) # this one is a number
-                        except: self.headers[s[0]] = s[1]        # this one is a string
+                        try:
+                            self.headers[s[0]] = float(s[1]) # this one is a number
+                        except:
+                            try: self.headers[s[0]] = complex(s[1].replace('(','').replace(')','')) # it's a complex number
+                            except:
+                                self.headers[s[0]] = s[1]        # this one is a string
 
                         # store the key in a variable like the other cases
                         l = s[0]
