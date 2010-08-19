@@ -621,7 +621,9 @@ def invert_increasing_function(f, f0, xmin, xmax, tolerance, max_iterations=100)
 
 def is_a_number(s):
     try: float(s); return True
-    except:        return False
+    except:
+        try: complex(s); return True
+        except: return False
 
 
 def dumbguy_minimize(f, xmin, xmax, xstep):
