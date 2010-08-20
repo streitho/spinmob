@@ -197,7 +197,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, autozoom=True):
+def format_figure(figure='gcf', tall=False, autozoom=True, vertical_reshape=True):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -216,12 +216,8 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
     #figure_window.SetPosition([0,0])
 
     # assume two axes means twinx
-    if len(figure.get_axes()) > 1:
-        window_width=600
-        legend_position=1.25
-    else:
-        window_width=700
-        legend_position=1.01
+    window_width=700
+    legend_position=1.01
 
     # set the size of the window
     if(tall): figure_window.SetSize([window_width,700])
@@ -230,13 +226,19 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
     for n in range(len(figure.get_axes())):
         axes = figure.get_axes()[n]
 
+        (x,y,dx,dy) = axes.get_position().bounds
+
         # set the position/size of the axis in the window
-        axes.set_position([0.13,0.1,0.5,0.8])
+        if vertical_reshape:
+            y  = 0.1
+            dy = 0.8
+
+        axes.set_position([0.13,y,0.59,dy])
 
         # set the position of the legend
         _pylab.axes(axes) # set the current axes
         if len(axes.lines)>0:
-            _pylab.legend(loc=[legend_position, 1.0*n/len(figure.get_axes())], borderpad=0.02, prop=_FontProperties(size=7))
+            _pylab.legend(loc=[legend_position, 0], borderpad=0.02, prop=_FontProperties(size=7))
 
         # set the label spacing in the legend
         if axes.get_legend():
@@ -247,7 +249,7 @@ def format_figure(figure='gcf', tall=False, autozoom=True):
         # set up the title label
         axes.title.set_horizontalalignment('right')
         axes.title.set_size(8)
-        axes.title.set_position([1.5,1.02])
+        axes.title.set_position([1.4,1.02])
         axes.title.set_visible(1)
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
@@ -752,15 +754,6 @@ def reverse_draw_order(axes="current"):
     # zoom to surround the data properly
     auto_zoom()
 
-def set_axes_scales(xscale='linear', yscale='log', axes='gca'):
-    """
-    Set's the type of x and y types of the axes using axes.set_xscale() etc..
-    """
-    if axes == 'gca': axes = _pylab.gca()
-
-    axes.set_xscale(xscale)
-    axes.set_yscale(yscale)
-    _pylab.draw()
 
 def scale_x(scale, axes="current"):
     """
