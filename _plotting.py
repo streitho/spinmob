@@ -1,9 +1,10 @@
-import _pylab_tweaks as tweaks
-import _plotting_mess
+import _pylab_tweaks as tweaks; reload(tweaks)
+import _plotting_mess;          reload(_plotting_mess)
 
-databoxes           = _plotting_mess.xy_databoxes
-files               = _plotting_mess.xy_files
+databoxes           = _plotting_mess.databoxes_xy
+files               = _plotting_mess.files_xy
 data                = _plotting_mess.xy
+data_magphase       = _plotting_mess.magphase
 surface_data        = _plotting_mess.xyz
 function            = _plotting_mess.function_1D
 function_parametric = _plotting_mess.function_parametric
