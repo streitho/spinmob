@@ -15,6 +15,7 @@ import _dialogs
 
 # for the user to get at
 tweaks = _pt
+_n = _numpy
 
 # expose all the eval statements to all the functions in numpy
 from numpy import *
@@ -25,7 +26,7 @@ from numpy import *
 #
 
 
-def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
+def files_xy(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
     """
 
     This selects a bunch of files, and plots them using plot.databoxes(**kwargs).
@@ -55,14 +56,14 @@ def xy_files(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
         databoxes.append(_data.load(paths[m]))
 
     # now plot everything
-    value = xy_databoxes(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
+    value = databoxes_xy(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
 
     # return the data
     if value: databoxes.insert(0,value)
     return databoxes
 
 
-def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
+def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
     """
 
     This loops over the supplied databoxes and plots them. Databoxes can either
@@ -215,10 +216,56 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
 
 
 
+def magphase(xdata, ydata, xscale='log', yscale='log', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
+    """
+    Plots the magnitude and phase of complex ydata.
+
+    xdata               real-valued x-axis data
+    ydata               complex data
+    xscale='log'        'log' or 'linear'
+    yscale='log'        'log' or 'linear' (only applies to the magnitude graph)
+    mlabel='Magnitude'  y-axis label for magnitude plot
+    plabel='Phase'      y-axis label for phase plot
+    phase='degrees'     'degrees' or 'radians'
+    figure='gcf'        figure instance
+    clear=1             clear the figure?
+
+
+    kwargs are sent to plot.data()
+    """
+
+    if figure == 'gcf': f = _pylab.gcf()
+    if clear: f.clear()
+
+    axes1 = _pylab.subplot(211)
+    axes2 = _pylab.subplot(212,sharex=axes1)
+
+    m   = _n.abs(ydata)
+    p = _n.angle(ydata)
+    if phase=='degrees':
+        plabel = plabel + " (degrees)"
+        p = p*180.0/_n.pi
+    else:
+        plabel = plabel + " (radians)"
+
+    if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
+    else:                        xlabel=''
+
+    kwargs['xlabel'] = ''
+    xy(xdata, m, ylabel=mlabel, axes=axes1, draw=False, clear=0, **kwargs)
+
+    kwargs['xlabel'] = xlabel
+    kwargs['title']  = ''
+    xy(xdata, p, ylabel=plabel, axes=axes2, draw=False, clear=0, **kwargs)
+
+    axes1.set_xscale(xscale)
+    axes2.set_xscale(xscale)
+    axes1.set_yscale(yscale)
+    _pylab.draw()
 
 
 
-def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', **kwargs):
+def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
     """
     Plots specified data.
 
@@ -234,7 +281,7 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
     yaxis='left'        set to 'right' for a pylab twinx() plot
     legend='best'       where to place the legend (see pylab.legend())
                         Set this to None to ignore the legend.
-
+    grid=False          Should we draw a grid on the axes?
     """
 
 
@@ -270,6 +317,7 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_title(title)
+    if grid: _pylab.grid()
 
     # update the canvas
     if draw: _pylab.draw()
