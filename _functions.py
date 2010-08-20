@@ -312,9 +312,9 @@ def elements_are_strings(array, start_index=0, end_index=-1):
 
 def frange(start, end, inc=1.0):
     """
-    A range function, that does accept float increments...
+    A range function, that accepts float increments and reversed direction.
 
-    This is legacy; I'd use numpy.linspace or something like that.
+    See also numpy.linspace()
     """
 
     start = 1.0*start
@@ -328,19 +328,17 @@ def frange(start, end, inc=1.0):
     if 1.0*(end-start)/inc < 0.0:
         inc = -inc
 
-    # get the number of steps
-    steps = int(1.0*(end-start)/inc)+1
+    # get the integer steps
+    ns = _n.array(range(0, int(1.0*(end-start)/inc)+1))
 
-    L = []
-    for n in range(0,steps):
-        L.append(start+inc*n)
-
-    return _n.array(L)
+    return start + ns*inc
 
 
 def erange(start, end, steps):
     """
     Returns a numpy array over the specified range taking geometric steps.
+
+    See also numpy.logspace()
     """
     if start == 0:
         print "Nothing you multiply zero by gives you anything but zero. Try picking something small."
@@ -350,16 +348,16 @@ def erange(start, end, steps):
         return None
 
     # figure out our multiplication scale
-    x = 1.0*(end/start)**(1.0/(steps-1))
+    x = (1.0*end/start)**(1.0/(steps-1))
 
     # now generate the array
-    a = []
-    for n in range(0,steps): a.append(start*x**n)
+    ns = _n.array(range(0,steps))
+    a =  start*_n.power(x,ns)
 
     # tidy up the last element (there's often roundoff error)
     a[-1] = end
 
-    return _n.array(a)
+    return a
 
 
 def psd(t, y, pow2=False, window=None):
