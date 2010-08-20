@@ -317,7 +317,7 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_title(title)
-    if grid: _pylab.grid()
+    if grid: _pylab.grid(True)
 
     # update the canvas
     if draw: _pylab.draw()
