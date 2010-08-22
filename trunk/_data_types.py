@@ -455,7 +455,7 @@ class standard:
 
 
 
-    def execute_script(self, script):
+    def execute_script(self, script, g={}):
         """
         Runs a script, returning the result.
 
@@ -472,7 +472,8 @@ class standard:
 
         Finally, if you would like access to additional globals, set
         self.extra_globals to the appropriate globals dictionary or add globals
-        using insert_global()
+        using insert_global(). Setting g=globals() will automatically insert
+        your globals into this databox instance.
 
         There are a few shorthand scripts available as well. You can simply type
         a column name such as "my_column" or a column number like 2. However, I
@@ -487,6 +488,9 @@ class standard:
 
         """
         if self.debug: print "Generating column '"+str(name)+"' = "+str(script)+"..."
+
+        self.extra_globals.update(g)
+        g = {}
 
         # get the expression and variables
         [expression, v] = self._parse_script(script)
@@ -656,16 +660,21 @@ class standard:
 
 
 
+
         # the scripts would like to use calls like "h('this')/3.0*c('that')",
         # so to make eval() work we should add these functions to a local list
 
-        globbies = {'h':self.h, 'c':self.c, 'self':self}
+        # start with the globals list
+        globbies = globals()
 
-        # add in the module globals
-        globbies.update(globals())
-
-        # add in the supplied globals
+        # update the globals with supplied extras
         globbies.update(self.extra_globals)
+
+        # override the important ones!
+        globbies.update({'h':self.h, 'c':self.c, 'self':self})
+
+
+
 
         # first split up by "where"
         split_script = script.split(" where ")
