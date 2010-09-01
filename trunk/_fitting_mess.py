@@ -34,6 +34,8 @@ def fit_files(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **
 
     This function f will be able to see all the mathematical funcions of numpy.
     """
+    print f
+    print p
 
     # generate the model
     model = _s.models.curve(f, p, bg, globals())
