@@ -12,6 +12,21 @@ import _dialogs                       ;reload(_dialogs)
 from numpy import *
 fun = _fun
 
+t0 = 0
+def TimerStart():
+    """
+    Starts a timer.
+    """
+    global t0
+    t0 = time.time()
+
+def Time():
+    """
+    Returns time since last TimerStart()
+    """
+    return time.time() - t0
+
+
 #
 # This is the base class, which currently rocks.
 #
@@ -168,6 +183,7 @@ class standard:
 
         # break up the path into parts and take the last bit (and take a stab at the legend string)
         self.legend_string = path.split(_os.path.sep)[-1]
+        if self.legend_string[0] == '_': self.legend_string = '|' + self.legend_string
 
 
 
@@ -290,26 +306,33 @@ class standard:
 
 
         # initialize the columns arrays
+        # I did benchmarks and there's not much improvement by using numpy-arrays here.
         for label in self.ckeys: self.columns[label] = []
 
         # start grabbing the data
         if self.debug: print time.time()-t0, "seconds: starting to read data"
 
+        TimerStart()
         for n in range(first_data_line, len(self.lines)):
             # split the line up
             s = self.lines[n].strip().split(self.delimiter)
 
             # now start filling the column, ignoring the empty or bad data lines
             for m in range(len(s)):
-                try:    self.columns[self.ckeys[m]].append(float(s[m]))
+                try:        self.columns[self.ckeys[m]].append(float(s[m]))
                 except:
-                    try:    self.columns[self.ckeys[m]].append(complex(s[m].replace('(','').replace(')','')))
+                    try:    self.columns[self.ckeys[m]].append(complex(s[m][1:len(s[m])-1]))
                     except: pass
+
+
+        print "split", Time()
 
         if self.debug: print time.time()-t0, "seconds: yeah."
 
         # now loop over the columns and make them all hard-core numpy columns!
+        TimerStart()
         for k in self.ckeys: self.columns[k] = array(self.columns[k])
+        print Time()
 
         if self.debug: print time.time()-t0, "seconds: totally."
 
