@@ -220,9 +220,9 @@ class model_base:
             title1 = d.path
 
             # second line of the title is the model
-            title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:]
+            title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
 
-            title3 = str(self.function_string)+": "
+            title3 = ""
             if not settings["skip"] and not fit_parameters==None:
                 t = []
                 for i in range(0,len(self.pnames)):
