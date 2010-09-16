@@ -120,12 +120,45 @@ class model_base:
         """
 
         try:
+            # if we enter something like "min=x", get a click from the user
+            if value in ['x','y']:
+                # get the click
+                print "Please click somewhere to get the "+value+" value."
+                _tweaks.raise_figure_window()
+                click = _pylab.ginput()
+
+                # use the click value.
+                if    len(click)>0 and value=='x': value = click[0][0]
+                elif  len(click)>0 and value=='y': value = click[0][1]
+                else:
+                    print "\nCLICK ABORTED.\n"
+                    return
+
+            elif value in ['dx', 'dy', 'slope']:
+                # get two clicks
+                print "Please click twice to use the "+value+" value."
+                _tweaks.raise_figure_window()
+                clicks = _pylab.ginput(2)
+
+                # make sure we got two clicks
+                if len(clicks) == 2:
+                    dx = clicks[1][0]-clicks[0][0]
+                    dy = clicks[1][1]-clicks[0][1]
+                    if value=='dx': value = dx
+                    if value=='dy': value = dy
+                    if value=='slope': value = dy/dx
+
+                else:
+                    print "\nCLICKS ABORTED.\n"
+                    return
+
+
             i = self.pnames.index(name)
             self.p0[i] = float(value)
             return True
 
         except:
-            print name, "is not a valid variable"
+            print "ERROR:", name, "is not a valid variable or", value, "is not a valid value."
             return False
 
     def write_to_p0(self, p):
@@ -206,60 +239,210 @@ class model_base:
         axes2.xaxis.set_ticklabels([])
 
 
-        # start by plotting the data, no error bars
-        d.get_data()
-        axes1.plot(d.xdata, d.ydata, linestyle='', marker='D', mfc='blue', mec='w', label='data')
-
         # Now keep trying to fit until the user says its okay or gives up.
+        hold_plot=False
         while True:
 
-            # Start by formatting the previous plot
-            axes2.xaxis.set_ticklabels([])
-
-            # come up with a title
-            title1 = d.path
-
-            # second line of the title is the model
-            title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
-
-            title3 = ""
-            if not settings["skip"] and not fit_parameters==None:
-                t = []
-                for i in range(0,len(self.pnames)):
-                    t.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
-                title3 = title3+_fun.join(t,", ")
+            # Plot everything.
+            if hold_plot:
+                hold_plot=False
             else:
-                title3 = title3+"(no fit performed)"
+                if settings["skip"]: print "Plotting but not optimizing..."
+                else:                print "Beginning fit routine..."
 
-            axes2.set_title(title1+"\n"+title2+"\nFit: "+title3)
-            axes1.set_xlabel(d.xscript)
-            axes1.set_ylabel(d.yscript)
+                # Get the data.
+                d.get_data()
 
-            # set the position of the legend
-            axes1.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
+                # if we're doing auto error, start with an array of 1's,
+                # and plot the data with no error
+                if d.eydata==None: d.eydata = d.xdata*0.0 + (max(d.ydata)-min(d.ydata))/20.0
 
-            # set the label spacing in the legend
-            axes1.get_legend().labelsep = 0.01
+                # now sort the data in case it's jaggy!
+                matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
+                sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
+                d.xdata  = sorted_matrix[0]
+                d.ydata  = sorted_matrix[1]
+                d.eydata = sorted_matrix[2]
 
-            # set up the title label
-            axes2.title.set_horizontalalignment('right')
-            axes2.title.set_size(8)
-            axes2.title.set_position([1.0,1.010])
+                # now trim all the data based on xmin and xmax
+                xmin = settings["min"]
+                xmax = settings["max"]
+                if xmin==None: xmin = min(d.xdata)-1
+                if xmax==None: xmax = max(d.xdata)+1
+                [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.eydata, [xmin, xmax])
 
-            _tweaks.auto_zoom(axes1)
-            if not settings["skip"]: _tweaks.auto_zoom(axes2)
-            _pylab.draw()
+                # smooth and coarsen
+                [x,y,ye] = _fun.smooth_data( x,y,ye,settings["smooth"])
+                [x,y,ye] = _fun.coarsen_data(x,y,ye,settings["coarsen"])
 
-            _tweaks.raise_figure_window()
-            _wx.Yield()
-            _tweaks.raise_pyshell()
+                # now do the first optimization. Start by guessing parameters from
+                # the data's shape. This writes self.p0
+                if settings["guess"]==None:
+                    self.guess(x, y, settings["xb1"], settings["xb2"])
+                else:
+                    self.write_to_p0(settings['guess'])
+                print "  GUESS:", self.p0
+
+                # now do the first optimization
+                if not settings["skip"]:
+
+                    fit_output = self.optimize(x, y, ye, self.p0)
+                    # optimize puts out a float if there's only one parameter. Annoying.
+                    if getattr(fit_output[0], '__iter__', False) == False:
+                            fit_parameters = _numpy.array([fit_output[0]])
+                    else:   fit_parameters = fit_output[0]
+
+                    # If we're doing auto error, now we should scale the error so that
+                    # the reduced xi^2 is 1
+                    sigma_y = 1.0
+                    if settings["auto_error"]:
+
+                        # guess the correction to the y-error we're fitting (sets the reduced chi^2 to 1)
+                        sigma_y = _numpy.sqrt(self.residuals_variance(fit_parameters,x,y,ye))
+                        print "    initial reduced chi^2 =", sigma_y**2
+                        print "    scaling error by", sigma_y, "and re-optimizing..."
+                        ye       = sigma_y*ye
+                        d.eydata = sigma_y*d.eydata
+
+                        # optimize with new improved errors, using the old fit to start
+                        fit_output = self.optimize(x,y,ye,p0=fit_parameters)
+                        # optimize puts out a float if there's only one parameter. Annoying.
+                        if getattr(fit_output[0], '__iter__', False) == False:
+                                fit_parameters = _numpy.array([fit_output[0]])
+                        else:   fit_parameters = fit_output[0]
+
+                    # Now that the fitting is done, show the output
+
+                    # grab all the information from fit_output
+                    fit_covariance = fit_output[1]
+                    fit_reduced_chi_squared = self.residuals_variance(fit_parameters,x,y,ye)
+                    if fit_covariance is not None:
+                        # get the error vector and correlation matrix from (scaled) covariance
+                        [fit_errors, fit_correlation] = _fun.decompose_covariance(fit_covariance)
+                    else:
+                        print "  WARNING: No covariance matrix popped out of model.optimize()"
+                        fit_errors      = fit_parameters
+                        fit_correlation = None
+
+                    print "  reduced chi^2 is now", fit_reduced_chi_squared
+
+                    # print the parameters
+                    for n in range(0,len(self.pnames)): print "  "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
+
+                # get the data to plot
+                if settings["plot_all"]:
+                    x_plot  = d.xdata
+                    y_plot  = d.ydata
+                    ye_plot = d.eydata*sigma_y
+
+                    # smooth and coarsen
+                    [x_plot, y_plot, ye_plot] = _fun.smooth_data( x_plot, y_plot, ye_plot, settings["smooth"])
+                    [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot, y_plot, ye_plot, settings["coarsen"])
+                else:
+                    # this data is already smoothed and coarsened before the fit.
+                    x_plot  = x
+                    y_plot  = y
+                    ye_plot = ye
+
+                # by default, don't subtract any backgrounds or anything.
+                thing_to_subtract = 0.0*x_plot
 
 
+                # now plot everything
 
+                # don't draw anything until the end.
+                _pylab.hold(True)
+                axes1.clear()
+                axes2.clear()
+
+                # get the fit data if we're supposed to so we can know the thing to subtract
+                if not fit_parameters==None:
+                    # get the fit and fit background for plotting (so we can subtract it!)
+                    y_fit            = self.evaluate(fit_parameters, x_plot)
+                    y_fit_background = self.background(fit_parameters, x_plot)
+                    if settings["subtract"]: thing_to_subtract = y_fit_background
+
+                # plot the guess
+                if settings["show_guess"]:
+                    y_guess = self.evaluate(self.p0, x_plot)
+                    axes1.plot(x_plot, y_guess-thing_to_subtract, color='gray', label='guess')
+                    if settings["show_background"]:
+                        y_guess_background = self.background(self.p0, x_plot)
+                        axes1.plot(x_plot, y_guess_background-thing_to_subtract, color='gray', linestyle='--', label='guess background')
+
+                # Plot the data
+                if settings["show_error"]: # and not fit_parameters==None:
+                    axes1.errorbar(x_plot, y_plot-thing_to_subtract, ye_plot, linestyle='', marker='D', mfc='blue', mec='w', ecolor='b', label='data')
+                else:
+                    axes1.plot(    x_plot, y_plot-thing_to_subtract,          linestyle='', marker='D', mfc='blue', mec='w', label='data')
+
+                # plot the fit
+                if not fit_parameters == None and not settings["skip"]:
+                    axes1.plot(x_plot, y_fit-thing_to_subtract, color='red', label='fit')
+                    if settings["show_background"]:
+                        axes1.plot(x_plot, y_fit_background-thing_to_subtract, color='red', linestyle='--', label='fit background')
+
+                    # plot the residuals in the upper graph
+                    axes2.plot    (x_plot, 0*x_plot, linestyle='-', color='k')
+                    axes2.errorbar(x_plot, (y_plot-y_fit)/ye_plot, ye_plot*0+1.0, linestyle='', marker='o', mfc='blue', mec='w', ecolor='b')
+
+                # come up with a title
+                title1 = d.path
+
+                # second line of the title is the model
+                title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
+
+                # third line is the fit parameters
+                title3 = ""
+                if not settings["skip"] and not fit_parameters==None:
+                    t = []
+                    for i in range(0,len(self.pnames)):
+                        t.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
+                    title3 = title3+_fun.join(t,", ")
+                else:
+                    title3 = title3+"(no fit performed)"
+
+                # Start by formatting the previous plot
+                axes2.xaxis.set_ticklabels([])
+                axes2.set_title(title1+"\n"+title2+"\nFit: "+title3)
+                axes1.set_xlabel(d.xscript)
+                axes1.set_ylabel(d.yscript)
+
+                # set the position of the legend
+                axes1.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
+
+                # set the label spacing in the legend
+                axes1.get_legend().labelsep = 0.01
+
+                # set up the title label
+                axes2.title.set_horizontalalignment('right')
+                axes2.title.set_size(8)
+                axes2.title.set_position([1.0,1.010])
+
+                _tweaks.auto_zoom(axes1)
+                _pylab.draw()
+
+                _tweaks.raise_figure_window()
+                _wx.Yield()
+                _tweaks.raise_pyshell()
 
             # the only way we optimize is if we hit enter.
             if settings["autofit"]: settings["skip"] = False
             else:                   settings["skip"] = True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             # If last command is None, this is the first time. Parse the initial
             # command but don't ask for one.
@@ -270,7 +453,7 @@ class model_base:
                     if fit_parameters==None:    command = ""
                     else:                       command = "y"
                 else:
-                    command = raw_input("Command (<enter> to fit, 'h' for help): ").strip()
+                    command = raw_input("-------> ").strip()
 
             # first check and make sure the command isn't one of the simple ones
             if command.lower() in ['h', 'help']:
@@ -289,8 +472,16 @@ class model_base:
                 print "SETTINGS"
                 for key in settings.keys(): print "  "+key+" =", settings[key]
                 print
+                print "SETTING PARAMETER GUESS VALUES"
+                print "  <parameter>=<value>"
+                print "              sets the parameter guess value."
+                print
+                print "  <parameter>=x|y|dx|dy|slope"
+                print "              sets the parameter guess value to the"
+                print "              clicked x, y, dx, dy, or slope value."
 
                 command=""
+                hold_plot=True
                 continue
 
             elif command.lower() in ['q', 'quit', 'exit']:
@@ -337,8 +528,6 @@ class model_base:
 
                 except:
                     print "\nOOPS. OOPS."
-
-
 
             elif command.lower() in ['y', 'yes','u','use']:
 
@@ -399,6 +588,7 @@ class model_base:
 
             elif command.lower() in ['p', 'print']:
                 _spinmob.printer()
+                hold_plot = True
 
             elif command.lower() in ['']:
                 settings["skip"] = False
@@ -423,147 +613,6 @@ class model_base:
             # make sure we don't keep doing the same command over and over!
             command = ""
             print
-
-            # now that that's out of the way, we're ready to fit.
-            if settings["skip"]: print "Plotting but not optimizing..."
-            else:                print "Beginning fit routine..."
-
-            # if we're doing auto error, start with an array of 1's
-            if d.eydata==None: d.eydata = d.xdata*0.0 + 1.0
-
-            # now sort the data in case it's jaggy!
-            matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
-            sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
-            d.xdata  = sorted_matrix[0]
-            d.ydata  = sorted_matrix[1]
-            d.eydata = sorted_matrix[2]
-
-            # now trim all the data based on xmin and xmax
-            xmin = settings["min"]
-            xmax = settings["max"]
-            if xmin==None: xmin = min(d.xdata)-1
-            if xmax==None: xmax = max(d.xdata)+1
-            [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.eydata, [xmin, xmax])
-
-
-            # smooth and coarsen
-            [x,y,ye] = _fun.smooth_data( x,y,ye,settings["smooth"])
-            [x,y,ye] = _fun.coarsen_data(x,y,ye,settings["coarsen"])
-
-            # now do the first optimization. Start by guessing parameters from
-            # the data's shape. This writes self.p0
-            if settings["guess"]==None:
-                self.guess(x, y, settings["xb1"], settings["xb2"])
-            else:
-                self.write_to_p0(settings['guess'])
-            print "  GUESS:", self.p0
-
-
-            # now do the first optimization
-            if not settings["skip"]:
-
-                fit_output = self.optimize(x, y, ye, self.p0)
-                # optimize puts out a float if there's only one parameter. Annoying.
-                if getattr(fit_output[0], '__iter__', False) == False:
-                        fit_parameters = _numpy.array([fit_output[0]])
-                else:   fit_parameters = fit_output[0]
-
-                # If we're doing auto error, now we should scale the error so that
-                # the reduced xi^2 is 1
-                sigma_y = 1.0
-                if settings["auto_error"]:
-
-                    # guess the correction to the y-error we're fitting (sets the reduced chi^2 to 1)
-                    sigma_y = _numpy.sqrt(self.residuals_variance(fit_parameters,x,y,ye))
-                    print "    initial reduced chi^2 =", sigma_y**2
-                    print "    scaling error by", sigma_y, "and re-optimizing..."
-                    ye       = sigma_y*ye
-                    d.eydata = sigma_y*d.eydata
-
-                    # optimize with new improved errors, using the old fit to start
-                    fit_output = self.optimize(x,y,ye,p0=fit_parameters)
-                    # optimize puts out a float if there's only one parameter. Annoying.
-                    if getattr(fit_output[0], '__iter__', False) == False:
-                            fit_parameters = _numpy.array([fit_output[0]])
-                    else:   fit_parameters = fit_output[0]
-
-                # Now that the fitting is done, show the output
-
-                # grab all the information from fit_output
-                fit_covariance = fit_output[1]
-                fit_reduced_chi_squared = self.residuals_variance(fit_parameters,x,y,ye)
-                if fit_covariance is not None:
-                    # get the error vector and correlation matrix from (scaled) covariance
-                    [fit_errors, fit_correlation] = _fun.decompose_covariance(fit_covariance)
-                else:
-                    print "  WARNING: No covariance matrix popped out of model.optimize()"
-                    fit_errors      = fit_parameters
-                    fit_correlation = None
-
-                print "  reduced chi^2 is now", fit_reduced_chi_squared
-
-                # print the parameters
-                for n in range(0,len(self.pnames)): print "  "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
-
-
-
-
-            # get the data to plot
-            if settings["plot_all"]:
-                x_plot  = d.xdata
-                y_plot  = d.ydata
-                ye_plot = d.eydata*sigma_y
-
-                # smooth and coarsen
-                [x_plot, y_plot, ye_plot] = _fun.smooth_data( x_plot, y_plot, ye_plot, settings["smooth"])
-                [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot, y_plot, ye_plot, settings["coarsen"])
-            else:
-                # this data is already smoothed and coarsened before the fit.
-                x_plot  = x
-                y_plot  = y
-                ye_plot = ye
-
-            # by default, don't subtract any backgrounds or anything.
-            thing_to_subtract = 0.0*x_plot
-
-
-            # now plot everything
-
-            # don't draw anything until the end.
-            _pylab.hold(True)
-            axes1.clear()
-            axes2.clear()
-
-            # get the fit data if we're supposed to so we can know the thing to subtract
-            if not fit_parameters==None:
-                # get the fit and fit background for plotting (so we can subtract it!)
-                y_fit            = self.evaluate(fit_parameters, x_plot)
-                y_fit_background = self.background(fit_parameters, x_plot)
-                if settings["subtract"]: thing_to_subtract = y_fit_background
-
-            # plot the guess
-            if settings["show_guess"]:
-                y_guess = self.evaluate(self.p0, x_plot)
-                axes1.plot(x_plot, y_guess-thing_to_subtract, color='gray', label='guess')
-                if settings["show_background"]:
-                    y_guess_background = self.background(self.p0, x_plot)
-                    axes1.plot(x_plot, y_guess_background-thing_to_subtract, color='gray', linestyle='--', label='guess background')
-
-            # Plot the data
-            if settings["show_error"] and not fit_parameters==None:
-                axes1.errorbar(x_plot, y_plot-thing_to_subtract, ye_plot, linestyle='', marker='D', mfc='blue', mec='w', ecolor='b', label='data')
-            else:
-                axes1.plot(    x_plot, y_plot-thing_to_subtract,          linestyle='', marker='D', mfc='blue', mec='w', label='data')
-
-            # plot the fit
-            if not fit_parameters == None and not settings["skip"]:
-                axes1.plot(x_plot, y_fit-thing_to_subtract, color='red', label='fit')
-                if settings["show_background"]:
-                    axes1.plot(x_plot, y_fit_background-thing_to_subtract, color='red', linestyle='--', label='fit background')
-
-                # plot the residuals in the upper graph
-                axes2.plot    (x_plot, 0*x_plot, linestyle='-', color='k')
-                axes2.errorbar(x_plot, (y_plot-y_fit)/ye_plot, ye_plot*0+1.0, linestyle='', marker='o', mfc='blue', mec='w', ecolor='b')
 
 
 
