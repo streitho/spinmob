@@ -29,12 +29,11 @@ def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
     if axes=="gca": axes = _pylab.gca()
 
     a = axes
-    f = a.figure
 
     # get all the lines
     lines = a.get_lines()
 
-    # get the current limits
+    # get the current limits, in case we're not zooming one of the axes.
     x1, x2 = a.get_xlim()
     y1, y2 = a.get_ylim()
 

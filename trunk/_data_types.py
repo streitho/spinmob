@@ -325,14 +325,11 @@ class standard:
                     except: pass
 
 
-        print "split", Time()
-
         if self.debug: print time.time()-t0, "seconds: yeah."
 
         # now loop over the columns and make them all hard-core numpy columns!
         TimerStart()
         for k in self.ckeys: self.columns[k] = array(self.columns[k])
-        print Time()
 
         if self.debug: print time.time()-t0, "seconds: totally."
 
