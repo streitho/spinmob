@@ -362,6 +362,8 @@ def erange(start, end, steps):
 
 def psd(t, y, pow2=False, window=None):
     """
+    Single-sided power spectral density, assuming real valued inputs.
+
     This goes through the numpy fourier transform process, assembling and returning
     (frequencies, psd) given time and signal data y. Use psdfreq() to get the frequencies.
 
