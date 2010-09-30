@@ -28,7 +28,7 @@ def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Sele
     Loads a list of data files into a list of standard data objects.
     Returns said list.
 
-    **kwargs are sent to standard()
+    **kwargs are sent to databox()
     """
     if paths=="ask": paths = _dialogs.MultipleFiles(filters, text, default_directory)
 
