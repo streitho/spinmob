@@ -196,6 +196,10 @@ class standard:
             # split the line by the delimiter
             s = self.lines[n].strip().split(self.delimiter)
 
+            # remove a trailing whitespace entry.
+            if s[-1].strip() == '': s.pop(-1)
+
+
             # first check and see if this is a data line (all elements are numbers)
             if first_data_line=="auto" and _fun.elements_are_numbers(s):
                 # we've reached the first data line
