@@ -95,7 +95,8 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
     xmin, xmax = axes.get_xlim()
 
     # get the output axes
-    fig = _pylab.figure(axes.figure.number+1)
+    fn0 = axes.figure.number
+    fig = _pylab.figure(fn0+1)
 
     # create the data object for fitting
     d = _s.data.standard(xlabel,ylabel,None)
@@ -125,7 +126,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
             result = model.fit(d, command, settings)
 
             # make sure we didn't quit.
-            if result['command'] == 'q': return
+            if result['command'] == 'q': break
 
             # prepare for the next file.
             command=''
@@ -133,7 +134,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
 
     # clean up
     settings = {}
-
+    _pylab.figure(fn0)
 
 
 
