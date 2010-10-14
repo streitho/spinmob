@@ -197,7 +197,7 @@ class standard:
             s = self.lines[n].strip().split(self.delimiter)
 
             # remove a trailing whitespace entry.
-            if s[-1].strip() == '': s.pop(-1)
+            if len(s) and s[-1].strip() == '': s.pop(-1)
 
 
             # first check and see if this is a data line (all elements are numbers)
