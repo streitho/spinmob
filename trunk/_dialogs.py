@@ -73,7 +73,7 @@ def Directory(text='select a directory, hairhead!', default_directory='default_d
 
     # if this type of pref doesn't exist, we need to make a new one
     if _prefs.has_key(default_directory): default = _prefs[default_directory]
-    else:                                default = ""
+    else:                                 default = ""
 
     # define the dialog object.  Doesn't opent he window
     dialog = _wx.DirDialog(None,
