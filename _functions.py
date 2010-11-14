@@ -494,9 +494,11 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     estimate the bin width (scaled by the specified amount).
     Returns (xdata, integrated ydata).
 
-    autozero is what fraction of the data to use as an estimate of the background
+    autozero is the number of data points to use as an estimate of the background
     (then subtracted before integrating).
     """
+
+    [xdata, ydata] = sort_matrix([xdata,ydata],0)
 
     xdata = _n.array(xdata)
     ydata = _n.array(ydata)
@@ -513,7 +515,7 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
 
     # get the autozero
     if autozero > 0:
-        zero = _n.average(ydata[imin:imin+int((imax-imin)*autozero)])
+        zero = _n.average(ydata[imin:imin+autozero])
         ydata = ydata-zero
 
     for n in range(imin+1,imax):
@@ -822,25 +824,30 @@ def smooth_data(xdata, ydata, yerror, amount=1):
 def sort_matrix(a,n=0):
     """
     This will rearrange the array a[n] from lowest to highest, and
-    rearrange the rest of a[i]'s in the same way.
+    rearrange the rest of a[i]'s in the same way. It is dumb and slow.
 
-    This modifies the array AND returns it.
+    Returns a list!
     """
 
-    # loop over the length of one column
-    for i in range(len(a[n])-1):
-        # if this one is higher than the next, switch
-        if a[n][i] > a[n][i+1]:
-            # loop over all columns
-            for j in range(len(a)):
-                temp = a[j][i]
-                a[j][i] = a[j][i+1]
-                a[j][i+1] = temp
+    # start by converting everything to a list
+    b = []
+    for c in a: b.append(list(c))
 
-            # now call the sorting function again
-            sort_matrix(a,n)
+    # now make an empty output list
+    bout = []
+    for i in range(len(b)): bout.append([])
 
-    return a
+    # continue popping low elements until we're out.
+    while len(b[n]) > 0:
+
+        # find the index of the minimum element
+        imin = b[n].index(min(b[n]))
+
+        # loop over the list, and move the min element over
+        for i in range(len(b)): bout[i].append(b[i].pop(imin))
+
+    return bout
+
 
 def submatrix(matrix,i1,i2,j1,j2):
     """
