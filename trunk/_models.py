@@ -258,6 +258,7 @@ class model_base:
                 if d.eydata==None: d.eydata = d.xdata*0.0 + (max(d.ydata)-min(d.ydata))/20.0
 
                 # now sort the data in case it's jaggy!
+                print len(d.xdata), len(d.ydata), len(d.eydata)
                 matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
                 sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
                 d.xdata  = sorted_matrix[0]
