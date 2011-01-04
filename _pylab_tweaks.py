@@ -750,8 +750,7 @@ def reverse_draw_order(axes="current"):
         if isinstance(lines[n], _mpl.lines.Line2D):
             axes.lines[n]=lines[n]
 
-    # zoom to surround the data properly
-    auto_zoom()
+    _pylab.draw()
 
 
 def scale_x(scale, axes="current"):
