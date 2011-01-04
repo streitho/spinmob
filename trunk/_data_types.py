@@ -88,10 +88,8 @@ class standard:
         else:
             self.columns[self.ckeys[n]] = array(x)
 
-
     def __len__(self):
         return len(self.ckeys)
-
 
 
     #
@@ -123,6 +121,9 @@ class standard:
         self.debug     = debug
         self.delimiter = delimiter
         self.file_extension = file_extension
+
+    # create a simple initializer command for the user.
+    initialize = __init__
 
 
     def assemble_title(self):
