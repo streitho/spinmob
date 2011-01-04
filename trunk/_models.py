@@ -282,7 +282,11 @@ class model_base:
                     self.guess(x, y, settings["xb1"], settings["xb2"])
                 else:
                     self.write_to_p0(settings['guess'])
-                print "  GUESS:", self.p0
+
+                print "  FUNCTION:", self.function_string
+                print "  GUESS:"
+                for n in range(len(self.pnames)):
+                    print "    "+self.pnames[n]+" = "+str(self.p0[n])
 
                 # now do the first optimization
                 if not settings["skip"]:
