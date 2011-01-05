@@ -258,7 +258,6 @@ class model_base:
                 if d.eydata==None: d.eydata = d.xdata*0.0 + (max(d.ydata)-min(d.ydata))/20.0
 
                 # now sort the data in case it's jaggy!
-                print len(d.xdata), len(d.ydata), len(d.eydata)
                 matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
                 sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
                 d.xdata  = sorted_matrix[0]
@@ -283,10 +282,11 @@ class model_base:
                 else:
                     self.write_to_p0(settings['guess'])
 
-                print "  FUNCTION:", self.function_string
+                print "\n  FUNCTION:", self.function_string
                 print "  GUESS:"
                 for n in range(len(self.pnames)):
                     print "    "+self.pnames[n]+" = "+str(self.p0[n])
+                print
 
                 # now do the first optimization
                 if not settings["skip"]:
@@ -304,8 +304,8 @@ class model_base:
 
                         # guess the correction to the y-error we're fitting (sets the reduced chi^2 to 1)
                         sigma_y = _numpy.sqrt(self.residuals_variance(fit_parameters,x,y,ye))
-                        print "    initial reduced chi^2 =", sigma_y**2
-                        print "    scaling error by", sigma_y, "and re-optimizing..."
+                        print "  initial reduced chi^2 =", sigma_y**2
+                        print "  scaling error by", sigma_y, "and re-optimizing..."
                         ye       = sigma_y*ye
                         d.eydata = sigma_y*d.eydata
 
@@ -332,7 +332,10 @@ class model_base:
                     print "  reduced chi^2 is now", fit_reduced_chi_squared
 
                     # print the parameters
-                    for n in range(0,len(self.pnames)): print "  "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
+                    print "\n  FUNCTION:", self.function_string
+                    print "  FIT:"
+                    for n in range(0,len(self.pnames)): print "    "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
+                    print
 
                 # get the data to plot
                 if settings["plot_all"]:
@@ -452,7 +455,6 @@ class model_base:
             # If last command is None, this is the first time. Parse the initial
             # command but don't ask for one.
             if command == "":
-                print
                 print "min=" + str(settings['min']) + ", max="+str(settings['max'])
                 if settings["autofit"]:
                     if fit_parameters==None:    command = ""
@@ -1184,7 +1186,6 @@ class quartic(model_base):
 
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
-
 
 
 

@@ -826,27 +826,10 @@ def sort_matrix(a,n=0):
     This will rearrange the array a[n] from lowest to highest, and
     rearrange the rest of a[i]'s in the same way. It is dumb and slow.
 
-    Returns a list!
+    Returns a numpy array.
     """
-
-    # start by converting everything to a list
-    b = []
-    for c in a: b.append(list(c))
-
-    # now make an empty output list
-    bout = []
-    for i in range(len(b)): bout.append([])
-
-    # continue popping low elements until we're out.
-    while len(b[n]) > 0:
-
-        # find the index of the minimum element
-        imin = b[n].index(min(b[n]))
-
-        # loop over the list, and move the min element over
-        for i in range(len(b)): bout[i].append(b[i].pop(imin))
-
-    return bout
+    a = _n.array(a)
+    return a[:,a[n,:].argsort()] # this is magic.
 
 
 def submatrix(matrix,i1,i2,j1,j2):
