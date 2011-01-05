@@ -234,8 +234,8 @@ class model_base:
         # set up the figure
         fig = _pylab.figure(settings["figure"])
         fig.clear()
-        axes1 = fig.add_axes([0.10, 0.08, 0.73, 0.70])
         axes2 = fig.add_axes([0.10, 0.79, 0.73, 0.13])
+        axes1 = fig.add_axes([0.10, 0.08, 0.73, 0.70],sharex=axes2)
         axes2.xaxis.set_ticklabels([])
 
 
@@ -344,7 +344,7 @@ class model_base:
                     ye_plot = d.eydata*sigma_y
 
                     # smooth and coarsen
-                    [x_plot, y_plot, ye_plot] = _fun.smooth_data( x_plot, y_plot, ye_plot, settings["smooth"])
+                    [x_plot, y_plot, ye_plot] = _fun.smooth_data (x_plot, y_plot, ye_plot, settings["smooth"])
                     [x_plot, y_plot, ye_plot] = _fun.coarsen_data(x_plot, y_plot, ye_plot, settings["coarsen"])
                 else:
                     # this data is already smoothed and coarsened before the fit.
@@ -1186,7 +1186,6 @@ class quartic(model_base):
 
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
-
 
 
 
