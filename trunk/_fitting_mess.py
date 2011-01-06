@@ -55,6 +55,7 @@ def fit_files_model(model, command="", settings={}, **kwargs):
 
     # Have the user select a bunch of files.
     ds = _s.data.load_multiple(**kwargs)
+    if not ds: return
 
     for d in ds:
         print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
@@ -135,7 +136,6 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
     # clean up
     settings = {}
     _pylab.figure(fn0)
-
 
 
 

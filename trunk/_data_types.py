@@ -799,7 +799,7 @@ class standard:
         self.columns[new_name] = self.columns.pop(old_name)
 
 
-    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', lscript=None, **kwargs):
+    def plot(self, xscript=0, yscript=1, eyscript=None, clear=True, autoformat=True, axes="gca", coarsen=0, yshift=0, linestyle='auto', marker='auto', lscript=None, title=None, **kwargs):
         """
 
         KEYWORDS (can set as arguments or kwargs):
@@ -822,8 +822,10 @@ class standard:
                                     "style" means definitely use markers from spinmob style
                                     otherwise just specify a marker
 
-        lscript=None            None means use self.legend_string (usually file name), otherwise,
+        lscript=None                None means use self.legend_string (usually file name), otherwise,
                                     this runs the script and takes the str() of the result
+
+        title=None                  None means automatically come up with a title.
 
         kwargs
 
@@ -882,8 +884,10 @@ class standard:
 
             self.xlabel = xscript
             self.ylabel = yscript
-            self.title  = self.assemble_title()
-
+            if title==None:
+                self.title  = self.assemble_title()
+            else:
+                self.title  = title
 
         # trump the x and y labels
         if plot_kwargs.has_key('xlabel'): self.xlabel = plot_kwargs.pop('xlabel')
@@ -1263,6 +1267,5 @@ class standard:
         print self.hkeys
         print
         return None
-
 
 

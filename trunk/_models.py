@@ -539,56 +539,57 @@ class model_base:
             elif command.lower() in ['y', 'yes','u','use']:
 
                 if fit_parameters==None or fit_errors==None:
-                    print "Can't say a fit is good with no fit!"
+                    print "\nERROR: Cannot say a fit is good with no fit!"
 
-                elif settings['save_file']:
-                    # If this is a good fit. Add relevant information to the header then save
-                    d.insert_header("fit_model", str(self.__class__).split()[0][0:])
-                    d.insert_header("fit_function", str(self.function_string))
-                    for n in range(len(self.pnames)):
-                        d.insert_header("fit_"+self.pnames[n], [fit_parameters[n], fit_errors[n]])
-                    d.insert_header("fit_reduced_chi_squared",fit_reduced_chi_squared)
+                else:
+                    if settings['save_file']:
+                        # If this is a good fit. Add relevant information to the header then save
+                        d.insert_header("fit_model", str(self.__class__).split()[0][0:])
+                        d.insert_header("fit_function", str(self.function_string))
+                        for n in range(len(self.pnames)):
+                            d.insert_header("fit_"+self.pnames[n], [fit_parameters[n], fit_errors[n]])
+                        d.insert_header("fit_reduced_chi_squared",fit_reduced_chi_squared)
 
-                    # build the correlations array (not a 2-d array)
-                    d.insert_header("fit_correlations",       fit_correlation)
+                        # build the correlations array (not a 2-d array)
+                        d.insert_header("fit_correlations",       fit_correlation)
 
-                    d.insert_header("fit_min",      settings['min'])
-                    d.insert_header("fit_max",      settings['max'])
-                    d.insert_header("fit_smooth",   settings['smooth'])
-                    d.insert_header("fit_coarsen",  settings['coarsen'])
+                        d.insert_header("fit_min",      settings['min'])
+                        d.insert_header("fit_max",      settings['max'])
+                        d.insert_header("fit_smooth",   settings['smooth'])
+                        d.insert_header("fit_coarsen",  settings['coarsen'])
 
-                    # auto-generate the new file name
-                    if settings['fullsave'] in [1, True, 'auto']:
-                        directory, filename = os.path.split(d.path)
-                        new_path = directory + os.sep + settings['file_tag'] + filename
-                        if new_path: d.save_file(new_path)
+                        # auto-generate the new file name
+                        if settings['fullsave'] in [1, True, 'auto']:
+                            directory, filename = os.path.split(d.path)
+                            new_path = directory + os.sep + settings['file_tag'] + filename
+                            if new_path: d.save_file(new_path)
 
-                    elif settings['fullsave'] in [2, 'ask']:
-                        new_path = _dialogs.SingleFile()
-                        if new_path: d.save_file(new_path)
+                        elif settings['fullsave'] in [2, 'ask']:
+                            new_path = _dialogs.SingleFile()
+                            if new_path: d.save_file(new_path)
 
-                    # append to the summary file
-                    if self.output_path:
-                        f = open(self.output_path,'a')
-                        for k in self.output_columns:
-                            f.write(str(d.h(k))+'\t')
-                        for n in range(len(fit_parameters)):
-                            f.write(str(fit_parameters[n])+'\t'+str(fit_errors[n])+'\t')
-                        f.write(str(fit_reduced_chi_squared)+'\n')
-                        f.close()
+                        # append to the summary file
+                        if self.output_path:
+                            f = open(self.output_path,'a')
+                            for k in self.output_columns:
+                                f.write(str(d.h(k))+'\t')
+                            for n in range(len(fit_parameters)):
+                                f.write(str(fit_parameters[n])+'\t'+str(fit_errors[n])+'\t')
+                            f.write(str(fit_reduced_chi_squared)+'\n')
+                            f.close()
 
 
-                # Return the information
-                return_value = {"command"                   :'y',
-                                "fit_parameters"            :fit_parameters,
-                                "fit_errors"                :fit_errors,
-                                "fit_reduced_chi_squared"   :fit_reduced_chi_squared,
-                                "fit_covariance"            :fit_covariance,
-                                "settings"                  :settings}
-                if command.lower() in ['u', 'use']:
-                    return_value['command'] = 'u'
-                    return_value['settings']['guess'] = fit_parameters
-                return return_value
+                    # Return the information
+                    return_value = {"command"                   :'y',
+                                    "fit_parameters"            :fit_parameters,
+                                    "fit_errors"                :fit_errors,
+                                    "fit_reduced_chi_squared"   :fit_reduced_chi_squared,
+                                    "fit_covariance"            :fit_covariance,
+                                    "settings"                  :settings}
+                    if command.lower() in ['u', 'use']:
+                        return_value['command'] = 'u'
+                        return_value['settings']['guess'] = fit_parameters
+                    return return_value
 
             elif command.lower() in ['n', 'no', 'next']:
                 return {'command':'n'}
@@ -1186,7 +1187,6 @@ class quartic(model_base):
 
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
-
 
 
 

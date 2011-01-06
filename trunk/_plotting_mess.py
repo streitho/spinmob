@@ -556,4 +556,3 @@ def function_parametric(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erang
 
 
 
-
