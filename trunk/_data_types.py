@@ -140,7 +140,7 @@ class standard:
     #
     # really useful functions
     #
-    def load_file(self, path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEPANTS.", default_directory=None):
+    def load_file(self, path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEPANTS.", default_directory=None, header_only=False):
         """
         This will load a file, storing the header info in self.headers, and the data in
         self.columns
@@ -307,7 +307,7 @@ class standard:
 
 
         # now we have a valid set of column ckeys one way or another, and we know first_data_line.
-
+        if header_only: return
 
 
         # initialize the columns arrays

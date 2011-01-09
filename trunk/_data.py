@@ -10,7 +10,7 @@ import _data_types                    ;reload(_data_types)
 standard = _data_types.standard
 databox  = standard
 
-def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEHEAD.", default_directory="default_directory", **kwargs):
+def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file, FACEHEAD.", default_directory="default_directory", quiet=False, header_only=False, **kwargs):
     """
     Loads a data file into the standard data class. Returns the data object.
 
@@ -18,9 +18,12 @@ def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file,
     about delimiters)
     """
     d = standard(**kwargs)
-    d.load_file(path, first_data_line, filters, text, default_directory)
-    print "loaded", d.path
-    _wx.Yield()
+    d.load_file(path, first_data_line, filters, text, default_directory, header_only=header_only)
+
+    if not quiet:
+        print "loaded", d.path
+        _wx.Yield()
+
     return d
 
 def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Select some files, FACEHEAD.", default_directory="default_directory", **kwargs):
