@@ -160,7 +160,6 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
             data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
 
             # now fix the legend up nice like
-            print m, legend_max-2
             if m > legend_max-2 and m != len(databoxes)-1:
                 a.get_lines()[-1].set_label('_nolegend_')
             elif m == legend_max-2:
