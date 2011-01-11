@@ -391,8 +391,8 @@ class model_base:
                         axes1.plot(x_plot, y_fit_background-thing_to_subtract, color='red', linestyle='--', label='fit background')
 
                     # plot the residuals in the upper graph
-                    axes2.plot    (x_plot, 0*x_plot, linestyle='-', color='k')
                     axes2.errorbar(x_plot, (y_plot-y_fit)/ye_plot, ye_plot*0+1.0, linestyle='', marker='o', mfc='blue', mec='w', ecolor='b')
+                    axes2.plot    (x_plot, 0*x_plot, linestyle='-', color='k')
 
                 # come up with a title
                 title1 = d.path
