@@ -1131,6 +1131,24 @@ def find_N_peaks(array, N=4, max_iterations=100, rec_max_iterations=3, recursion
 
     return None
 
+def _print_figures(figures, arguments=''):
+    """
+    figure printing loop designed to be launched in a separate thread.
+    """
+
+    for fig in figures:
+        # output the figure to postscript
+        postscript_path = _os.path.join(_prefs.temp_dir,"graph.ps")
+        fig.savefig(postscript_path)
+
+        if not arguments == '':
+            c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
+        else:
+            c = _prefs['print_command'] + ' "' + postscript_path + '"'
+
+        _os.system(c)
+
+
 def printer(figure='gcf', arguments='', threaded=True):
     """
     Quick function that saves the specified figure as a postscript and then
@@ -1146,40 +1164,27 @@ def printer(figure='gcf', arguments='', threaded=True):
         print "No print command setup. Set the user variable prefs['print_command']."
         return
 
-    if figure=='gcf': figure=[_pylab.gcf().number]
+    if   figure=='gcf': figure=[_pylab.gcf().number]
+    elif figure=='all': figure=_pylab.get_fignums()
     if not getattr(figure,'__iter__',False): figure = [figure]
 
     print "figures in queue:", figure
 
-    def print_figures(figures):
-        for n in figures:
-            # get the current figure
-            f = _pylab.figure(n)
-
-            # output the figure to postscript
-            postscript_path = _prefs.temp_dir + _prefs.path_delimiter + "graph.ps"
-            f.savefig(postscript_path)
-
-            if not arguments == '':
-                c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
-            else:
-                c = _prefs['print_command'] + ' "' + postscript_path + '"'
-
-            print c
-            _os.system(c)
+    figures=[]
+    for n in figure: figures.append(_pylab.figure(n))
 
     # now run the ps printing command
     if threaded:
-
         # launch the aforementioned function as a separate thread
-        _thread.start_new_thread(print_figures, (figure,))
+        print _print_figures, figures, '"'+arguments+'"'
+        _thread.start_new_thread(_print_figures, (figures,arguments,))
 
         # bring back the figure and command line
-        for n in figure:
-            _pylab_tweaks.get_figure_window(_pylab.figure(n))
+        for fig in figures:
+            _pylab_tweaks.get_figure_window(fig)
         _pylab_tweaks.get_pyshell()
 
-    else:   print_figures(figure)
+    else:   _print_figures(figures, arguments)
 
 
 def save_object(object, path="ask", text="Save this object where?"):
