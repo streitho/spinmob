@@ -1168,7 +1168,7 @@ def printer(figure='gcf', arguments='', threaded=True):
     elif figure=='all': figure=_pylab.get_fignums()
     if not getattr(figure,'__iter__',False): figure = [figure]
 
-    print "figures in queue:", figure
+    print "figure numbers in queue:", figure
 
     figures=[]
     for n in figure: figures.append(_pylab.figure(n))
