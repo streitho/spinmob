@@ -4,7 +4,8 @@ import _plotting_mess;          reload(_plotting_mess)
 databoxes           = _plotting_mess.databoxes_xy
 files               = _plotting_mess.files_xy
 data                = _plotting_mess.xy
-data_magphase       = _plotting_mess.magphase
+data_magphase       = _plotting_mess.mag_phase
+data_realimag       = _plotting_mess.real_imag
 surface_data        = _plotting_mess.xyz
 function            = _plotting_mess.function_1D
 function_parametric = _plotting_mess.function_parametric
