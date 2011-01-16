@@ -216,14 +216,14 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
 
 
 
-def magphase(xdata, ydata, xscale='log', yscale='log', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
+def mag_phase(xdata, ydata, xscale='linear', yscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
 
     xdata               real-valued x-axis data
     ydata               complex data
-    xscale='log'        'log' or 'linear'
-    yscale='log'        'log' or 'linear' (only applies to the magnitude graph)
+    xscale='linear'     'log' or 'linear'
+    yscale='linear'     'log' or 'linear' (only applies to the magnitude graph)
     mlabel='Magnitude'  y-axis label for magnitude plot
     plabel='Phase'      y-axis label for phase plot
     phase='degrees'     'degrees' or 'radians'
@@ -263,6 +263,45 @@ def magphase(xdata, ydata, xscale='log', yscale='log', mlabel='Magnitude', plabe
     axes1.set_yscale(yscale)
     _pylab.draw()
 
+def real_imag(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ilabel='Imaginary', figure='gcf', clear=1, **kwargs):
+    """
+    Plots the magnitude and phase of complex ydata.
+
+    xdata               real-valued x-axis data
+    ydata               complex data
+    xscale='log'        'log' or 'linear'
+    yscale='log'        'log' or 'linear' (only applies to the magnitude graph)
+    rlabel='Real'       y-axis label for magnitude plot
+    ilabel='Imaginary'  y-axis label for phase plot
+    figure='gcf'        figure instance
+    clear=1             clear the figure?
+
+    kwargs are sent to plot.data()
+    """
+
+    if figure == 'gcf': f = _pylab.gcf()
+    if clear: f.clear()
+
+    axes1 = _pylab.subplot(211)
+    axes2 = _pylab.subplot(212,sharex=axes1)
+
+    rdata = _n.real(ydata)
+    idata = _n.imag(ydata)
+
+    if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
+    else:                        xlabel=''
+
+    kwargs['xlabel'] = ''
+    xy(xdata, rdata, ylabel=rlabel, axes=axes1, draw=False, clear=0, **kwargs)
+
+    kwargs['xlabel'] = xlabel
+    kwargs['title']  = ''
+    xy(xdata, idata, ylabel=ilabel, axes=axes2, draw=False, clear=0, **kwargs)
+
+    axes1.set_xscale(xscale)
+    axes2.set_xscale(xscale)
+    axes1.set_yscale(yscale)
+    _pylab.draw()
 
 
 def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
