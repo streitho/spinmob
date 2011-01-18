@@ -234,10 +234,10 @@ class model_base:
         # set up the figure
         fig = _pylab.figure(settings["figure"])
         fig.clear()
-        axes2 = fig.add_axes([0.10, 0.79, 0.73, 0.13])
-        axes1 = fig.add_axes([0.10, 0.08, 0.73, 0.70],sharex=axes2)
-        axes2.xaxis.set_ticklabels([])
-
+        axes2 = _pylab.subplot(211)
+        axes1 = _pylab.subplot(212, sharex=axes2)
+        axes2.set_position([0.15, 0.78, 0.70, 0.13])
+        axes1.set_position([0.15, 0.08, 0.70, 0.64])
 
         # Now keep trying to fit until the user says its okay or gives up.
         hold_plot=False
@@ -411,7 +411,6 @@ class model_base:
                     title3 = title3+"(no fit performed)"
 
                 # Start by formatting the previous plot
-                axes2.xaxis.set_ticklabels([])
                 axes2.set_title(title1+"\n"+title2+"\nFit: "+title3)
                 axes1.set_xlabel(d.xscript)
                 axes1.set_ylabel(d.yscript)
@@ -466,18 +465,23 @@ class model_base:
             if command.lower() in ['h', 'help']:
                 print
                 print "COMMANDS"
-                print "  <enter>    Do more iterations."
+                print "  <enter>    Run the fit or do more iterations."
                 print "  g          Guess and show the guess."
-                print "  z          Use current zoom to set xmin and xmax."
                 print "  o          Choose and output summary file."
                 print "  n          No, this is not a good fit. Move on."
-                print "  y          Yes, this is a good fit. Move on."
-                print "  u          Same as 'y' but use fit as the next guess."
                 print "  p          Call the printer() command."
                 print "  q          Quit."
+                print "  u          Same as 'y' but use fit as the next guess."
+                print "  y          Yes, this is a good fit. Move on."
+                print "  z          Use current zoom to set xmin and xmax."
+                print "  zo         Zoom out xrange by a factor of 2."
                 print
                 print "SETTINGS"
-                for key in settings.keys(): print "  "+key+" =", settings[key]
+
+                keys = settings.keys()
+                keys.sort()
+                for key in keys: print "  "+key+" =", settings[key]
+
                 print
                 print "SETTING PARAMETER GUESS VALUES"
                 print "  <parameter>=<value>"
@@ -486,6 +490,7 @@ class model_base:
                 print "  <parameter>=x|y|dx|dy|slope"
                 print "              sets the parameter guess value to the"
                 print "              clicked x, y, dx, dy, or slope value."
+                print
 
                 command=""
                 hold_plot=True
@@ -501,6 +506,14 @@ class model_base:
             elif command.lower() in ['z', 'zoom']:
                 settings['min'] = axes1.get_xlim()[0]
                 settings['max'] = axes1.get_xlim()[1]
+
+            elif command.lower() in ['zo', 'zoomout']:
+                x0 = settings['min']
+                x1 = settings['max']
+                xc = 0.5*(x0+x1)
+                xs = x1-x0
+                settings['min'] = xc-xs
+                settings['max'] = xc+xs
 
             elif command.lower() in ['o', 'output']:
                 # print all the header elements of the current databox
