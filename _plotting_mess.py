@@ -5,6 +5,7 @@ import thread       as _thread
 import pylab        as _pylab
 import numpy        as _numpy
 import matplotlib   as _mpl
+import itertools    as _itertools
 
 from matplotlib.font_manager import FontProperties as _FontProperties
 
@@ -64,7 +65,7 @@ def files_xy(xscript=0, yscript=1, eyscript=None, exscript=None, paths='ask', **
 
 
 
-def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, lscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
+def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, lscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", draw=1, debug=0, **kwargs):
     """
 
     This loops over the supplied databoxes and plots them. Databoxes can either
@@ -228,7 +229,7 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
         if yshift: _pt.format_figure(f, tall=True)
         else:      _pt.format_figure(f, tall=False)
 
-    _pylab.draw()
+    if draw: _pylab.draw()
     _pt.get_figure_window()
     _pt.get_pyshell()
 
@@ -271,13 +272,14 @@ def mag_phase(xdata, ydata, xscale='linear', yscale='linear', mlabel='Magnitude'
 
     if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
     else:                        xlabel=''
+    if not kwargs.has_key('draw'): kwargs['draw'] = False
 
     kwargs['xlabel'] = ''
-    xy(xdata, m, ylabel=mlabel, axes=axes1, draw=False, clear=0, **kwargs)
+    xy(xdata, m, ylabel=mlabel, axes=axes1, clear=0, **kwargs)
 
     kwargs['xlabel'] = xlabel
     kwargs['title']  = ''
-    xy(xdata, p, ylabel=plabel, axes=axes2, draw=False, clear=0, **kwargs)
+    xy(xdata, p, ylabel=plabel, axes=axes2, clear=0, **kwargs)
 
     axes1.set_xscale(xscale)
     axes2.set_xscale(xscale)
@@ -309,15 +311,17 @@ def real_imag(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ila
     rdata = _n.real(ydata)
     idata = _n.imag(ydata)
 
-    if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
-    else:                        xlabel=''
+    if kwargs.has_key('xlabel')  : xlabel=kwargs['xlabel']
+    else:                          xlabel=''
+    if not kwargs.has_key('draw'): kwargs['draw'] = False
+
 
     kwargs['xlabel'] = ''
-    xy(xdata, rdata, ylabel=rlabel, axes=axes1, draw=False, clear=0, **kwargs)
+    xy(xdata, rdata, ylabel=rlabel, axes=axes1, clear=0, **kwargs)
 
     kwargs['xlabel'] = xlabel
     kwargs['title']  = ''
-    xy(xdata, idata, ylabel=ilabel, axes=axes2, draw=False, clear=0, **kwargs)
+    xy(xdata, idata, ylabel=ilabel, axes=axes2, clear=0, **kwargs)
 
     axes1.set_xscale(xscale)
     axes2.set_xscale(xscale)
@@ -325,12 +329,13 @@ def real_imag(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ila
     _pylab.draw()
 
 
-def xy(xdata, ydata, eydata=None, exdata=None, label=None, xlabel="x", ylabel="y", title='', clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
+def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
     """
     Plots specified data.
 
     xdata, ydata        Arrays (or arrays of arrays) of data to plot
     label               string or array of strings for the line labels
+    style               style cycle object.
     xlabel, ylabel      axes labels
     title               axes title
     clear=1             1=clear the axes first
@@ -368,6 +373,8 @@ def xy(xdata, ydata, eydata=None, exdata=None, label=None, xlabel="x", ylabel="y
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
+
+        if not style==None: kwargs.update(style.next())
         axes.errorbar(xdata[n], ydata[n], label=l, yerr=eydata, xerr=exdata, **kwargs)
 
     _pylab.xscale(xscale)
@@ -609,8 +616,44 @@ def function_parametric(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erang
 
 
 
+class plot_style_cycle(dict):
 
+    iterators = {}
 
+    def __init__(self, **kwargs):
+        """
+        Supply keyword arguments that would be sent to pylab.plot(), except
+        as a list so there is some order to follow. For example:
 
+        style = plot_style_cycle(color=['k','r','b'], marker='o')
 
+        """
+        # make sure everything is iterable
+        for key in kwargs:
+            if not getattr(kwargs[key],'__iter__',False): kwargs[key] = [kwargs[key]]
+
+        # The base class is a dictionary, so update our own elements!
+        self.update(kwargs)
+
+        # create the auxiliary iterator dictionary
+        self.reset()
+
+    def next(self):
+        """
+        Returns the next dictionary of styles to send to plot as kwargs.
+        For example:
+
+        pylab.plot([1,2,3],[1,2,1], **style.next())
+        """
+        s = {}
+        for key   in self.iterators.keys():
+            s[key] = self.iterators[key].next()
+        return s
+
+    def reset(self):
+        """
+        Resets the style cycle.
+        """
+        for key in self.keys(): self.iterators[key] = _itertools.cycle(self[key])
+        return self
 
