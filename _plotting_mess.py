@@ -26,7 +26,7 @@ from numpy import *
 #
 
 
-def files_xy(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
+def files_xy(xscript=0, yscript=1, eyscript=None, exscript=None, paths='ask', **kwargs):
     """
 
     This selects a bunch of files, and plots them using plot.databoxes(**kwargs).
@@ -56,21 +56,24 @@ def files_xy(xscript=0, yscript=1, eyscript=None, paths='ask', **kwargs):
         databoxes.append(_data.load(paths[m]))
 
     # now plot everything
-    value = databoxes_xy(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, **kwargs)
+    value = databoxes_xy(databoxes, xscript=xscript, yscript=yscript, eyscript=eyscript, exscript=exscript, **kwargs)
 
     # return the data
     if value: databoxes.insert(0,value)
     return databoxes
 
 
-def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
+
+def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, lscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", debug=0, **kwargs):
     """
 
     This loops over the supplied databoxes and plots them. Databoxes can either
     be a list or a single databox.
 
-    xscript, yscript, eyscript      the scripts evaluated for the x and y data
-                                    setting to None plots as a function databox index+1
+    xscript, yscript,               the scripts evaluated for the x and y data
+    eyscript, exscript              setting to None plots as a function databox index+1
+
+    lscript                         script for generating line labels
 
     yshift=0.0                      artificial (progressive) yshift
 
@@ -139,10 +142,14 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
     else: singlemode=False
 
     # only used in single mode
-    xdata = []
-    ydata = []
-    eydata= []
-    sd    = _data.databox()
+    xdata  = []
+    ydata  = []
+    if eyscript:    eydata = []
+    else:           eydata = None
+    if exscript:    exdata = []
+    else:           exdata = None
+
+    sd = _data.databox() # for returning
 
     # for each databox, open the file, get the data, and plot it
     for m in range(0, len(databoxes)):
@@ -150,14 +157,37 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
         # get the databox
         data = databoxes[m]
 
+        # get the label for the line
+        if lscript==None:
+            if len(data.path):  label = _os.path.split(data.path)[-1]
+            else:               label = str(m)
+        else:                   label = str(data(lscript))
+
+        # get or append the data depending on the mode
         if singlemode:
             if xscript: xdata.append(data(xscript))
             else:       xdata.append(m+1)
             if yscript: ydata.append(data(yscript))
             else:       ydata.append(m+1)
             if eyscript: eydata.append(data(eyscript))
+            if exscript: exdata.append(data(exscript))
         else:
-            data.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript=xscript, yscript=yscript, eyscript=eyscript, autoformat=False, **kwargs)
+
+            # get the data
+            xdata = data(xscript)
+            ydata = data(yscript) + (m/yshift_every)*yshift
+            if eyscript: eydata = data(eyscript)
+            else:        eydata = None
+            if exscript: exdata = data(exscript)
+            else:        exdata = None
+
+            # update the kwargs
+            if not kwargs.has_key('xlabel'): kwargs['xlabel'] = xscript
+            if not kwargs.has_key('ylabel'): kwargs['ylabel'] = yscript
+            if not kwargs.has_key('title'):  kwargs['title' ] = _os.path.split(data.path)[0]
+
+            # PLOT!
+            xy(xdata, ydata, eydata, exdata, axes=a, clear=0, label=label, draw=0, **kwargs)
 
             # now fix the legend up nice like
             if m > legend_max-2 and m != len(databoxes)-1:
@@ -168,24 +198,20 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
     if singlemode:
         sd.insert_header('xscript',xscript)
         sd.insert_header('yscript',yscript)
+        sd.insert_header('eyscript',eyscript)
+        sd.insert_header('exscript',exscript)
+
         sd['x']  = xdata
         sd['y']  = ydata
-        if eyscript:
-            sd.insert_header('eyscript',eyscript)
-            sd['ey'] = eydata
-            e = 'ey'
-        else: e = None
+        sd['ey'] = eydata
+        sd['ex'] = exdata
 
         # massage the kwargs
         if not kwargs.has_key('xlabel'):  kwargs['xlabel']  = xscript
         if not kwargs.has_key('ylabel'):  kwargs['ylabel']  = yscript
-        if not kwargs.has_key('lscript'):
-            # if the user supplied script uses '' to reference elements
-            if yscript.find("'") > 0:     kwargs['lscript'] = '"'+yscript+'"'
-            else:                         kwargs['lscript'] = "'"+yscript+"'"
+        if lscript: kwargs['label'] = sd(lscript)
 
-        sd.plot(axes=a, yshift=(m/yshift_every)*yshift, clear=0, xscript='x', yscript='y', eyscript=e, autoformat=False, **kwargs)
-
+        xy(sd['x'], sd['y'], eydata=sd['ey'], exdata=sd['ex'], label=label, axes=a, clear=0, **kwargs)
 
     # set the scale
     if not xscale=='linear': _pylab.xscale(xscale)
@@ -194,11 +220,6 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, yshift=0.0, ysh
     # add the axis labels
     if not xlabel==None: a.set_xlabel(xlabel)
     if not ylabel==None: a.set_ylabel(ylabel)
-
-    # fix up the title if there's an yshift
-    if yshift: data.title += ', progressive y-yshift='+str(yshift)
-    if yaxis=="right": data.title = data.title + "\n"
-    a.set_title(data.title)
 
     # leave it unformatted unless the user tells us to autoformat
     a.title.set_visible(0)
@@ -304,7 +325,7 @@ def real_imag(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ila
     _pylab.draw()
 
 
-def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
+def xy(xdata, ydata, eydata=None, exdata=None, label=None, xlabel="x", ylabel="y", title='', clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
     """
     Plots specified data.
 
@@ -322,7 +343,6 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
                         Set this to None to ignore the legend.
     grid=False          Should we draw a grid on the axes?
     """
-
 
     # if the first element is not a list, make it a list
     if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
@@ -348,7 +368,7 @@ def xy(xdata, ydata, label=None, xlabel="x", ylabel="y", title="", clear=1, axes
     for n in range(0,len(xdata)):
         if label: l = label[n]
         else:     l = str(n)
-        axes.plot(xdata[n], ydata[n],  label=l, **kwargs)
+        axes.errorbar(xdata[n], ydata[n], label=l, yerr=eydata, xerr=exdata, **kwargs)
 
     _pylab.xscale(xscale)
     _pylab.yscale(yscale)
