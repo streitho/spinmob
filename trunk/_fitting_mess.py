@@ -17,13 +17,12 @@ from numpy import *
 #
 # Fit function based on the model class
 #
-def fit_files(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **kwargs):
+def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
     are then sent to "data.standard()". Useful ones to keep in mind:
 
-    for loading:    paths, default_directory
-    for data class: xscript, yscript, eyscript
+    for loading: paths, default_directory
 
     See the above mentioned functions for more information.
 
@@ -39,16 +38,16 @@ def fit_files(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **
 
     # generate the model
     model = _s.models.curve(f, p, bg, globals())
-    fit_files_model(model, command,    settings,    **kwargs)
+    fit_files_model(model, xscript,   yscript,   eyscript,      command,    settings,    **kwargs)
     settings = {}
 
-def fit_files_model(model, command="", settings={}, **kwargs):
+def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", settings={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
     are then sent to "data.standard()". Useful ones to keep in mind:
 
-    for loading:    paths, default_directory
-    for data class: xscript, yscript, eyscript
+    for loading:                paths, default_directory
+    for generating data to fit: xscript, yscript, eyscript
 
     See the above mentioned functions for more information.
     """
@@ -61,6 +60,11 @@ def fit_files_model(model, command="", settings={}, **kwargs):
         print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
         print str(d.path)
         model.fit_parameters = None
+        settings["xscript"]  = xscript
+        settings["yscript"]  = yscript
+        settings["eyscript"] = eyscript
+
+        # do the interactive fit.
         result = model.fit(d, command, settings)
 
         # make sure we didn't quit.
@@ -115,9 +119,11 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
             x, y, e = _fun.trim_data(x,y,None,[xmin,xmax])
 
             # put together a data object with the right parameters
-            d.path = line.get_label()
+            d.path = "Line: "+line.get_label()
             d[xlabel] = x
             d[ylabel] = y
+            settings['xscript'] = xlabel
+            settings['yscript'] = ylabel
 
             # do the fit
             print '\n\n\nLINE:', n+1, '/', len(lines)

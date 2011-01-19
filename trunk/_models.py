@@ -219,8 +219,9 @@ class model_base:
                             "file_tag"          : 'fit_',
                             "figure"            : 1,
                             "autofit"           : False,
-                            "fullsave"          : False}
-        if d.eyscript == None: default_settings["auto_error"] = True
+                            "fullsave"          : False,
+                            "eyscript"          : None}
+        if not settings.has_key('eyscript'): default_settings["auto_error"] = True
 
         # fill in the non-supplied settings with defaults
         for k in default_settings.keys():
@@ -250,26 +251,25 @@ class model_base:
                 if settings["skip"]: print "Plotting but not optimizing..."
                 else:                print "Beginning fit routine..."
 
-                # Get the data.
-                d.get_data()
-
-                # if we're doing auto error, start with an array of 1's,
-                # and plot the data with no error
-                if d.eydata==None: d.eydata = d.xdata*0.0 + (max(d.ydata)-min(d.ydata))/20.0
+                # get the data
+                xdata  = d(settings["xscript"])
+                ydata  = d(settings["yscript"])
+                if settings["eyscript"] == None: eydata = xdata*0.0 + (max(ydata)-min(ydata))/20.0
+                else:                            eydata = d(settings["eyscript"])
 
                 # now sort the data in case it's jaggy!
-                matrix_to_sort = _numpy.array([d.xdata, d.ydata, d.eydata])
+                matrix_to_sort = _numpy.array([xdata, ydata, eydata])
                 sorted_matrix  = _fun.sort_matrix(matrix_to_sort, 0)
-                d.xdata  = sorted_matrix[0]
-                d.ydata  = sorted_matrix[1]
-                d.eydata = sorted_matrix[2]
+                xdata  = sorted_matrix[0]
+                ydata  = sorted_matrix[1]
+                eydata = sorted_matrix[2]
 
                 # now trim all the data based on xmin and xmax
                 xmin = settings["min"]
                 xmax = settings["max"]
-                if xmin==None: xmin = min(d.xdata)-1
-                if xmax==None: xmax = max(d.xdata)+1
-                [x, y, ye] = _fun.trim_data(d.xdata, d.ydata, d.eydata, [xmin, xmax])
+                if xmin==None: xmin = min(xdata)-1
+                if xmax==None: xmax = max(xdata)+1
+                [x, y, ye] = _fun.trim_data(xdata, ydata, eydata, [xmin, xmax])
 
                 # smooth and coarsen
                 [x,y,ye] = _fun.smooth_data( x,y,ye,settings["smooth"])
@@ -307,7 +307,7 @@ class model_base:
                         print "  initial reduced chi^2 =", sigma_y**2
                         print "  scaling error by", sigma_y, "and re-optimizing..."
                         ye       = sigma_y*ye
-                        d.eydata = sigma_y*d.eydata
+                        eydata   = sigma_y*eydata
 
                         # optimize with new improved errors, using the old fit to start
                         fit_output = self.optimize(x,y,ye,p0=fit_parameters)
@@ -339,9 +339,9 @@ class model_base:
 
                 # get the data to plot
                 if settings["plot_all"]:
-                    x_plot  = d.xdata
-                    y_plot  = d.ydata
-                    ye_plot = d.eydata*sigma_y
+                    x_plot  = xdata
+                    y_plot  = ydata
+                    ye_plot = eydata*sigma_y
 
                     # smooth and coarsen
                     [x_plot, y_plot, ye_plot] = _fun.smooth_data (x_plot, y_plot, ye_plot, settings["smooth"])
@@ -398,7 +398,7 @@ class model_base:
                 title1 = d.path
 
                 # second line of the title is the model
-                title2 = "eyscript="+str(d.eyscript)+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
+                title2 = "eyscript="+str(settings["eyscript"])+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
 
                 # third line is the fit parameters
                 title3 = ""
@@ -412,8 +412,8 @@ class model_base:
 
                 # Start by formatting the previous plot
                 axes2.set_title(title1+"\n"+title2+"\nFit: "+title3)
-                axes1.set_xlabel(d.xscript)
-                axes1.set_ylabel(d.yscript)
+                axes1.set_xlabel(settings["xscript"])
+                axes1.set_ylabel(settings["yscript"])
 
                 # set the position of the legend
                 axes1.legend(loc=[1.01,0], borderpad=0.02, prop=_FontProperties(size=7))
@@ -536,9 +536,9 @@ class model_base:
                         f = open(self.output_path, 'w')
                         f.write('function_string\t'+self.function_string+
                                 '\nmodel\t'+str(self.__class__)+
-                                '\nxscript\t'+str(d.xscript)+
-                                '\nyscript\t'+str(d.yscript)+
-                                '\neyscript\t'+str(d.eyscript)+'\n\n')
+                                '\nxscript\t'+str(settings["xscript"])+
+                                '\nyscript\t'+str(settings["yscript"])+
+                                '\neyscript\t'+str(settings["eyscript"])+'\n\n')
                         for k in self.output_columns: f.write(k+'\t')
                         for n in self.pnames: f.write(n+'\t'+n+'_error\t')
                         f.write('reduced_chi_squared\n')
