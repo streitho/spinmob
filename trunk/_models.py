@@ -636,7 +636,6 @@ class model_base:
             print
 
 
-
 class curve(model_base):
 
     globs={} # globals such as sin and cos...
@@ -646,24 +645,25 @@ class curve(model_base):
         This class takes the function string you specify and generates
         a model based on it.
 
-        f is a string of the curve to fit, p is a comma-delimited string of
-        parameters (with default values if you're into that), and bg is the
-        background function should you want to use it (leaving it as None
-        sets it equal to f).
+        f can be either a string or a function f(x,a,b,..) that you have defined.
+
+        p is a comma-delimited string
 
         globs is a list of globals should you wish to have these visible to f.
+
+        If the function is a string it will be evaluated knowing about all the
+        globals specified by the globs argument.
+
+        If it is a function, it can have as many arguments as you like, so long
+        as the x data is the first argument, and each of the subsequent argument
+        slots has a corresponding element in the list p.
 
         If you want to do something a little more fancy with a guessing algorithm,
         it's relatively straightforward to write one of the model classes similar
         to the examples given in spinmob.models
         """
 
-        # get the function
-        self.function_string                = f
-        if bg==None: self.background_string = f
-        else:        self.background_string = bg
-
-        # start by parsing the f string
+        # start by parsing the p string. This is the same for both f's
         p_split = p.split(',')
 
         # Loop over the parameters, get their names and possible default values
@@ -683,16 +683,31 @@ class curve(model_base):
         # store the globals
         self.globs = globs
 
-        # override the function and background
-        args = 'x,'+_fun.join(self.pnames,',')
-        self.f  = eval('lambda ' + args + ': '+self.function_string,   self.globs)
-        self.bg = eval('lambda ' + args + ': '+self.background_string, self.globs)
+        # now do different things depending on the type of function
+        if type(f)==str:
+            # get the function strings
+            self.function_string                = f
+            if bg==None: self.background_string = f
+            else:        self.background_string = bg
+
+            # override the function and background
+            args = 'x,'+_fun.join(self.pnames,',')
+            self.f  = eval('lambda ' + args + ': '+self.function_string,   self.globs)
+            self.bg = eval('lambda ' + args + ': '+self.background_string, self.globs)
+
+        else:
+            if bg==None: bg = f
+            self.function_string   =  f.__name__ +"(x,"+p+")"
+            self.background_string = bg.__name__ +"(x,"+p+")"
+
+            # override the function and background
+            self.f  = f
+            self.bg = bg
 
 
-    def evaluate(self,   p, x):
-        return self.f( x, *p)
-    def background(self, p, x):
-        return self.bg(x, *p)
+    # override the evaluate and background functions used by the base class.
+    def evaluate  (self, p, x): return self.f (x, *p)
+    def background(self, p, x): return self.bg(x, *p)
 
     # You can override this if you want the guess to be something fancier.
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):

@@ -18,7 +18,9 @@ def load(path="ask", first_data_line="auto", filters="*.*", text="Select a file,
     about delimiters)
     """
     d = standard(**kwargs)
-    d.load_file(path, first_data_line, filters, text, default_directory, header_only=header_only)
+    d.load_file(path=path, first_data_line=first_data_line,
+                filters=filters, text=text, default_directory=default_directory,
+                header_only=header_only)
 
     if not quiet:
         print "loaded", d.path

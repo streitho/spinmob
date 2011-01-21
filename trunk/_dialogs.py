@@ -43,7 +43,7 @@ def SingleFile(filters="*.*", text='select a file, fungus pants!', default_direc
 
     # if this type of pref doesn't exist, we need to make a new one
     if _prefs.has_key(default_directory): default = _prefs[default_directory]
-    else:                                default = ""
+    else:                                 default = ""
 
     # define the dialog object.  Doesn't opent he window
     dialog = _wx.FileDialog(None,

@@ -26,15 +26,18 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
 
     See the above mentioned functions for more information.
 
-    f is a string of the curve to fit, p is a comma-delimited string of
-    parameters (with default values if you're into that), and bg is the
-    background function should you want to use it (leaving it as None
+    f is a string of the curve to fit or a function f(x,a,b,..) that you have defined.
+
+    p is a comma-delimited string of parameters (with default values if
+    you're into that)
+
+    bg is the background function should you want to use it (leaving it as None
     sets it equal to f).
 
-    This function f will be able to see all the mathematical funcions of numpy.
+    This routine just generates a model based on this input. For more information
+    about what the arguments should be, see spinmob.models.curve().
     """
-    print f
-    print p
+
 
     # generate the model
     model = _s.models.curve(f, p, bg, globals())

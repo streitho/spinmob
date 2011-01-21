@@ -153,7 +153,10 @@ class standard:
         self.ydata   = None
         self.eydata  = None
 
-        if path=="ask": path = _dialogs.SingleFile(self.file_extension, default_directory=self.directory)
+        if path=="ask":
+            path = _dialogs.SingleFile(filters=self.file_extension,
+                                       default_directory=self.directory,
+                                       text=text)
         self.path = path
 
         if path==None:
