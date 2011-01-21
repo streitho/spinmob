@@ -172,19 +172,6 @@ It might seem silly to have the ability to execute scripts (i.e. why not just do
 
 It is pretty easy to plot from spinmob, either from a databox directly or using one of the canned plot functions. Since spinmob uses matplotlib/pylab to plot, you can also access all of these things by typing "s.pylab."
 
-Databoxes have some plotting capabilities. 
-
-{{{
-d.plot(0,1)
-d.plot('my_column','_column1')
-}}}
-
-will do the same thing, plotting the 0 column on the x-axis, and the 1 column on the y-axis. You can also enter scripts like
-
-{{{
->>> d.plot('c(0)+cos(c(1))', 'h(0)*y + b where y=c(1)*27; b=h("eader2")[2]')
-}}}
-
 If you want to plot the same analysis script from many similar data files,
 
 {{{
