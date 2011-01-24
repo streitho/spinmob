@@ -697,8 +697,8 @@ class curve(model_base):
 
         else:
             if bg==None: bg = f
-            self.function_string   =  f.__name__ +"(x,"+p+")"
-            self.background_string = bg.__name__ +"(x,"+p+")"
+            self.function_string   =  f.__name__ +"(x, "+p+")"
+            self.background_string = bg.__name__ +"(x, "+p+")"
 
             # override the function and background
             self.f  = f
@@ -1215,6 +1215,5 @@ class quartic(model_base):
 
         # write these values to self.p0, but avoid the guessed_list
         self.write_to_p0(p)
-
 
 

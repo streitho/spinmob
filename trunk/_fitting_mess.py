@@ -156,4 +156,3 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
 
 
 
-
