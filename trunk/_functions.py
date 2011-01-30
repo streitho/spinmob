@@ -22,6 +22,29 @@ average = _n.average
 
 
 
+def _print_figures(figures, arguments=''):
+    """
+    figure printing loop designed to be launched in a separate thread.
+    """
+
+    for fig in figures:
+        # output the figure to postscript
+        postscript_path = _os.path.join(_prefs.temp_dir,"graph.ps")
+        fig.savefig(postscript_path)
+
+        if not arguments == '':
+            c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
+        else:
+            c = _prefs['print_command'] + ' "' + postscript_path + '"'
+
+        _os.system(c)
+
+
+def append_to_file(path, string):
+    file = open(path, 'a')
+    file.write(string)
+    file.close()
+
 def array_shift(a, n, fill="average"):
     """
     This will return an array with all the elements shifted forward in index by n.
@@ -58,6 +81,27 @@ def array_shift(a, n, fill="average"):
         for i in range(0, -n):       new_a[-i-1] = fill_array[-i-1]
 
     return new_a
+
+
+
+def assemble_covariance(error, correlation):
+    """
+    This takes an error vector and a correlation matrix and assembles the covariance
+    """
+
+    covariance = []
+    for n in range(0, len(error)):
+        covariance.append([])
+        for m in range(0, len(error)):
+            covariance[n].append(correlation[n][m]*error[n]*error[m])
+    return _n.array(covariance)
+def avg(array):
+    return(float(sum(array))/float(len(array)))
+
+
+
+
+
 
 
 
@@ -148,6 +192,61 @@ def coarsen_matrix(Z, xlevel=0, ylevel=0):
     # now coarsen the rows
     if xlevel: return coarsen_array(Z_ycoarsened, xlevel)
     else:      return _n.array(Z_ycoarsened)
+
+def combine_dictionaries(a, b):
+    """
+    returns the combined dictionary.  a's values preferentially chosen
+    """
+
+    c = {}
+    for key in b.keys(): c[key]=b[key]
+    for key in a.keys(): c[key]=a[key]
+    return c
+
+def data_from_file(path, delimiter=" "):
+    lines = read_lines(path)
+    x = []
+    y = []
+    for line in lines:
+       s=line.split(delimiter)
+       if len(s) > 1:
+           x.append(float(s[0]))
+           y.append(float(s[1]))
+    return([_n.array(x), _n.array(y)])
+
+
+def data_to_file(path, xarray, yarray, delimiter=" ", mode="w"):
+    file = open(path, mode)
+    for n in range(0, len(xarray)):
+        file.write(str(xarray[n]) + delimiter + str(yarray[n]) + '\n')
+    file.close()
+
+
+
+
+
+
+
+
+
+def decompose_covariance(c):
+    """
+    This decomposes a covariance matrix into an error vector and a correlation matrix
+    """
+
+    # make it a kickass copy of the original
+    c = _n.array(c)
+
+    # first get the error vector
+    e = []
+    for n in range(0, len(c[0])): e.append(_n.sqrt(c[n][n]))
+
+    # now cycle through the matrix, dividing by e[1]*e[2]
+    for n in range(0, len(c[0])):
+        for m in range(0, len(c[0])):
+            c[n][m] = c[n][m] / (e[n]*e[m])
+
+    return [_n.array(e), _n.array(c)]
 
 def derivative(xdata, ydata):
     """
@@ -281,6 +380,26 @@ def distort_matrix_Y(Z, Y, f, new_ymin, new_ymax, subsample=3):
 
 
 
+def dumbguy_minimize(f, xmin, xmax, xstep):
+    """
+    This just steps x and looks for a peak
+
+    returns x, f(x)
+    """
+
+    prev = f(xmin)
+    this = f(xmin+xstep)
+    for x in frange(xmin+xstep,xmax,xstep):
+        next = f(x+xstep)
+
+        # see if we're on top
+        if this < prev and this < next: return x, this
+
+        prev = this
+        this = next
+
+    return x, this
+
 def elements_are_numbers(array, start_index=0, end_index=-1):
     if len(array) == 0: return 0
 
@@ -310,30 +429,6 @@ def elements_are_strings(array, start_index=0, end_index=-1):
         if not type(array[n]) == str: return 0
     return 1
 
-def frange(start, end, inc=1.0):
-    """
-    A range function, that accepts float increments and reversed direction.
-
-    See also numpy.linspace()
-    """
-
-    start = 1.0*start
-    end   = 1.0*end
-    inc   = 1.0*inc
-
-    # if we got a dumb increment
-    if not inc: return _n.array([start,end])
-
-    # if the increment is going the wrong direction
-    if 1.0*(end-start)/inc < 0.0:
-        inc = -inc
-
-    # get the integer steps
-    ns = _n.array(range(0, int(1.0*(end-start)/inc)+1))
-
-    return start + ns*inc
-
-
 def erange(start, end, steps):
     """
     Returns a numpy array over the specified range taking geometric steps.
@@ -358,6 +453,532 @@ def erange(start, end, steps):
     a[-1] = end
 
     return a
+
+
+def find_N_peaks(array, N=4, max_iterations=100, rec_max_iterations=3, recursion=1):
+    """
+    This will run the find_peaks algorythm, adjusting the baseline until exactly N peaks are found.
+    """
+
+    if recursion<0: return None
+
+    # get an initial guess as to the baseline
+    ymin = min(array)
+    ymax = max(array)
+
+    for n in range(max_iterations):
+
+        # bisect the range to estimate the baseline
+        y1 = (ymin+ymax)/2.0
+
+        # now see how many peaks this finds. p could have 40 for all we know
+        p, s, i = find_peaks(array, y1, True)
+
+        # now loop over the subarrays and make sure there aren't two peaks in any of them
+        for n in range(len(i)):
+            # search the subarray for two peaks, iterating 3 times (75% selectivity)
+            p2 = find_N_peaks(s[n], 2, rec_max_iterations, rec_max_iterations=rec_max_iterations, recursion=recursion-1)
+
+            # if we found a double-peak
+            if not p2==None:
+                # push these non-duplicate values into the master array
+                for x in p2:
+                    # if this point is not already in p, push it on
+                    if not x in p: p.append(x+i[n]) # don't forget the offset, since subarrays start at 0
+
+
+        # if we nailed it, finish up
+        if len(p) == N: return p
+
+        # if we have too many peaks, we need to increase the baseline
+        if len(p) > N: ymin = y1
+
+        # too few? decrease the baseline
+        else:          ymax = y1
+
+    return None
+
+def find_peaks(array, baseline=0.1, return_subarrays=False):
+    """
+    This will try to identify the indices of the peaks in array, returning a list of indices in ascending order.
+
+    Runs along the data set until it jumps above baseline. Then it considers all the subsequent data above the baseline
+    as part of the peak, and records the maximum of this data as one peak value.
+    """
+
+    peaks = []
+
+    if return_subarrays:
+        subarray_values  = []
+        subarray_indices = []
+
+    # loop over the data
+    n = 0
+    while n < len(array):
+        # see if we're above baseline, then start the "we're in a peak" loop
+        if array[n] > baseline:
+
+            # start keeping track of the subarray here
+            if return_subarrays:
+                subarray_values.append([])
+                subarray_indices.append(n)
+
+            # find the max
+            ymax=baseline
+            nmax = n
+            while n < len(array) and array[n] > baseline:
+                # add this value to the subarray
+                if return_subarrays:
+                    subarray_values[-1].append(array[n])
+
+                if array[n] > ymax:
+                    ymax = array[n]
+                    nmax = n
+
+                n = n+1
+
+            # store the max
+            peaks.append(nmax)
+
+        else: n = n+1
+
+    if return_subarrays: return peaks, subarray_values, subarray_indices
+    else:                return peaks
+
+
+def find_two_peaks(data, remove_background=True):
+    """
+
+    Returns two indicies for the two maxima
+
+    """
+
+    y  = _n.array( data            )
+    x  = _n.array( range(0,len(y)) )
+
+    # if we're supposed to, remove the linear background
+    if remove_background:
+        [slope, offset] = fit_linear(x,y)
+        y = y - slope*x
+        y = y - min(y)
+
+    # find the global maximum
+    max1   = max(y)
+    n1     = index(max1, y)
+
+    # now starting at n1, work yourway left and right until you find
+    # the left and right until the data drops below a 1/2 the max.
+    # the first side to do this gives us the 1/2 width.
+    np = n1+1
+    nm = n1-1
+    yp = max1
+    ym = max1
+    width = 0
+    while 0 < np < len(y) and 0 < nm < len(y):
+        yp = y[np]
+        ym = y[nm]
+
+        if yp <= 0.5*max1 or ym <= 0.5*max1:
+            width = np - n1
+            break
+
+        np += 1
+        nm -= 1
+
+
+
+    # if we didn't find it, we pooped out
+    if width == 0:
+        return [n1,-1]
+
+    # this means we have a valid 1/2 width.  Find the other max in the
+    # remaining data
+    n2 = nm
+    while 1 < np < len(y)-1 and 1 < nm < len(y)-1:
+        if y[np] > y[n2]:
+            n2 = np
+        if y[nm] > y[n2]:
+            n2 = nm
+        np += 1
+        nm -= 1
+
+    return([n1,n2])
+
+
+
+
+
+def find_zero_bisect(f, xmin, xmax, xprecision):
+    """
+    This will bisect the range and zero in on zero.
+    """
+    if f(xmax)*f(xmin) > 0:
+        print "find_zero_bisect(): no zero on the range",xmin,"to",xmax
+        return None
+
+    temp = min(xmin,xmax)
+    xmax = max(xmin,xmax)
+    xmin = temp
+
+    xmid = (xmin+xmax)*0.5
+    while xmax-xmin > xprecision:
+        y = f(xmid)
+
+        # pick the direction with one guy above and one guy below zero
+        if y > 0:
+            # move left or right?
+            if f(xmin) < 0: xmax=xmid
+            else:           xmin=xmid
+
+        # f(xmid) is below zero
+        elif y < 0:
+            # move left or right?
+            if f(xmin) > 0: xmax=xmid
+            else:           xmin=xmid
+
+        # yeah, right
+        else: return xmid
+
+        # bisect again
+        xmid = (xmin+xmax)*0.5
+
+    return xmid
+
+
+def fit_linear(xdata, ydata):
+    """
+
+    Returns slope and intercept of line of best fit, excluding data
+    outside the range defined by xrange
+
+    """
+    x = xdata
+    y = ydata
+
+    ax  = avg(x)
+    ay  = avg(y)
+    axx = avg(x*x)
+    ayy = avg(y*y)
+    ayx = avg(y*x)
+
+    slope     = (ayx - ay*ax) / (axx - ax*ax)
+    intercept = ay - slope*ax
+
+    return slope, intercept
+
+
+
+
+
+
+def frange(start, end, inc=1.0):
+    """
+    A range function, that accepts float increments and reversed direction.
+
+    See also numpy.linspace()
+    """
+
+    start = 1.0*start
+    end   = 1.0*end
+    inc   = 1.0*inc
+
+    # if we got a dumb increment
+    if not inc: return _n.array([start,end])
+
+    # if the increment is going the wrong direction
+    if 1.0*(end-start)/inc < 0.0:
+        inc = -inc
+
+    # get the integer steps
+    ns = _n.array(range(0, int(1.0*(end-start)/inc)+1))
+
+    return start + ns*inc
+
+
+def imax(array):
+    """
+    Returns the index of the maximum of array.
+    """
+    return index(max(array), array)
+
+def imin(array):
+    """
+    Returns the index of the minimum of array.
+    """
+    return index(min(array), array)
+
+def index(value, array):
+    for n in range(0,len(array)):
+        if value == array[n]:
+            return(n)
+    return(-1)
+
+def index_nearest(value, array):
+    """
+    expects a _n.array
+    returns the global minimum of (value-array)^2
+    """
+
+    a = (array-value)**2
+    return index(a.min(), a)
+
+def index_next_crossing(value, array, starting_index=0, direction=1):
+    """
+    starts at starting_index, and walks through the array until
+    it finds a crossing point with value
+
+    set direction=-1 for down crossing
+    """
+
+    for n in range(starting_index, len(array)-1):
+        if  (value-array[n]  )*direction >= 0         \
+        and (value-array[n+1])*direction <  0: return n
+
+    # no crossing found
+    return -1
+
+
+
+
+def insert_ordered(value, array):
+    """
+    This will insert the value into the array, keeping it sorted, and returning the
+    index where it was inserted
+    """
+
+    index = 0
+
+    # search for the last array item that value is larger than
+    for n in range(0,len(array)):
+        if value >= array[n]: index = n+1
+
+    array.insert(index, value)
+    return index
+
+def integrate(f, x1, x2):
+    """
+    f(x) = ...
+    integrated from x1 to x2
+    """
+
+    return quad(f, x1, x2)[0]
+
+def integrate2d(f, x1, x2, y1, y2):
+    """
+    f(x,y) = ...
+    integrated from x1 to x2, y1 to y2
+    """
+    def fx(y):
+        def g(x): return f(x,y)
+        return integrate(g, x1, x2)
+
+    return quad(fx, y1, y2)[0]
+
+def integrate3d(f, x1, x2, y1, y2, z1, z2):
+    """
+    f(x,y,z) = ...
+    integrated from x1 to x2, y1 to y2, z1 to z2
+    """
+
+    def fxy(z):
+        def g(x,y): return f(x,y,z)
+        return(integrate2d(g, x1, x2, y1, y2))
+
+    return quad(fxy, z1, z2)[0]
+
+
+
+
+
+
+def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
+    """
+    Numerically integrates up the ydata using the trapezoid approximation.
+    estimate the bin width (scaled by the specified amount).
+    Returns (xdata, integrated ydata).
+
+    autozero is the number of data points to use as an estimate of the background
+    (then subtracted before integrating).
+    """
+
+    [xdata, ydata] = sort_matrix([xdata,ydata],0)
+
+    xdata = _n.array(xdata)
+    ydata = _n.array(ydata)
+
+    if xmin==None: xmin = min(xdata)
+    if xmax==None: xmax = max(xdata)
+
+    # find the index range
+    imin = xdata.searchsorted(xmin)
+    imax = xdata.searchsorted(xmax)
+
+    xint = [xdata[imin]]
+    yint = [0]
+
+    # get the autozero
+    if autozero > 0:
+        zero = _n.average(ydata[imin:imin+autozero])
+        ydata = ydata-zero
+
+    for n in range(imin+1,imax):
+        if len(yint):
+            xint.append(xdata[n])
+            yint.append(yint[-1]+0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
+        else:
+            xint.append(xdata[n])
+            yint.append(0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
+
+    return _n.array(xint), _n.array(yint)
+
+def interpolate(xarray, yarray, x, rigid_limits=True):
+    """
+
+    returns the y value of the linear interpolated function
+    y(x). Assumes increasing xarray!
+
+    rigid_limits=False means when x is outside xarray's range,
+    use the endpoint as the y-value.
+
+    """
+    if not len(xarray) == len(yarray):
+        print "lengths don't match.", len(xarray), len(yarray)
+        return None
+    if x < xarray[0] or x > xarray[-1]:
+        if rigid_limits:
+            print "x=" + str(x) + " is not in " + str(min(xarray)) + " to " + str(max(xarray))
+            return None
+        else:
+            if x < xarray[0]: return yarray[0]
+            else:             return yarray[-1]
+
+    # find the index of the first value in xarray higher than x
+    for n2 in range(1, len(xarray)):
+        if x >= min(xarray[n2], xarray[n2-1]) and x <= max(xarray[n2], xarray[n2-1]):
+            break
+        if n2 == len(xarray):
+            print "couldn't find x anywhere."
+            return None
+    n1 = n2-1
+
+    # now we have the indices surrounding the x value
+    # interpolate!
+
+    return yarray[n1] + (x-xarray[n1])*(yarray[n2]-yarray[n1])/(xarray[n2]-xarray[n1])
+
+
+
+def invert_increasing_function(f, f0, xmin, xmax, tolerance, max_iterations=100):
+    """
+    This will try try to qickly find a point on the f(x) curve between xmin and xmax that is
+    equal to f0 within tolerance.
+    """
+
+    for n in range(max_iterations):
+        # start at the middle
+        x = 0.5*(xmin+xmax)
+
+        df = f(x)-f0
+        if _n.fabs(df) < tolerance: return x
+
+        # if we're high, set xmin to x etc...
+        if df > 0: xmin=x
+        else:      xmax=x
+
+    print "Couldn't find value!"
+    return 0.5*(xmin+xmax)
+
+def is_a_number(s):
+    try: float(s); return True
+    except:
+        try: complex(s); return True
+        except: return False
+
+
+def is_close(x, array, fraction=0.0001):
+    """
+
+    compares x to all of the values in array.  If it's fraction close to
+    any, returns true
+
+    """
+
+    result = False
+    for n in range(0,len(array)):
+        if array[n] == 0:
+            if x == 0:
+                result = True
+        elif abs((x-array[n])/array[n]) < fraction:
+            result = True
+
+    return(result)
+
+def is_iterable(a):
+    """
+    Test if something is iterable.
+    """
+    return hasattr(a, '__iter__')
+
+
+
+def join(array_of_strings, delimiter=' '):
+    if array_of_strings == []: return ""
+
+    if delimiter==None: delimiter=' '
+
+    output = str(array_of_strings[0])
+    for n in range(1, len(array_of_strings)):
+        output += delimiter + str(array_of_strings[n])
+    return(output)
+
+
+def load_object(path="ask", text="Load a pickled object."):
+    if path=="ask": path = _dialogs.SingleFile("*.pickle", text=text)
+    if path == "": return None
+
+    f = open(path, "r")
+    object = _cPickle.load(f)
+    f.close()
+
+    object._path = path
+    return object
+
+def printer(figure='gcf', arguments='', threaded=True):
+    """
+    Quick function that saves the specified figure as a postscript and then
+    calls the command defined by spinmob.prefs['print_command'] with this
+    postscript file as the argument.
+
+    figure='gcf'    can be 'all', a number, or a list of numbers
+    """
+
+    global _prefs
+
+    if not _prefs.has_key('print_command'):
+        print "No print command setup. Set the user variable prefs['print_command']."
+        return
+
+    if   figure=='gcf': figure=[_pylab.gcf().number]
+    elif figure=='all': figure=_pylab.get_fignums()
+    if not getattr(figure,'__iter__',False): figure = [figure]
+
+    print "figure numbers in queue:", figure
+
+    figures=[]
+    for n in figure: figures.append(_pylab.figure(n))
+
+    # now run the ps printing command
+    if threaded:
+        # launch the aforementioned function as a separate thread
+        print _print_figures, figures, '"'+arguments+'"'
+        _thread.start_new_thread(_print_figures, (figures,arguments,))
+
+        # bring back the figure and command line
+        for fig in figures:
+            _pylab_tweaks.get_figure_window(fig)
+        _pylab_tweaks.get_pyshell()
+
+    else:   _print_figures(figures, arguments)
 
 
 def psd(t, y, pow2=False, window=None):
@@ -428,281 +1049,6 @@ def psdfreq(t, pow2=False):
     return F[0:len(F)/2]
 
 
-def imax(array):
-    """
-    Returns the index of the maximum of array.
-    """
-    return index(max(array), array)
-
-def imin(array):
-    """
-    Returns the index of the minimum of array.
-    """
-    return index(min(array), array)
-
-def index(value, array):
-    for n in range(0,len(array)):
-        if value == array[n]:
-            return(n)
-    return(-1)
-
-def index_nearest(value, array):
-    """
-    expects a _n.array
-    returns the global minimum of (value-array)^2
-    """
-
-    a = (array-value)**2
-    return index(a.min(), a)
-
-def index_next_crossing(value, array, starting_index=0, direction=1):
-    """
-    starts at starting_index, and walks through the array until
-    it finds a crossing point with value
-
-    set direction=-1 for down crossing
-    """
-
-    for n in range(starting_index, len(array)-1):
-        if  (value-array[n]  )*direction >= 0         \
-        and (value-array[n+1])*direction <  0: return n
-
-    # no crossing found
-    return -1
-
-
-
-
-def insert_ordered(value, array):
-    """
-    This will insert the value into the array, keeping it sorted, and returning the
-    index where it was inserted
-    """
-
-    index = 0
-
-    # search for the last array item that value is larger than
-    for n in range(0,len(array)):
-        if value >= array[n]: index = n+1
-
-    array.insert(index, value)
-    return index
-
-def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
-    """
-    Numerically integrates up the ydata using the trapezoid approximation.
-    estimate the bin width (scaled by the specified amount).
-    Returns (xdata, integrated ydata).
-
-    autozero is the number of data points to use as an estimate of the background
-    (then subtracted before integrating).
-    """
-
-    [xdata, ydata] = sort_matrix([xdata,ydata],0)
-
-    xdata = _n.array(xdata)
-    ydata = _n.array(ydata)
-
-    if xmin==None: xmin = min(xdata)
-    if xmax==None: xmax = max(xdata)
-
-    # find the index range
-    imin = xdata.searchsorted(xmin)
-    imax = xdata.searchsorted(xmax)
-
-    xint = [xdata[imin]]
-    yint = [0]
-
-    # get the autozero
-    if autozero > 0:
-        zero = _n.average(ydata[imin:imin+autozero])
-        ydata = ydata-zero
-
-    for n in range(imin+1,imax):
-        if len(yint):
-            xint.append(xdata[n])
-            yint.append(yint[-1]+0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
-        else:
-            xint.append(xdata[n])
-            yint.append(0.5*(xdata[n]-xdata[n-1])*(ydata[n]+ydata[n-1]))
-
-    return _n.array(xint), _n.array(yint)
-
-def integrate(f, x1, x2):
-    """
-    f(x) = ...
-    integrated from x1 to x2
-    """
-
-    return quad(f, x1, x2)[0]
-
-def integrate2d(f, x1, x2, y1, y2):
-    """
-    f(x,y) = ...
-    integrated from x1 to x2, y1 to y2
-    """
-    def fx(y):
-        def g(x): return f(x,y)
-        return integrate(g, x1, x2)
-
-    return quad(fx, y1, y2)[0]
-
-def integrate3d(f, x1, x2, y1, y2, z1, z2):
-    """
-    f(x,y,z) = ...
-    integrated from x1 to x2, y1 to y2, z1 to z2
-    """
-
-    def fxy(z):
-        def g(x,y): return f(x,y,z)
-        return(integrate2d(g, x1, x2, y1, y2))
-
-    return quad(fxy, z1, z2)[0]
-
-
-
-
-
-
-def interpolate(xarray, yarray, x, rigid_limits=True):
-    """
-
-    returns the y value of the linear interpolated function
-    y(x). Assumes increasing xarray!
-
-    rigid_limits=False means when x is outside xarray's range,
-    use the endpoint as the y-value.
-
-    """
-    if not len(xarray) == len(yarray):
-        print "lengths don't match.", len(xarray), len(yarray)
-        return None
-    if x < xarray[0] or x > xarray[-1]:
-        if rigid_limits:
-            print "x=" + str(x) + " is not in " + str(min(xarray)) + " to " + str(max(xarray))
-            return None
-        else:
-            if x < xarray[0]: return yarray[0]
-            else:             return yarray[-1]
-
-    # find the index of the first value in xarray higher than x
-    for n2 in range(1, len(xarray)):
-        if x >= min(xarray[n2], xarray[n2-1]) and x <= max(xarray[n2], xarray[n2-1]):
-            break
-        if n2 == len(xarray):
-            print "couldn't find x anywhere."
-            return None
-    n1 = n2-1
-
-    # now we have the indices surrounding the x value
-    # interpolate!
-
-    return yarray[n1] + (x-xarray[n1])*(yarray[n2]-yarray[n1])/(xarray[n2]-xarray[n1])
-
-
-
-def invert_increasing_function(f, f0, xmin, xmax, tolerance, max_iterations=100):
-    """
-    This will try try to qickly find a point on the f(x) curve between xmin and xmax that is
-    equal to f0 within tolerance.
-    """
-
-    for n in range(max_iterations):
-        # start at the middle
-        x = 0.5*(xmin+xmax)
-
-        df = f(x)-f0
-        if _n.fabs(df) < tolerance: return x
-
-        # if we're high, set xmin to x etc...
-        if df > 0: xmin=x
-        else:      xmax=x
-
-    print "Couldn't find value!"
-    return 0.5*(xmin+xmax)
-
-def is_a_number(s):
-    try: float(s); return True
-    except:
-        try: complex(s); return True
-        except: return False
-
-
-def dumbguy_minimize(f, xmin, xmax, xstep):
-    """
-    This just steps x and looks for a peak
-
-    returns x, f(x)
-    """
-
-    prev = f(xmin)
-    this = f(xmin+xstep)
-    for x in frange(xmin+xstep,xmax,xstep):
-        next = f(x+xstep)
-
-        # see if we're on top
-        if this < prev and this < next: return x, this
-
-        prev = this
-        this = next
-
-    return x, this
-
-def find_zero_bisect(f, xmin, xmax, xprecision):
-    """
-    This will bisect the range and zero in on zero.
-    """
-    if f(xmax)*f(xmin) > 0:
-        print "find_zero_bisect(): no zero on the range",xmin,"to",xmax
-        return None
-
-    temp = min(xmin,xmax)
-    xmax = max(xmin,xmax)
-    xmin = temp
-
-    xmid = (xmin+xmax)*0.5
-    while xmax-xmin > xprecision:
-        y = f(xmid)
-
-        # pick the direction with one guy above and one guy below zero
-        if y > 0:
-            # move left or right?
-            if f(xmin) < 0: xmax=xmid
-            else:           xmin=xmid
-
-        # f(xmid) is below zero
-        elif y < 0:
-            # move left or right?
-            if f(xmin) > 0: xmax=xmid
-            else:           xmin=xmid
-
-        # yeah, right
-        else: return xmid
-
-        # bisect again
-        xmid = (xmin+xmax)*0.5
-
-    return xmid
-
-
-def reverse(array):
-    """
-    returns a reversed numpy array
-    """
-    l = list(array)
-    l.reverse()
-    return _n.array(l)
-
-def write_to_file(path, string):
-    file = open(path, 'w')
-    file.write(string)
-    file.close()
-
-def append_to_file(path, string):
-    file = open(path, 'a')
-    file.write(string)
-    file.close()
-
 def read_lines(path):
     f = open(path, 'rU')
     a = f.readlines()
@@ -712,42 +1058,80 @@ def read_lines(path):
 
 
 
-def data_to_file(path, xarray, yarray, delimiter=" ", mode="w"):
-    file = open(path, mode)
-    for n in range(0, len(xarray)):
-        file.write(str(xarray[n]) + delimiter + str(yarray[n]) + '\n')
-    file.close()
+def replace_in_files(search, replace, depth=0, paths="ask", confirm=True):
+    """
+    Does a line-by-line search and replace, but only up to the "depth" line.
+    """
+
+    # have the user select some files
+    if paths=="ask":
+        paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
+    if paths == []: return
+
+    for path in paths:
+        lines = read_lines(path)
+
+        if depth: N=min(len(lines),depth)
+        else:     N=len(lines)
+
+        for n in range(0,N):
+            if lines[n].find(search) >= 0:
+                lines[n] = lines[n].replace(search,replace)
+                print path.split(_os.path.pathsep)[-1]+ ': "'+lines[n]+'"'
+                _wx.Yield()
+
+        # only write if we're not confirming
+        if not confirm:
+            _os.rename(path, path+".backup")
+            write_to_file(path, join(lines, ''))
+
+    if confirm:
+        if raw_input("yes? ")=="yes":
+            replace_in_files(search,replace,depth,paths,False)
+
+    return
+def replace_lines_in_files(search_string, replacement_line):
+    """
+    Finds lines containing the search string and replaces the whole line with
+    the specified replacement string.
+    """
 
 
+    # have the user select some files
+    paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
+    if paths == []: return
 
+    for path in paths:
+        _shutil.copy(path, path+".backup")
+        lines = read_lines(path)
+        for n in range(0,len(lines)):
+            if lines[n].find(search_string) >= 0:
+                print lines[n]
+                lines[n] = replacement_line.strip() + "\n"
+        write_to_file(path, join(lines, ''))
 
+    return
 
+def reverse(array):
+    """
+    returns a reversed numpy array
+    """
+    l = list(array)
+    l.reverse()
+    return _n.array(l)
 
+def save_object(object, path="ask", text="Save this object where?"):
+    if path=="ask": path = _dialogs.Save("*.pickle", text=text)
+    if path == "": return
 
+    if len(path.split(".")) <= 1 or not path.split(".")[-1] == "pickle":
+        path = path + ".pickle"
 
+    object._path = path
 
-def data_from_file(path, delimiter=" "):
-    lines = read_lines(path)
-    x = []
-    y = []
-    for line in lines:
-       s=line.split(delimiter)
-       if len(s) > 1:
-           x.append(float(s[0]))
-           y.append(float(s[1]))
-    return([_n.array(x), _n.array(y)])
-
-
-def join(array_of_strings, delimiter=' '):
-    if array_of_strings == []: return ""
-
-    if delimiter==None: delimiter=' '
-
-    output = str(array_of_strings[0])
-    for n in range(1, len(array_of_strings)):
-        output += delimiter + str(array_of_strings[n])
-    return(output)
-
+    f = open(path, "w")
+    _cPickle.dump(object, f)
+    f.close()
 
 def shift_feature_to_x0(xdata, ydata, x0=0, feature=imax):
     """
@@ -849,173 +1233,6 @@ def submatrix(matrix,i1,i2,j1,j2):
 
 
 
-def avg(array):
-    return(float(sum(array))/float(len(array)))
-
-
-
-
-
-
-
-
-def fit_linear(xdata, ydata):
-    """
-
-    Returns slope and intercept of line of best fit, excluding data
-    outside the range defined by xrange
-
-    """
-    x = xdata
-    y = ydata
-
-    ax  = avg(x)
-    ay  = avg(y)
-    axx = avg(x*x)
-    ayy = avg(y*y)
-    ayx = avg(y*x)
-
-    slope     = (ayx - ay*ax) / (axx - ax*ax)
-    intercept = ay - slope*ax
-
-    return slope, intercept
-
-
-
-
-
-
-def find_two_peaks(data, remove_background=True):
-    """
-
-    Returns two indicies for the two maxima
-
-    """
-
-    y  = _n.array( data            )
-    x  = _n.array( range(0,len(y)) )
-
-    # if we're supposed to, remove the linear background
-    if remove_background:
-        [slope, offset] = fit_linear(x,y)
-        y = y - slope*x
-        y = y - min(y)
-
-    # find the global maximum
-    max1   = max(y)
-    n1     = index(max1, y)
-
-    # now starting at n1, work yourway left and right until you find
-    # the left and right until the data drops below a 1/2 the max.
-    # the first side to do this gives us the 1/2 width.
-    np = n1+1
-    nm = n1-1
-    yp = max1
-    ym = max1
-    width = 0
-    while 0 < np < len(y) and 0 < nm < len(y):
-        yp = y[np]
-        ym = y[nm]
-
-        if yp <= 0.5*max1 or ym <= 0.5*max1:
-            width = np - n1
-            break
-
-        np += 1
-        nm -= 1
-
-
-
-    # if we didn't find it, we pooped out
-    if width == 0:
-        return [n1,-1]
-
-    # this means we have a valid 1/2 width.  Find the other max in the
-    # remaining data
-    n2 = nm
-    while 1 < np < len(y)-1 and 1 < nm < len(y)-1:
-        if y[np] > y[n2]:
-            n2 = np
-        if y[nm] > y[n2]:
-            n2 = nm
-        np += 1
-        nm -= 1
-
-    return([n1,n2])
-
-
-
-
-
-def is_close(x, array, fraction=0.0001):
-    """
-
-    compares x to all of the values in array.  If it's fraction close to
-    any, returns true
-
-    """
-
-    result = False
-    for n in range(0,len(array)):
-        if array[n] == 0:
-            if x == 0:
-                result = True
-        elif abs((x-array[n])/array[n]) < fraction:
-            result = True
-
-    return(result)
-
-
-
-
-
-
-def combine_dictionaries(a, b):
-    """
-    returns the combined dictionary.  a's values preferentially chosen
-    """
-
-    c = {}
-    for key in b.keys(): c[key]=b[key]
-    for key in a.keys(): c[key]=a[key]
-    return c
-
-def decompose_covariance(c):
-    """
-    This decomposes a covariance matrix into an error vector and a correlation matrix
-    """
-
-    # make it a kickass copy of the original
-    c = _n.array(c)
-
-    # first get the error vector
-    e = []
-    for n in range(0, len(c[0])): e.append(_n.sqrt(c[n][n]))
-
-    # now cycle through the matrix, dividing by e[1]*e[2]
-    for n in range(0, len(c[0])):
-        for m in range(0, len(c[0])):
-            c[n][m] = c[n][m] / (e[n]*e[m])
-
-    return [_n.array(e), _n.array(c)]
-
-def assemble_covariance(error, correlation):
-    """
-    This takes an error vector and a correlation matrix and assembles the covariance
-    """
-
-    covariance = []
-    for n in range(0, len(error)):
-        covariance.append([])
-        for m in range(0, len(error)):
-            covariance[n].append(correlation[n][m]*error[n]*error[m])
-    return _n.array(covariance)
-def ubersplit(s, delimiters=['\t','\r',' ']):
-
-    # run through the string, replacing all the delimiters with the first delimiter
-    for d in delimiters: s = s.replace(d, delimiters[0])
-    return s.split(delimiters[0])
-
 def trim_data(xdata, ydata, yerror, xrange):
     """
     Removes all the data except that between min(xrange) and max(xrange)
@@ -1040,228 +1257,13 @@ def trim_data(xdata, ydata, yerror, xrange):
     else: ye = _n.array(ye)
     return [_n.array(x), _n.array(y), ye]
 
-def find_peaks(array, baseline=0.1, return_subarrays=False):
-    """
-    This will try to identify the indices of the peaks in array, returning a list of indices in ascending order.
+def ubersplit(s, delimiters=['\t','\r',' ']):
 
-    Runs along the data set until it jumps above baseline. Then it considers all the subsequent data above the baseline
-    as part of the peak, and records the maximum of this data as one peak value.
-    """
+    # run through the string, replacing all the delimiters with the first delimiter
+    for d in delimiters: s = s.replace(d, delimiters[0])
+    return s.split(delimiters[0])
 
-    peaks = []
-
-    if return_subarrays:
-        subarray_values  = []
-        subarray_indices = []
-
-    # loop over the data
-    n = 0
-    while n < len(array):
-        # see if we're above baseline, then start the "we're in a peak" loop
-        if array[n] > baseline:
-
-            # start keeping track of the subarray here
-            if return_subarrays:
-                subarray_values.append([])
-                subarray_indices.append(n)
-
-            # find the max
-            ymax=baseline
-            nmax = n
-            while n < len(array) and array[n] > baseline:
-                # add this value to the subarray
-                if return_subarrays:
-                    subarray_values[-1].append(array[n])
-
-                if array[n] > ymax:
-                    ymax = array[n]
-                    nmax = n
-
-                n = n+1
-
-            # store the max
-            peaks.append(nmax)
-
-        else: n = n+1
-
-    if return_subarrays: return peaks, subarray_values, subarray_indices
-    else:                return peaks
-
-
-def find_N_peaks(array, N=4, max_iterations=100, rec_max_iterations=3, recursion=1):
-    """
-    This will run the find_peaks algorythm, adjusting the baseline until exactly N peaks are found.
-    """
-
-    if recursion<0: return None
-
-    # get an initial guess as to the baseline
-    ymin = min(array)
-    ymax = max(array)
-
-    for n in range(max_iterations):
-
-        # bisect the range to estimate the baseline
-        y1 = (ymin+ymax)/2.0
-
-        # now see how many peaks this finds. p could have 40 for all we know
-        p, s, i = find_peaks(array, y1, True)
-
-        # now loop over the subarrays and make sure there aren't two peaks in any of them
-        for n in range(len(i)):
-            # search the subarray for two peaks, iterating 3 times (75% selectivity)
-            p2 = find_N_peaks(s[n], 2, rec_max_iterations, rec_max_iterations=rec_max_iterations, recursion=recursion-1)
-
-            # if we found a double-peak
-            if not p2==None:
-                # push these non-duplicate values into the master array
-                for x in p2:
-                    # if this point is not already in p, push it on
-                    if not x in p: p.append(x+i[n]) # don't forget the offset, since subarrays start at 0
-
-
-        # if we nailed it, finish up
-        if len(p) == N: return p
-
-        # if we have too many peaks, we need to increase the baseline
-        if len(p) > N: ymin = y1
-
-        # too few? decrease the baseline
-        else:          ymax = y1
-
-    return None
-
-def _print_figures(figures, arguments=''):
-    """
-    figure printing loop designed to be launched in a separate thread.
-    """
-
-    for fig in figures:
-        # output the figure to postscript
-        postscript_path = _os.path.join(_prefs.temp_dir,"graph.ps")
-        fig.savefig(postscript_path)
-
-        if not arguments == '':
-            c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
-        else:
-            c = _prefs['print_command'] + ' "' + postscript_path + '"'
-
-        _os.system(c)
-
-
-def printer(figure='gcf', arguments='', threaded=True):
-    """
-    Quick function that saves the specified figure as a postscript and then
-    calls the command defined by spinmob.prefs['print_command'] with this
-    postscript file as the argument.
-
-    figure='gcf'    can be 'all', a number, or a list of numbers
-    """
-
-    global _prefs
-
-    if not _prefs.has_key('print_command'):
-        print "No print command setup. Set the user variable prefs['print_command']."
-        return
-
-    if   figure=='gcf': figure=[_pylab.gcf().number]
-    elif figure=='all': figure=_pylab.get_fignums()
-    if not getattr(figure,'__iter__',False): figure = [figure]
-
-    print "figure numbers in queue:", figure
-
-    figures=[]
-    for n in figure: figures.append(_pylab.figure(n))
-
-    # now run the ps printing command
-    if threaded:
-        # launch the aforementioned function as a separate thread
-        print _print_figures, figures, '"'+arguments+'"'
-        _thread.start_new_thread(_print_figures, (figures,arguments,))
-
-        # bring back the figure and command line
-        for fig in figures:
-            _pylab_tweaks.get_figure_window(fig)
-        _pylab_tweaks.get_pyshell()
-
-    else:   _print_figures(figures, arguments)
-
-
-def save_object(object, path="ask", text="Save this object where?"):
-    if path=="ask": path = _dialogs.Save("*.pickle", text=text)
-    if path == "": return
-
-    if len(path.split(".")) <= 1 or not path.split(".")[-1] == "pickle":
-        path = path + ".pickle"
-
-    object._path = path
-
-    f = open(path, "w")
-    _cPickle.dump(object, f)
-    f.close()
-
-def load_object(path="ask", text="Load a pickled object."):
-    if path=="ask": path = _dialogs.SingleFile("*.pickle", text=text)
-    if path == "": return None
-
-    f = open(path, "r")
-    object = _cPickle.load(f)
-    f.close()
-
-    object._path = path
-    return object
-
-def replace_lines_in_files(search_string, replacement_line):
-    """
-    Finds lines containing the search string and replaces the whole line with
-    the specified replacement string.
-    """
-
-
-    # have the user select some files
-    paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
-    if paths == []: return
-
-    for path in paths:
-        _shutil.copy(path, path+".backup")
-        lines = read_lines(path)
-        for n in range(0,len(lines)):
-            if lines[n].find(search_string) >= 0:
-                print lines[n]
-                lines[n] = replacement_line.strip() + "\n"
-        write_to_file(path, join(lines, ''))
-
-    return
-
-def replace_in_files(search, replace, depth=0, paths="ask", confirm=True):
-    """
-    Does a line-by-line search and replace, but only up to the "depth" line.
-    """
-
-    # have the user select some files
-    if paths=="ask":
-        paths = _dialogs.MultipleFiles('DIS AND DAT|*.*')
-    if paths == []: return
-
-    for path in paths:
-        lines = read_lines(path)
-
-        if depth: N=min(len(lines),depth)
-        else:     N=len(lines)
-
-        for n in range(0,N):
-            if lines[n].find(search) >= 0:
-                lines[n] = lines[n].replace(search,replace)
-                print path.split(_os.path.pathsep)[-1]+ ': "'+lines[n]+'"'
-                _wx.Yield()
-
-        # only write if we're not confirming
-        if not confirm:
-            _os.rename(path, path+".backup")
-            write_to_file(path, join(lines, ''))
-
-    if confirm:
-        if raw_input("yes? ")=="yes":
-            replace_in_files(search,replace,depth,paths,False)
-
-    return
+def write_to_file(path, string):
+    file = open(path, 'w')
+    file.write(string)
+    file.close()
