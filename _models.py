@@ -6,7 +6,7 @@ from matplotlib.font_manager import FontProperties as _FontProperties
 import spinmob as _s
 import _dialogs
 
-_tweaks = _s.plot.tweaks
+_st = _s.plot.tweaks
 
 import _functions as _fun
 import wx as _wx
@@ -81,7 +81,7 @@ class model_base:
         model and ydata, scaled by the error
         """
 
-        # evaluate the function for all the data
+        # evaluate the function for all the data, returns a list!
         f = self.evaluate(p,xdatas)
 
         # get the full residuals list
@@ -156,7 +156,7 @@ class model_base:
             if value in ['x','y']:
                 # get the click
                 print "Please click somewhere to get the "+value+" value."
-                _tweaks.raise_figure_window()
+                _st.raise_figure_window()
                 click = _pylab.ginput()
 
                 # use the click value.
@@ -169,7 +169,7 @@ class model_base:
             elif value in ['dx', 'dy', 'slope']:
                 # get two clicks
                 print "Please click twice to use the "+value+" value."
-                _tweaks.raise_figure_window()
+                _st.raise_figure_window()
                 clicks = _pylab.ginput(2)
 
                 # make sure we got two clicks
@@ -255,7 +255,7 @@ class model_base:
                             "guess"             : None,
                             "save_file"         : True,
                             "file_tag"          : 'fit_',
-                            "figure"            : 1,
+                            "figure"            : 0,
                             "autofit"           : False,
                             "fullsave"          : False,
                             }
@@ -266,16 +266,26 @@ class model_base:
             if not k in settings.keys():
                 settings[k] = default_settings[k]
 
+        # determine the number of parallel fits from the yscript
+        if _s.fun.is_iterable(settings['yscript']): number_of_fits = len(settings['yscript'])
+        else:                                       number_of_fits = 1
+
         # In general we're going to have a list of datas and scripts etc, so make
         # sure we're in a position to do this.
         if not _s.fun.is_iterable(data): data = [data]
 
-        # make sure the various settings are iterable in the correct way, too
+        # fill out the arrays so they match the number of fits
+        while len(data) < number_of_fits: data.append(data[-1])
+
+        # make sure the various settings are lists too
         for k in iterable_settings:
+
+            # make them all iterable
             if not _s.fun.is_iterable(settings[k]):
-                value       = settings[k]
-                settings[k] = []
-                for i in range(len(data)): settings[k].append(value)
+                settings[k] = [settings[k]]
+
+            # make sure they're all the right length
+            while len(settings[k]) < number_of_fits: settings[k].append(settings[k][-1])
 
         # Initialize the fit_parameters (we haven't any yet!)
         fit_parameters = None
@@ -288,6 +298,7 @@ class model_base:
         for n in range(len(data)):
             figs.append(_pylab.figure(settings["figure"]+n))
             figs[n].clear()
+            _st.format_figure(figs[n],tall=True)
             axes2s.append(_pylab.subplot(211))
             axes1s.append(_pylab.subplot(212, sharex=axes2s[n]))
             axes2s[n].set_position([0.15, 0.78, 0.70, 0.13])
@@ -350,8 +361,10 @@ class model_base:
                 else:
                     self.write_to_p0(settings['guess'])
 
-                print "\n  FUNCTION:", self.function_string
-                print "  GUESS:"
+                print "\n  FUNCTION:"
+                for s in self.function_string:
+                    print "    "+s
+                print "\n  GUESS:"
                 for n in range(len(self.pnames)):
                     print "    "+self.pnames[n]+" = "+str(self.p0[n])
                 print
@@ -392,7 +405,7 @@ class model_base:
 
                     # grab all the information from fit_output
                     fit_covariance = fit_output[1]
-                    fit_reduced_chi_squared = sum(self.residuals_variance(fit_parameters,xs,ys,eys))
+                    fit_reduced_chi_squared = list(self.residuals_variance(fit_parameters,xs,ys,eys))
                     if fit_covariance is not None:
                         # get the error vector and correlation matrix from (scaled) covariance
                         [fit_errors, fit_correlation] = _fun.decompose_covariance(fit_covariance)
@@ -404,8 +417,10 @@ class model_base:
                     print "  reduced chi^2 is now", fit_reduced_chi_squared
 
                     # print the parameters
-                    print "\n  FUNCTION:", self.function_string
-                    print "  FIT:"
+                    print "\n  FUNCTION:"
+                    for s in self.function_string:
+                        print "    "+s
+                    print "\n  FIT:"
                     for n in range(0,len(self.pnames)): print "    "+self.pnames[n]+" =", fit_parameters[n], "+/-", fit_errors[n]
                     print
 
@@ -426,7 +441,6 @@ class model_base:
                         y_plot  = ys[n]
                         ey_plot = eys[n]
 
-
                     # now plot everything
 
                     # set up the axes
@@ -437,25 +451,25 @@ class model_base:
                     axes2.clear()
 
                     # by default, the thing to subtract is 0.
-                    thing_to_subtract = 0.0
+                    thing_to_subtract = y_plot*0.0
 
                     # get the fit data if we're supposed to so we can know the thing to subtract
                     if not fit_parameters==None:
                         # get the fit and fit background for plotting (so we can subtract it!)
-                        y_fit            = self.evaluate(fit_parameters, x_plot)
-                        y_fit_background = self.background(fit_parameters, x_plot)
-                        if settings["subtract"]: thing_to_subtract = y_fit_background
+                        y_fit            = self.evaluate  (fit_parameters, x_plot, n)
+                        y_fit_background = self.background(fit_parameters, x_plot, n)
+                        if settings["subtract"][n]: thing_to_subtract = y_fit_background
 
                     # plot the guess
                     if settings["show_guess"][n]:
-                        y_guess = self.evaluate(self.p0, x_plot)
+                        y_guess = self.evaluate(self.p0, x_plot)[n]
                         axes1.plot(x_plot, y_guess-thing_to_subtract, color='gray', label='guess')
                         if settings["show_background"]:
                             y_guess_background = self.background(self.p0, x_plot)
                             axes1.plot(x_plot, y_guess_background-thing_to_subtract, color='gray', linestyle='--', label='guess background')
 
                     # Plot the data
-                    if settings["show_error"][n]: # and not fit_parameters==None:
+                    if settings["show_error"][n]:
                         axes1.errorbar(x_plot, y_plot-thing_to_subtract, ey_plot, linestyle='', marker='D', mfc='blue', mec='w', ecolor='b', label='data')
                     else:
                         axes1.plot(    x_plot, y_plot-thing_to_subtract,              linestyle='', marker='D', mfc='blue', mec='w', label='data')
@@ -468,13 +482,13 @@ class model_base:
 
                         # plot the residuals in the upper graph
                         axes2.errorbar(x_plot, (y_plot-y_fit)/ey_plot, ey_plot*0.0+1.0, linestyle='',  marker='o', mfc='blue', mec='w', ecolor='b')
-                        axes2.plot    (x_plot, 0*x_plot,                                        linestyle='-', color='k')
+                        axes2.plot    (x_plot, 0*x_plot,                                linestyle='-', color='k')
 
                     # come up with a title
                     title1 = data[n].path
 
                     # second line of the title is the model
-                    title2 = "eyscript="+str(settings["eyscript"][n])+", model:"+str(self.__class__).split()[0][0:] + ", " + str(self.function_string)
+                    title2 = "eyscript="+str(settings["eyscript"][n])+", model: " + str(self.function_string[n])
 
                     # third line is the fit parameters
                     title3 = ""
@@ -482,7 +496,8 @@ class model_base:
                         t = []
                         for i in range(0,len(self.pnames)):
                             t.append(self.pnames[i]+"=%.4g+/-%.2g" % (fit_parameters[i], fit_errors[i]))
-                        title3 = title3+_fun.join(t,", ")
+                        title3 = title3+_fun.join(t[0:4],", ")
+                        if len(t)>3: title3 = title3+'\n'+_fun.join(t[4:],", ")
                     else:
                         title3 = title3+"(no fit performed)"
 
@@ -502,12 +517,15 @@ class model_base:
                     axes2.title.set_size(8)
                     axes2.title.set_position([1.0,1.010])
 
-                _tweaks.auto_zoom(axes1)
-                _pylab.draw()
+                    _pylab.figure(axes1.get_figure().number)
+                    _st.auto_zoom(axes1)
+                    _pylab.draw()
+                    _wx.Yield()
 
-            _tweaks.raise_figure_window()
+
+            _st.raise_figure_window()
             _wx.Yield()
-            _tweaks.raise_pyshell()
+            _st.raise_pyshell()
 
             # the only way we optimize is if we hit enter.
             if settings["autofit"]: settings["skip"] = False
@@ -593,35 +611,35 @@ class model_base:
                 # print all the header elements of the current databox
                 # and have the user choose as many as they want.
                 print "\n\nChoose which header elements to include as columns in the summary file:"
-                for n in range(len(d.hkeys)):
-                    print "  "+str(n)+": "+str(d.hkeys[n])
+                for n in range(len(data[0].hkeys)):
+                    print "  "+str(n)+": "+str(data[0].hkeys[n])
 
                 # get a list of numbers from the user
                 key_list = raw_input("pick headers by number: ").split(',')
-                try:
-                    # get the list of keys.
-                    self.output_columns = []
-                    for n in key_list: self.output_columns.append(datas[0].hkeys[int(n.strip())])
+                #try:
+                # get the list of keys.
+                self.output_columns = []
+                for n in key_list: self.output_columns.append(data[0].hkeys[int(n.strip())])
 
-                    # now have the user select a file
-                    self.output_path = _dialogs.Save()
-                    if not self.output_path==None:
-                        # write the column names
-                        f = open(self.output_path, 'w')
-                        f.write('function_string\t'+self.function_string+
-                                '\nmodel\t'+str(self.__class__)+
-                                '\nxscript\t'+str(settings["xscript"])+
-                                '\nyscript\t'+str(settings["yscript"])+
-                                '\neyscript\t'+str(settings["eyscript"])+'\n\n')
-                        for k in self.output_columns: f.write(k+'\t')
-                        for n in self.pnames: f.write(n+'\t'+n+'_error\t')
-                        f.write('reduced_chi_squared\n')
-                        f.close()
+                # now have the user select a file
+                self.output_path = _dialogs.Save()
+                if not self.output_path==None:
+                    # write the column names
+                    f = open(self.output_path, 'w')
+                    f.write('function_string\t'+str(self.function_string)+
+                            '\nmodel\t'+str(self.__class__)+
+                            '\nxscript\t'+str(settings["xscript"])+
+                            '\nyscript\t'+str(settings["yscript"])+
+                            '\neyscript\t'+str(settings["eyscript"])+'\n\n')
+                    for k in self.output_columns: f.write(k+'\t')
+                    for n in self.pnames: f.write(n+'\t'+n+'_error\t')
+                    f.write('reduced_chi_squared\n')
+                    f.close()
 
                     # all set. It will now start appending to this file.
 
-                except:
-                    print "\nOOPS. OOPS."
+                #except:
+                #    print "\nOOPS. OOPS."
 
             elif command.lower() in ['y', 'yes','u','use']:
 
@@ -632,7 +650,7 @@ class model_base:
                     if settings['save_file']:
 
                         # write the fit results to the header
-                        for d in datas:
+                        for d in data:
                             # If this is a good fit. Add relevant information to the header then save
                             d.insert_header("fit_model", str(self.__class__).split()[0][0:])
                             d.insert_header("fit_function", str(self.function_string))
@@ -766,6 +784,16 @@ class curve(model_base):
         to the examples given in spinmob.models
         """
 
+        # make sure we have lists
+        if not _s.fun.is_iterable(f) : f  = [f]
+        if not _s.fun.is_iterable(bg): bg = [bg]
+
+        # make sure the background has as many elements as the function list
+        if not len(f)==len(bg):
+            x  = bg[0]
+            bg = list(f)
+            for n in range(len(bg)): bg[n]=x
+
         # start by parsing the p string. This is the same for both f's
         p_split = p.split(',')
 
@@ -786,31 +814,52 @@ class curve(model_base):
         # store the globals
         self.globs = globs
 
-        # now do different things depending on the type of function
-        if type(f)==str:
-            # get the function strings
-            self.function_string                = f
-            if bg==None: self.background_string = f
-            else:        self.background_string = bg
+        self.f  = []
+        self.bg = []
+        self.function_string   = []
+        self.background_string = []
 
-            # override the function and background
-            args = 'x,'+_fun.join(self.pnames,',')
-            self.f  = eval('lambda ' + args + ': '+self.function_string,   self.globs)
-            self.bg = eval('lambda ' + args + ': '+self.background_string, self.globs)
+        # loop over the supplied list of functions
+        for n in range(len(f)):
 
-        else:
-            if bg==None: bg = f
-            self.function_string   =  f.__name__ +"(x, "+p+")"
-            self.background_string = bg.__name__ +"(x, "+p+")"
+            # now do different things depending on the type of function
+            if type(f[n])==str:
+                # get the function strings
+                self.function_string.append(f[n])
+                if bg[n]==None: self.background_string.append(f[n])
+                else:           self.background_string.append(bg[n])
 
-            # override the function and background
-            self.f  = f
-            self.bg = bg
+                # override the function and background
+                args = 'x,'+_fun.join(self.pnames,',')
+                self.f.append( eval('lambda ' + args + ': ' +   self.function_string[n], self.globs))
+                self.bg.append(eval('lambda ' + args + ': ' + self.background_string[n], self.globs))
+
+            else:
+                if bg[n]==None: bg[n] = f[n]
+                self.function_string.append(   f[n].__name__ +"(x, "+p+")")
+                self.background_string.append(bg[n].__name__ +"(x, "+p+")")
+
+                # override the function and background
+                self.f.append(f[n])
+                self.bg.append(bg[n])
 
 
     # override the evaluate and background functions used by the base class.
-    def evaluate  (self, p, x): return self.f (x, *p)
-    def background(self, p, x): return self.bg(x, *p)
+    def evaluate  (self, p, x, n=None):
+        if n==None:
+            results = []
+            for n in range(len(self.f)):
+                results.append(self.f[n](x[n],*p))
+        else: results = self.f[n](x,*p)
+        return results
+
+    def background(self, p, x, n=None):
+        if n==None:
+            results = []
+            for n in range(len(self.bg)):
+                results.append(self.bg[n](x[n],*p))
+        else: results = self.bg[n](x,*p)
+        return results
 
     # You can override this if you want the guess to be something fancier.
     def guess(self, xdata, ydata, xbi1=0, xbi2=-1):
