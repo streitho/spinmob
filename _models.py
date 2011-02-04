@@ -298,7 +298,6 @@ class model_base:
         for n in range(len(data)):
             figs.append(_pylab.figure(settings["figure"]+n))
             figs[n].clear()
-            _st.format_figure(figs[n],tall=True)
             axes2s.append(_pylab.subplot(211))
             axes1s.append(_pylab.subplot(212, sharex=axes2s[n]))
             axes2s[n].set_position([0.15, 0.78, 0.70, 0.13])
@@ -312,7 +311,7 @@ class model_base:
             if hold_plot:
                 hold_plot=False
             else:
-                if settings["skip"]: print "Plotting but not optimizing..."
+                if settings["skip"]: print "Plotting but not optimizing... (<enter> to fit)"
                 else:                print "Beginning fit routine..."
 
                 # assemble all the data
@@ -541,8 +540,8 @@ class model_base:
             # If last command is None, this is the first time. Parse the initial
             # command but don't ask for one.
             if command == "":
-                if len(settings['min'])==1: print "min=" + str(settings['min'][0]) + ", max="+str(settings['max'][0])
-                else                      : print "min=" + str(settings['min'])    + ", max="+str(settings['max'])
+                if len(settings['min'])==1: print "min=" + str(settings['min'][0]) + "\nmax="+str(settings['max'][0])
+                else                      : print "min=" + str(settings['min'])    + "\nmax="+str(settings['max'])
 
                 if settings["autofit"]:
                     if fit_parameters==None:    command = ""
@@ -600,12 +599,12 @@ class model_base:
                     settings['max'].append(a.get_xlim()[1])
 
             elif command.lower() in ['zo', 'zoomout']:
-                x0 = settings['min']
-                x1 = settings['max']
+                x0 = _n.array(settings['min'])
+                x1 = _n.array(settings['max'])
                 xc = 0.5*(x0+x1)
                 xs = x1-x0
-                settings['min'] = xc-xs
-                settings['max'] = xc+xs
+                settings['min'] = list(xc-xs)
+                settings['max'] = list(xc+xs)
 
             elif command.lower() in ['o', 'output']:
                 # print all the header elements of the current databox
@@ -683,7 +682,7 @@ class model_base:
                                 f.write(str(d.h(k))+'\t')
                             for n in range(len(fit_parameters)):
                                 f.write(str(fit_parameters[n])+'\t'+str(fit_errors[n])+'\t')
-                            f.write(str(fit_reduced_chi_squared)+'\n')
+                            f.write(str(sum(fit_reduced_chi_squared)/len(fit_reduced_chi_squared))+'\n')
                             f.close()
 
 
