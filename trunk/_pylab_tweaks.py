@@ -1199,8 +1199,8 @@ def yscale(scale='log'):
     _pylab.yscale(scale)
     _pylab.draw()
 
-def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontsize=20, fontweight='bold', fontname='Arial',
-             borderwidth=3, tickwidth=2, ticks_point="out", xlabel_pad=0.018, ylabel_pad=0.013, window_size=[550,550]):
+def ubertidy(figure="gcf", zoom=True, width=None, height=None, fontsize=15, fontweight='normal', fontname='Arial',
+             borderwidth=1.5, tickwidth=1, ticks_point="in", xlabel_pad=0.018, ylabel_pad=0.013, window_size=[550,550]):
     """
 
     This guy performs the ubertidy from the helper on the first window.
@@ -1214,56 +1214,61 @@ def ubertidy(figure="gcf", zoom=True, width=1, height=1, fontsize=20, fontweight
     # first set the size of the window
     f.canvas.Parent.SetSize(window_size)
 
-    # get the axes
-    a = f.axes[0]
+    for n in range(len(f.axes)):
+        # get the axes
+        a = f.axes[n]
 
-    # now loop over all the data and get the range
-    lines = a.get_lines()
+        # set the current axes
+        _pylab.axes(a)
 
-    # we want thick axis lines
-    a.spines['top'].set_linewidth(borderwidth)
-    a.spines['left'].set_linewidth(borderwidth)
-    a.spines['bottom'].set_linewidth(borderwidth)
-    a.spines['right'].set_linewidth(borderwidth)
+        # now loop over all the data and get the range
+        lines = a.get_lines()
 
-    # get the tick lines in one big list
-    xticklines = a.get_xticklines()
-    yticklines = a.get_yticklines()
+        # we want thick axis lines
+        a.spines['top'].set_linewidth(borderwidth)
+        a.spines['left'].set_linewidth(borderwidth)
+        a.spines['bottom'].set_linewidth(borderwidth)
+        a.spines['right'].set_linewidth(borderwidth)
 
-    # set their marker edge width
-    _pylab.setp(xticklines+yticklines, mew=tickwidth)
+        # get the tick lines in one big list
+        xticklines = a.get_xticklines()
+        yticklines = a.get_yticklines()
+
+        # set their marker edge width
+        _pylab.setp(xticklines+yticklines, mew=tickwidth)
 
 
-    # set what kind of tickline they are (outside axes)
-    if ticks_point=="out":
-        for l in xticklines: l.set_marker(_mpl.lines.TICKDOWN)
-        for l in yticklines: l.set_marker(_mpl.lines.TICKLEFT)
+        # set what kind of tickline they are (outside axes)
+        if ticks_point=="out":
+            for l in xticklines: l.set_marker(_mpl.lines.TICKDOWN)
+            for l in yticklines: l.set_marker(_mpl.lines.TICKLEFT)
 
-    # get rid of the top and right ticks
-    a.xaxis.tick_bottom()
-    a.yaxis.tick_left()
+        # get rid of the top and right ticks
+        a.xaxis.tick_bottom()
+        a.yaxis.tick_left()
 
-    # we want bold fonts
-    _pylab.xticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
-    _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
+        # we want bold fonts
+        _pylab.xticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
+        _pylab.yticks(fontsize=fontsize, fontweight=fontweight, fontname=fontname)
 
-    # we want to give the labels some breathing room (1% of the data range)
-    for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
-    for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
+        # we want to give the labels some breathing room (1% of the data range)
+        for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
+        for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
 
-    # set the position/size of the axis in the window
-    a.set_position([0.15,0.17,0.15+width*0.4,0.17+height*0.5])
+        # set the position/size of the axis in the window
+        if (not width==None and not height==None):
+            a.set_position([0.15,0.17,0.15+width*0.4,0.17+height*0.5])
 
-    # set the axis labels to empty (so we can add them with a drawing program)
-    a.set_title('')
-    a.set_xlabel('')
-    a.set_ylabel('')
+        # set the axis labels to empty (so we can add them with a drawing program)
+        a.set_title('')
+        a.set_xlabel('')
+        a.set_ylabel('')
 
-    # kill the legend
-    a.legend_ = None
+        # kill the legend
+        a.legend_ = None
 
-    # zoom!
-    if zoom: auto_zoom(a)
+        # zoom!
+        if zoom: auto_zoom(axes=a)
 
 def make_inset(figure="current", width=1, height=1):
     """
