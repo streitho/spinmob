@@ -615,30 +615,30 @@ class model_base:
 
                 # get a list of numbers from the user
                 key_list = raw_input("pick headers by number: ").split(',')
-                #try:
-                # get the list of keys.
-                self.output_columns = []
-                for n in key_list: self.output_columns.append(data[0].hkeys[int(n.strip())])
+                try:
+                    # get the list of keys.
+                    self.output_columns = []
+                    for n in key_list: self.output_columns.append(data[0].hkeys[int(n.strip())])
 
-                # now have the user select a file
-                self.output_path = _dialogs.Save()
-                if not self.output_path==None:
-                    # write the column names
-                    f = open(self.output_path, 'w')
-                    f.write('function_string\t'+str(self.function_string)+
-                            '\nmodel\t'+str(self.__class__)+
-                            '\nxscript\t'+str(settings["xscript"])+
-                            '\nyscript\t'+str(settings["yscript"])+
-                            '\neyscript\t'+str(settings["eyscript"])+'\n\n')
-                    for k in self.output_columns: f.write(k+'\t')
-                    for n in self.pnames: f.write(n+'\t'+n+'_error\t')
-                    f.write('reduced_chi_squared\n')
-                    f.close()
+                    # now have the user select a file
+                    self.output_path = _dialogs.Save()
+                    if not self.output_path==None:
+                        # write the column names
+                        f = open(self.output_path, 'w')
+                        f.write('function_string\t'+str(self.function_string)+
+                                '\nmodel\t'+str(self.__class__)+
+                                '\nxscript\t'+str(settings["xscript"])+
+                                '\nyscript\t'+str(settings["yscript"])+
+                                '\neyscript\t'+str(settings["eyscript"])+'\n\n')
+                        for k in self.output_columns: f.write(k+'\t')
+                        for n in self.pnames: f.write(n+'\t'+n+'_error\t')
+                        f.write('reduced_chi_squared\n')
+                        f.close()
 
-                    # all set. It will now start appending to this file.
+                        # all set. It will now start appending to this file.
 
-                #except:
-                #    print "\nOOPS. OOPS."
+                except:
+                    print "\nOops! Aborting."
 
             elif command.lower() in ['y', 'yes','u','use']:
 
