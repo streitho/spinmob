@@ -1200,7 +1200,7 @@ def yscale(scale='log'):
     _pylab.draw()
 
 def ubertidy(figure="gcf", zoom=True, width=None, height=None, fontsize=15, fontweight='normal', fontname='Arial',
-             borderwidth=1.5, tickwidth=1, ticks_point="in", xlabel_pad=0.018, ylabel_pad=0.013, window_size=[550,550]):
+             borderwidth=1.5, tickwidth=1, ticks_point="in", xlabel_pad=0.013, ylabel_pad=0.010, window_size=[550,550]):
     """
 
     This guy performs the ubertidy from the helper on the first window.
@@ -1256,8 +1256,10 @@ def ubertidy(figure="gcf", zoom=True, width=None, height=None, fontsize=15, font
         for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
 
         # set the position/size of the axis in the window
-        if (not width==None and not height==None):
-            a.set_position([0.15,0.17,0.15+width*0.4,0.17+height*0.5])
+        p = a.get_position().bounds
+        if width:  a.set_position([0.15,p[1],0.15+width*0.5,p[3]])
+        p = a.get_position().bounds
+        if height: a.set_position([p[0],0.17,p[2],0.17+height*0.5])
 
         # set the axis labels to empty (so we can add them with a drawing program)
         a.set_title('')
