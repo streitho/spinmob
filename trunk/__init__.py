@@ -5,13 +5,14 @@
 import wx as _wx
 
 # setup matplotlib and wx so it works well with pyshell/pycrust
-try:
+#try:
     # first see if we've loaded pylab. If we have, we've already done this.
-    _pylab
-except:
+#    pylab
+#except:
     # pylab is not around. Set the backend!
-    import matplotlib as _mpl
-    _mpl.use('wxAgg') # set the backend (must do this first)
+#    import matplotlib as _mpl
+#    _mpl.use('wxAgg') # set the backend (must do this first)
+
 
 import pylab
 pylab.ion()          # turn on interactive mode
@@ -20,12 +21,9 @@ from pylab import gca, gcf, figure, axes, draw, subplot
 import scipy
 import numpy
 
-
 # now get the global application
 _app = _wx.GetApp()
-if _app == None: app = _wx.App()
-
-
+if _app == None: _app = _wx.PySimpleApp()
 
 #############################
 # Spinmob stuff
@@ -35,15 +33,14 @@ if _app == None: app = _wx.App()
 import _prefs
 prefs = _prefs.Prefs()
 
-import _functions as fun               ;fun._prefs               = prefs
-import _plotting as plot               ;plot._prefs              = prefs
-import _dialogs as dialogs             ;dialogs._prefs           = prefs
-import _models as models               ;models.prefs             = prefs
+import _dialogs as dialogs             ;dialogs._prefs            = prefs
+import _functions as fun               ;fun._prefs                = prefs
+import _pylab_colorslider              ;_pylab_colorslider._prefs = prefs
+import _plotting as plot               ;plot._prefs               = prefs
+import _models as models               ;models._prefs             = prefs
 import _constants as constants
-import _pylab_colorslider              ;_pylab_colorslider.prefs = prefs
-import _fitting as fit                 ;_fitting._prefs          = prefs
-
-import _data as data                   ;data._prefs              = prefs
+import _fitting as fit                 ;fit._prefs                = prefs
+import _data as data                   ;data._prefs               = prefs
 data._data_types._prefs = prefs
 
 # pull some of the common functions to the top

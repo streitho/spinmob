@@ -1,26 +1,24 @@
 #############################################################
 # various functions that I like to use
 import numpy                        as _n
-import matplotlib                   as _matplotlib
 import pylab                        as _pylab
 import cPickle                      as _cPickle
 import os                           as _os
 import thread                       as _thread
-import time
 import shutil                       as _shutil
 import wx                           as _wx
 
 from scipy.integrate import quad
-from scipy.integrate import inf
 
 import _dialogs                    ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_pylab_tweaks)
 
+
 # Functions from other libraries
 average = _n.average
 
-
-
+try:    _prefs
+except: _prefs = None
 
 def _print_figures(figures, arguments=''):
     """

@@ -148,7 +148,7 @@ def click_estimate_difference():
 def close_sliders():
 
     # get the list of open windows
-    w = _wx.GetApp().GetTopWindow().GetChildren()
+    w = _wx.GetTopLevelWindows()
 
     # loop over them and close all the type colorsliderframe's
     for x in w:
@@ -1221,9 +1221,6 @@ def ubertidy(figure="gcf", zoom=True, width=None, height=None, fontsize=15, font
         # set the current axes
         _pylab.axes(a)
 
-        # now loop over all the data and get the range
-        lines = a.get_lines()
-
         # we want thick axis lines
         a.spines['top'].set_linewidth(borderwidth)
         a.spines['left'].set_linewidth(borderwidth)
@@ -1288,9 +1285,6 @@ def make_inset(figure="current", width=1, height=1):
 
     # first set the size of the window
     w.SetSize([220,300])
-
-    # now loop over all the data and get the range
-    lines = figure.axes[0].get_lines()
 
     # we want thick axis lines
     figure.axes[0].get_frame().set_linewidth(3.0)
@@ -1398,7 +1392,7 @@ def save_raw_data(axes="gca", trace=0):
 
 
     # choose a path to save to
-    path = _dialog.Save("*.*", default_directory="save_plot_default_directory")
+    path = _dialogs.Save("*.*", default_directory="save_plot_default_directory")
 
     if path=="":
         print "your path sucks."
@@ -1418,7 +1412,7 @@ def save_raw_data(axes="gca", trace=0):
 
 def load_plot(clear=1, offset=0, axes="gca"):
     # choose a path to load the file from
-    path = _dialog.SingleFile("*.*", default_directory="save_plot_default_directory")
+    path = _dialogs.SingleFile("*.*", default_directory="save_plot_default_directory")
 
     if path=="": return
 
@@ -1520,8 +1514,6 @@ def get_pyshell():
     # starting from the top, grab ALL the wx windows available
     w = _wx.GetTopLevelWindows()
 
-    # find all the windows that are pyshells
-    plot_windows = []
     for x in w:
         if type(x) == _wx.py.shell.ShellFrame: return x
 
@@ -1542,7 +1534,7 @@ def modify_legend(axes="gca"):
 
     # loop over the lines
     for line in lines:
-        if isinstance(lines[n], _mpl.lines.Line2D):
+        if isinstance(line, _mpl.lines.Line2D):
 
             # highlight the line
             fatten_line(line)

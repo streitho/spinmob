@@ -1,6 +1,10 @@
 import os as _os
 
-from _functions import read_lines
+def read_lines(path):
+    f = open(path, 'rU')
+    a = f.readlines()
+    f.close()
+    return(a)
 
 
 class Prefs():

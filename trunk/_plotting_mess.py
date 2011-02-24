@@ -1,13 +1,7 @@
 import os           as _os
-import glob         as _glob
-import wx           as _wx
-import thread       as _thread
 import pylab        as _pylab
 import numpy        as _numpy
-import matplotlib   as _mpl
 import itertools    as _itertools
-
-from matplotlib.font_manager import FontProperties as _FontProperties
 
 import _functions as _fun
 import _data
@@ -438,7 +432,7 @@ def zgrid(Z, xmin=0, xmax=1, ymin=0, ymax=1, plot="image", **kwargs):
 
     fig = _pylab.gcf()
     fig.clear()
-    axes = _pylab.axes()
+    _pylab.axes()
 
     # generate the 3d axes
     X = _numpy.linspace(xmin,xmax,len(Z))
