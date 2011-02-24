@@ -6,8 +6,8 @@ import matplotlib as _matplotlib
 import pylab as _pylab
 import _pylab_colorslider_frame as _pcf; reload(_pcf)
 
-import os as _os
-
+try:    _prefs
+except: _prefs = None
 
 modules ={u'pylab_colorslider_frame': [1,
                               'Main frame of Application',
@@ -15,7 +15,7 @@ modules ={u'pylab_colorslider_frame': [1,
 
 class BoaApp(wx.App):
     def OnInit(self):
-        self.main = pylab_colorslider_frame.create(None)
+        self.main = _pcf.create(None)
         self.main.Show()
         self.SetTopWindow(self.main)
         return True
@@ -165,7 +165,7 @@ class GuiColorMap:
     def LoadColorMap(self, name="default"):
         # open the file "[spinmobpath]/colormaps/whatever.txt"
         try:
-            f = open(prefs.colormaps_dir + prefs.path_delimiter + name + ".txt", "r")
+            f = open(_prefs.colormaps_dir + _prefs.path_delimiter + name + ".txt", "r")
             lines = f.readlines()
             f.close()
 
@@ -184,7 +184,7 @@ class GuiColorMap:
 
         # use the hard-coded default
         except:
-            print "Could not load "+prefs.colormaps_dir + prefs.path_delimiter + name + ".txt"
+            print "Could not load "+_prefs.colormaps_dir + _prefs.path_delimiter + name + ".txt"
             self.colorpoints = [ColorPoint(self, 0.0, 255, 255, 255, 255, 255, 255),
                          ColorPoint(self, 0.5, 0,   0,   255, 0,   0,   255),
                          ColorPoint(self, 1.0, 255, 0,   0,   255, 0,   0)]
@@ -195,7 +195,7 @@ class GuiColorMap:
     def SaveColorMap(self, name="_last"):
 
         try:
-            f = open(prefs.colormaps_dir + prefs.path_delimiter + name + ".txt", "w")
+            f = open(_prefs.colormaps_dir + _prefs.path_delimiter + name + ".txt", "w")
 
             # loop over the color points
             for c in self.colorpoints:
@@ -276,18 +276,25 @@ class GuiColorMap:
         """
         This will show the n'th slider at the specified screen position
         """
-        if position == "auto":
+        try:
+            if position == "auto":
             # get the figure position and size
-            p = self.image.figure.canvas.Parent.GetPosition()
-            w = self.image.figure.canvas.Parent.GetSize()[0]
-            if n==len(self.colorpoints)-1:
-                position = [p[0]+w, p[1]+40*(len(self.colorpoints)-n-1)]
-            else:
-                position = [p[0]+w+3, p[1]+65+35*(len(self.colorpoints)-n-2)]
+                p = self.image.figure.canvas.Parent.GetPosition()
+                w = self.image.figure.canvas.Parent.GetSize()[0]
+            
+                if n==len(self.colorpoints)-1:
+                    position = [p[0]+w, p[1]+40*(len(self.colorpoints)-n-1)]
+                else:
+                    position = [p[0]+w+3, p[1]+65+35*(len(self.colorpoints)-n-2)]
+            
+        except:
+                print "Can't position slider relative to anything but a wxAgg plot."
 
-        # otherwise we better send it [x,y]
-
+        if not hasattr(position, '__iter__'): position = [0,0]
+        
         self.colorpoints[n].ShowSlider(position)
+
+        
 
     def HideSlider(self, n):
         self.colorpoints[n].HideSlider()

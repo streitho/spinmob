@@ -2,6 +2,8 @@
 import _pylab_colorslider as _pc
 import wx
 
+from spinmob import _app
+
 def create(parent):
     return ColorSliderFrame(parent)
 
@@ -19,8 +21,8 @@ class ColorSliderFrame(wx.Frame):
     # object needs gui modification, get modified, and then get destroyed once
     # things are edited to the user's liking
 
-    dialog  = wx.ColourDialog(wx.GetApp().GetTopWindow())
-    dialog2 = wx.ColourDialog(wx.GetApp().GetTopWindow())
+    dialog  = wx.ColourDialog(_app.GetTopWindow())
+    dialog2 = wx.ColourDialog(_app.GetTopWindow())
     daddy   = None
 
     def _init_utils(self):
