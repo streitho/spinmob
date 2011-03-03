@@ -5,13 +5,12 @@
 import wx as _wx
 
 # setup matplotlib and wx so it works well with pyshell/pycrust
-#try:
-    # first see if we've loaded pylab. If we have, we've already done this.
-#    pylab
-#except:
-    # pylab is not around. Set the backend!
-#    import matplotlib as _mpl
-#    _mpl.use('wxAgg') # set the backend (must do this first)
+try:
+    import matplotlib as _mpl
+    _mpl.use('wxAgg') # set the backend (must do this first)
+
+except:
+    print "Note: wxAgg was not set as the backend, meaning some wx-specific functions may not work."
 
 
 import pylab
