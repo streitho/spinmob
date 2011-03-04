@@ -461,10 +461,10 @@ class model_base:
 
                     # plot the guess
                     if settings["show_guess"][n]:
-                        y_guess = self.evaluate(self.p0, x_plot)[n]
+                        y_guess = self.evaluate(self.p0, x_plot, n)
                         axes1.plot(x_plot, y_guess-thing_to_subtract, color='gray', label='guess')
                         if settings["show_background"]:
-                            y_guess_background = self.background(self.p0, x_plot)
+                            y_guess_background = self.background(self.p0, x_plot, n)
                             axes1.plot(x_plot, y_guess_background-thing_to_subtract, color='gray', linestyle='--', label='guess background')
 
                     # Plot the data

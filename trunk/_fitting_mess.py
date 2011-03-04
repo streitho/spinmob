@@ -1,10 +1,7 @@
-import numpy as _numpy
 import pylab as _pylab
 import matplotlib as _mpl
 import spinmob as _s
 
-from matplotlib.font_manager import FontProperties as _FontProperties
-from scipy import optimize as _optimize
 
 import _functions as _fun           ; reload(_fun)
 import _pylab_tweaks as _tweaks     ; reload(_tweaks)
@@ -80,7 +77,7 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
         if result.has_key('settings'): settings = result['settings']
 
     # clean up
-    settings = {}
+    del settings
 
 
 def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, axes="gca", **kwargs):
@@ -104,8 +101,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
 
     # get the output axes
     fn0 = axes.figure.number
-    fig = _pylab.figure(fn0+1)
-
+    
     # create the data object for fitting
     d = _s.data.standard(xlabel,ylabel,None)
 
@@ -143,7 +139,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
             if result.has_key('settings'): settings = result['settings']
 
     # clean up
-    settings = {}
+    del settings
     _pylab.figure(fn0)
 
 
