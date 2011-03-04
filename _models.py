@@ -1,5 +1,7 @@
 import os
 import scipy as _scipy
+import scipy.optimize    # don't listen to spyder. 
+
 import numpy as _n
 import pylab as _pylab
 from matplotlib.font_manager import FontProperties as _FontProperties
@@ -10,7 +12,6 @@ _st = _s.plot.tweaks
 
 import _functions as _fun
 import wx as _wx
-
 
 
 
