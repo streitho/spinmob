@@ -599,7 +599,16 @@ class model_base:
                     settings['min'].append(a.get_xlim()[0])
                     settings['max'].append(a.get_xlim()[1])
 
-            elif command.lower() in ['zo', 'zoomout']:
+            elif command.lower() in ['zo', 'zoomout']:                
+                # if we haven't set the min and max yet, use the axes bounds.                
+                if not settings['min']: 
+                    settings['min'] = []                    
+                    for a in axes1s: settings['min'].append(a.get_xlim()[0])
+                    
+                if not settings['max']:
+                    settings['max'] = []
+                    for a in axes1s: settings['max'].append(a.get_xlim()[1])
+                                    
                 x0 = _n.array(settings['min'])
                 x1 = _n.array(settings['max'])
                 xc = 0.5*(x0+x1)
