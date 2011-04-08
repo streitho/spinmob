@@ -102,7 +102,7 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
     paths='ask'                     list of full paths to data files (or we'll
                                     ask for a list)
 
-    **kwargs are sent to data.databox().plot()
+    **kwargs are sent to plot_data() aka xy()
 
     """
 
