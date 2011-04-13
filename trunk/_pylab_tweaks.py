@@ -25,7 +25,7 @@ def add_text(text, x=0.01, y=0.01, axes="gca", draw=True, **kwargs):
     axes.text(x, y, text, transform=axes.transAxes, **kwargs)
     if draw: _pylab.draw()
 
-def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
+def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04, draw=True):
     if axes=="gca": axes = _pylab.gca()
 
     a = axes
@@ -72,7 +72,7 @@ def auto_zoom(zoomx=1, zoomy=1, axes="gca", x_space=0.04, y_space=0.04):
         if zoomx: a.set_xlim(xmin-x_space*(xmax-xmin), xmax+x_space*(xmax-xmin))
         if zoomy: a.set_ylim(ymin-y_space*(ymax-ymin), ymax+y_space*(ymax-ymin))
 
-        _pylab.draw()
+        if draw: _pylab.draw()
 
     else:
         return
@@ -196,7 +196,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, autozoom=True, vertical_reshape=True):
+def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=True, vertical_reshape=True, draw=True):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -231,8 +231,12 @@ def format_figure(figure='gcf', tall=False, autozoom=True, vertical_reshape=True
         if vertical_reshape:
             y  = 0.1
             dy = 0.8
+            
+        if horizontal_reshape:
+            x = 0.13
+            dx = 0.55
 
-        axes.set_position([0.13,y,0.59,dy])
+        axes.set_position([x,y,dx,dy])
 
         # set the position of the legend
         _pylab.axes(axes) # set the current axes
@@ -253,12 +257,13 @@ def format_figure(figure='gcf', tall=False, autozoom=True, vertical_reshape=True
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
 
-        if autozoom and not len(axes.lines)==0: auto_zoom(axes)
+        if autozoom and not len(axes.lines)==0: auto_zoom(axes,draw=draw)
 
     # get the shell window
-    shell_window = get_pyshell()
-    figure_window.Raise()
-    shell_window.Raise()
+    if draw:
+        shell_window = get_pyshell()
+        figure_window.Raise()
+        shell_window.Raise()
 
 def impose_legend_limit(limit=30, axes="gca", **kwargs):
     """
@@ -1519,6 +1524,12 @@ def get_pyshell():
 
     return False
 
+def get_pyshell_command(n=0):
+    """
+    Returns a string of the n'th previous pyshell command.
+    """
+    if n: return get_pyshell().shell.history[n-1]
+    else: return get_pyshell().shell.GetText().split('\r\n>>> ')[-1].split('\r\n')[0].strip()
 
 def raise_figure_window(figure='gcf'):
     get_figure_window(figure).Raise()
