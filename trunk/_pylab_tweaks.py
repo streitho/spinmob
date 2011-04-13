@@ -1529,7 +1529,7 @@ def get_pyshell_command(n=0):
     Returns a string of the n'th previous pyshell command.
     """
     if n: return get_pyshell().shell.history[n-1]
-    else: return get_pyshell().shell.GetText().split('\r\n>>> ')[-1].split('\r\n')[0].strip()
+    else: return get_pyshell().shell.GetText().split('\n>>> ')[-1].split('\n')[0].strip()
 
 def raise_figure_window(figure='gcf'):
     get_figure_window(figure).Raise()
