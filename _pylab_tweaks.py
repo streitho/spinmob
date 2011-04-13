@@ -1533,6 +1533,7 @@ def get_pyshell_command(n=0):
 
 def raise_figure_window(figure='gcf'):
     get_figure_window(figure).Raise()
+
 def raise_pyshell():
     get_pyshell().Raise()
 
