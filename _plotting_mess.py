@@ -59,7 +59,7 @@ def files_xy(xscript=0, yscript=1, eyscript=None, exscript=None, paths='ask', **
 
 
 
-def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, lscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, autoformat=True, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", draw=1, debug=0, **kwargs):
+def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, lscript=None, yshift=0.0, yshift_every=1, xscale='linear', yscale='linear', axes="gca", clear=2, yaxis='left', xlabel=None, ylabel=None, legend_max="auto", paths="ask", draw=1, debug=0, **kwargs):
     """
 
     This loops over the supplied databoxes and plots them. Databoxes can either
@@ -83,13 +83,6 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
                                     clear=1: only clear existing plots on axes
                                     clear=0: do not clear first
 
-    autoformat=True                 autoformat the figure after plotting
-                                    NOTE: clear is set to 1 (if it's 2) and
-                                    autoformat is set to False if you specify
-                                    axes! Usually you don't want to clear the
-                                    figure or use the auto_format() feature in
-                                    this case.
-
     yaxis='left'                    if 'right', this will make an overlay axis
                                     on the right (also doesn't clear)
 
@@ -109,6 +102,8 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
     if databoxes == None: return
     if not type(databoxes) in [list]: databoxes = [databoxes]
 
+    if not kwargs.has_key('autoformat'): kwargs['autoformat'] = True
+
     # get the figure
     f = _pylab.gcf()
 
@@ -119,7 +114,6 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
         a = _pylab.gca()
     else:
         a = axes
-        autoformat=False
 
     if yaxis=='right':  a = _pylab.twinx()
 
@@ -217,11 +211,9 @@ def databoxes_xy(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
     if not ylabel==None: a.set_ylabel(ylabel)
 
     # leave it unformatted unless the user tells us to autoformat
-    a.title.set_visible(0)
-
-    if autoformat:
-        if yshift: _pt.format_figure(f, tall=True)
-        else:      _pt.format_figure(f, tall=False)
+    if kwargs['autoformat']:
+        if yshift: kwargs['tall']=True
+        else:      kwargs['tall']=False
 
     if draw: _pylab.draw()
     _pt.get_figure_window()
@@ -323,7 +315,7 @@ def real_imag(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ila
     _pylab.draw()
 
 
-def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, **kwargs):
+def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
     """
     Plots specified data.
 
@@ -332,6 +324,8 @@ def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x
     style               style cycle object.
     xlabel, ylabel      axes labels
     title               axes title
+    pyshell_history=1   how many commands from the pyshell history to include 
+                        above the title
     clear=1             1=clear the axes first
                         2=clear the figure
     axes="gca"          which axes to use, or "gca" for the current axes
@@ -341,6 +335,8 @@ def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x
     legend='best'       where to place the legend (see pylab.legend())
                         Set this to None to ignore the legend.
     grid=False          Should we draw a grid on the axes?
+    autoformat=True     Should we format the figure for printing?
+    tall=False          Should the format be tall?
     """
 
     # if the first element is not a list, make it a list
@@ -376,8 +372,18 @@ def xy(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x
     if legend: axes.legend(loc=legend)
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
+    
+    # add the commands to the title
+    if title in [None, False, 0]: title = ''
+    title = str(title)
+    if pyshell_history:
+        for n in range(pyshell_history): 
+            if not title == '': title = _pt.get_pyshell_command(n) + "\n" + title
+            else:               title = _pt.get_pyshell_command(n)
     axes.set_title(title)
     if grid: _pylab.grid(True)
+
+    if autoformat: _pt.format_figure(tall=tall, draw=draw, vertical_reshape=False)
 
     # update the canvas
     if draw: _pylab.draw()
