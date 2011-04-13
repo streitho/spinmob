@@ -176,8 +176,11 @@ def differentiate_shown_data(neighbors=1, fyname=1, **kwargs):
 def integrate_shown_data(scale=1, fyname=1, autozero=0, **kwargs):
     """
     Numerically integrates the data visible on the current/specified axes using
-    xscale*fun.integrate_data(x,y). Modifies the visible data using
+    scale*fun.integrate_data(x,y). Modifies the visible data using
     manipulate_shown_data(**kwargs)
+    
+    autozero is the number of data points used to estimate the background
+    for subtraction. If autozero = 0, no background subtraction is performed.    
     """
 
     def I(x,y):
@@ -668,7 +671,8 @@ def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fynam
     if fyname in [0,None]:  a2.set_ylabel(a1.get_ylabel())
     else:                   a2.set_ylabel(fyname+"[ "+a1.get_ylabel()+" ]")
 
-    a2.title = a1.title
+    if not kwargs.has_key('title'): 
+        a2.title.set_text(get_pyshell_command() + "\n" + a1.title.get_text())
 
     _pylab.draw()
 
@@ -1528,8 +1532,8 @@ def get_pyshell_command(n=0):
     """
     Returns a string of the n'th previous pyshell command.
     """
-    if n: return get_pyshell().shell.history[n-1]
-    else: return get_pyshell().shell.GetText().split('\n>>> ')[-1].split('\n')[0].strip()
+    if n: return str(get_pyshell().shell.history[n-1])
+    else: return str(get_pyshell().shell.GetText().split('\n>>> ')[-1].split('\n')[0].strip())
 
 def raise_figure_window(figure='gcf'):
     get_figure_window(figure).Raise()

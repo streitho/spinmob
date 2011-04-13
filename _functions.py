@@ -799,8 +799,8 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     (then subtracted before integrating).
     """
 
+    # sort the arrays and make sure they're numpy arrays
     [xdata, ydata] = sort_matrix([xdata,ydata],0)
-
     xdata = _n.array(xdata)
     ydata = _n.array(ydata)
 
@@ -815,8 +815,8 @@ def integrate_data(xdata, ydata, xmin=None, xmax=None, autozero=0):
     yint = [0]
 
     # get the autozero
-    if autozero > 0:
-        zero = _n.average(ydata[imin:imin+autozero])
+    if autozero >= 1:
+        zero = _n.average(ydata[imin:imin+int(autozero)])
         ydata = ydata-zero
 
     for n in range(imin+1,imax):
