@@ -41,7 +41,7 @@ def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Sele
 
     datas = []
     for path in paths:
-        datas.append(load(path, first_data_line, **kwargs))
+        if _os.path.isfile(path): datas.append(load(path, first_data_line, **kwargs))
 
     return datas
 
