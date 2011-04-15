@@ -390,7 +390,7 @@ class model_base:
                         print "  initial reduced chi^2 =", list(rms**2)
                         print "  scaling errors by", list(rms), "and re-optimizing..."
                         for n in range(len(eys)):
-                            eys[n]     = rms[n]  * eys[n]
+                            eys[n]     = rms[n] * eys[n]
                             eydatas[n] = rms[n] * eydatas[n]
 
                         # optimize with new improved errors, using the old fit to start
