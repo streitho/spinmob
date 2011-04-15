@@ -35,7 +35,7 @@ prefs = _prefs.Prefs()
 import _dialogs as dialogs             ;dialogs._prefs            = prefs
 import _functions as fun               ;fun._prefs                = prefs
 import _pylab_colorslider              ;_pylab_colorslider._prefs = prefs
-import _plotting as plot               ;plot._prefs               = prefs
+import _plot as plot                   ;plot._prefs               = prefs
 import _models as models               ;models._prefs             = prefs
 import _constants as constants
 import _fitting as fit                 ;fit._prefs                = prefs

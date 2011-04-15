@@ -8,7 +8,7 @@ from matplotlib.font_manager import FontProperties as _FontProperties
 import _dialogs
 import _functions as _fun
 import _pylab_colorslider as _pc
-import _plotting
+import _plot
 
 
 line_attributes = ["linestyle","linewidth","color","marker","markersize","markerfacecolor","markeredgewidth","markeredgecolor"]
@@ -658,7 +658,7 @@ def manipulate_shown_data(f, input_axes="gca", output_axes=None, fxname=1, fynam
             x, y = line.get_data()
             x, y, e = _fun.trim_data(x,y,None,[xmin,xmax])
             new_x, new_y = f(x,y)
-            _plotting.data(new_x,new_y, clear=0, label=line.get_label(), draw=pause, **kwargs)
+            _plot.xy.data(new_x,new_y, clear=0, label=line.get_label(), draw=pause, **kwargs)
             if pause:
                 format_figure()
                 raise_pyshell()
