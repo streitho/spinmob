@@ -504,12 +504,20 @@ class standard:
         self.extra_globals.update(g)
         g = {}
 
-        # get the expression and variables
-        [expression, v] = self._parse_script(script)
-        if v == None:
-            return None
+        # if it's not a list of scripts
+        if not _fun.is_iterable(script):
+            # get the expression and variables
+            [expression, v] = self._parse_script(script)
+            if v == None: 
+                return None    
+            return eval(expression, v)
+        
+        # otherwise make a list
+        output = []
+        for s in script: output.append(self.execute_script(s))
 
-        return eval(expression, v)
+        return output
+
 
     # Define this so you can quickly call a script
     __call__ = execute_script
