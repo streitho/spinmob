@@ -258,7 +258,11 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
         xdata = [xdata]
         ydata = [ydata]
-        if label: label = [label]
+        
+    if not label in [type([]), type(_numpy.array([]))]:
+        l = []
+        for x in xdata: l.append(label)
+        label = l
 
     # clear the figure?
     if clear==2: _pylab.gcf().clear()
@@ -390,7 +394,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
 
         # get the databox
         data = databoxes[m]
-
+        
         # get the label for the line
         if lscript==None:
             if len(data.path):  label = _os.path.split(data.path)[-1]
@@ -409,7 +413,8 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
 
             # get the data
             xdata = data(xscript)
-            ydata = data(yscript) + (m/yshift_every)*yshift
+            if yshift:   ydata = data(yscript) + (m/yshift_every)*yshift
+            else:        ydata = data(yscript)
             if eyscript: eydata = data(eyscript)
             else:        eydata = None
             if exscript: exdata = data(exscript)
