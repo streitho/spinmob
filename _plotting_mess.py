@@ -255,13 +255,16 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     """
 
     # if the first element is not a list, make it a list
-    if not type(xdata[0]) in [type([]), type(_numpy.array([]))]:
+    if not _fun.is_iterable(xdata[0]):
         xdata = [xdata]
         ydata = [ydata]
-        
-    if not label in [type([]), type(_numpy.array([]))]:
+        if label: label = [label]
+
+    if not _fun.is_iterable(label): label = [label]
+
+    if not len(label) == len(xdata):
         l = []
-        for x in xdata: l.append(label)
+        for x in xdata: l.append(label[0])
         label = l
 
     # clear the figure?
@@ -280,7 +283,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
 
     # now loop over the list of data in xdata and ydata
     for n in range(0,len(xdata)):
-        if label: l = label[n]
+        if label: l = str(label[n])
         else:     l = str(n)
 
         if not style==None: kwargs.update(style.next())
