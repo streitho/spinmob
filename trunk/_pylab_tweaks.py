@@ -1099,21 +1099,27 @@ def smooth_all_traces(smoothing=1, trim=True, axes="gca"):
             smooth_line(line, smoothing, trim, draw=False)
     _pylab.draw()
 
-def coarsen_all_traces(coarsen=1, axes="gca"):
+def coarsen_all_traces(coarsen=1, axes="all", figure=None):
     """
 
     This function does nearest-neighbor smoothing of the data
 
     """
     if axes=="gca": axes=_pylab.gca()
+    if axes=="all":
+        if not figure: f = _pylab.gcf()
+        axes = f.axes
+        
+    if not _fun.is_iterable(axes): axes = [axes]
 
-    # get the lines from the plot
-    lines = axes.get_lines()
-
-    # loop over the lines and trim the data
-    for line in lines:
-        if isinstance(line, _mpl.lines.Line2D):
-            coarsen_line(line, coarsen, draw=False)
+    for a in axes:    
+        # get the lines from the plot
+        lines = a.get_lines()
+    
+        # loop over the lines and trim the data
+        for line in lines:
+            if isinstance(line, _mpl.lines.Line2D):
+                coarsen_line(line, coarsen, draw=False)
     _pylab.draw()
 
 def line_math(fx=None, fy=None, axes='gca'):
