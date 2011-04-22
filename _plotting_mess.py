@@ -230,7 +230,7 @@ def realimag_data(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real',
     _pylab.draw()
 
 
-def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=1, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
+def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=2, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
     """
     Plots specified data.
 
