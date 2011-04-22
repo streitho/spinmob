@@ -550,8 +550,13 @@ class model_base:
                 else:
                     command = raw_input("-------> ").strip()
 
+            clower = command.lower().strip()
+            
             # first check and make sure the command isn't one of the simple ones
-            if command.lower() in ['h', 'help']:
+            if clower in ['']:
+                settings["skip"] = False
+
+            elif clower in ['h', 'help']:
                 print
                 print "COMMANDS"
                 print "  <enter>    Run the fit or do more iterations."
@@ -563,7 +568,9 @@ class model_base:
                 print "  u          Same as 'y' but use fit as the next guess."
                 print "  y          Yes, this is a good fit. Move on."
                 print "  z          Use current zoom to set xmin and xmax."
+                print "  zN         Use current zoom from N'th figure (e.g. z3)."
                 print "  zo         Zoom out xrange by a factor of 2."
+                print "  zoN        Zoom out the N'th figure."
                 print
                 print "SETTINGS"
 
@@ -585,38 +592,14 @@ class model_base:
                 hold_plot=True
                 continue
 
-            elif command.lower() in ['q', 'quit', 'exit']:
+            elif clower in ['q', 'quit', 'exit']:
                 return {'command':'q'}
 
-            elif command.lower() in ['g', 'guess']:
+            elif clower in ['g', 'guess']:
                 settings['guess'] = None
                 settings['show_guess'] = True
 
-            elif command.lower() in ['zo', 'zoomout']:                
-                # if we haven't set the min and max yet, use the axes bounds.                
-                if not settings['min']: 
-                    settings['min'] = []                    
-                    for a in axes1s: settings['min'].append(a.get_xlim()[0])
-                    
-                if not settings['max']:
-                    settings['max'] = []
-                    for a in axes1s: settings['max'].append(a.get_xlim()[1])
-                                    
-                x0 = _n.array(settings['min'])
-                x1 = _n.array(settings['max'])
-                xc = 0.5*(x0+x1)
-                xs = x1-x0
-                settings['min'] = list(xc-xs)
-                settings['max'] = list(xc+xs)
-
-            elif command.lower() in ['z', 'zoom']:
-                settings['min'] = []
-                settings['max'] = []
-                for a in axes1s:
-                    settings['min'].append(a.get_xlim()[0])
-                    settings['max'].append(a.get_xlim()[1])
-
-            elif command.lower() in ['o', 'output']:
+            elif clower in ['o', 'output']:
                 # print all the header elements of the current databox
                 # and have the user choose as many as they want.
                 print "\n\nChoose which header elements to include as columns in the summary file:"
@@ -650,7 +633,7 @@ class model_base:
                 except:
                     print "\nOops! Aborting."
 
-            elif command.lower() in ['y', 'yes','u','use']:
+            elif clower in ['y', 'yes','u','use']:
 
                 if fit_parameters==None or fit_errors==None:
                     print "\nERROR: Cannot say a fit is good with no fit!"
@@ -703,20 +686,63 @@ class model_base:
                                     "fit_reduced_chi_squared"   :fit_reduced_chi_squared,
                                     "fit_covariance"            :fit_covariance,
                                     "settings"                  :settings}
-                    if command.lower() in ['u', 'use']:
+                    if clower in ['u', 'use']:
                         return_value['command'] = 'u'
                         return_value['settings']['guess'] = fit_parameters
                     return return_value
 
-            elif command.lower() in ['n', 'no', 'next']:
+            elif clower in ['n', 'no', 'next']:
                 return {'command':'n'}
 
-            elif command.lower() in ['p', 'print']:
+            elif clower in ['p', 'print']:
                 _s.printer()
                 hold_plot = True
 
-            elif command.lower() in ['']:
-                settings["skip"] = False
+            elif clower in ['zo', 'zoomout']:                
+                # if we haven't set the min and max yet, use the axes bounds.                
+                if not settings['min']: 
+                    settings['min'] = []                    
+                    for a in axes1s: settings['min'].append(a.get_xlim()[0])
+                    
+                if not settings['max']:
+                    settings['max'] = []
+                    for a in axes1s: settings['max'].append(a.get_xlim()[1])
+                                    
+                x0 = _n.array(settings['min'])
+                x1 = _n.array(settings['max'])
+                xc = 0.5*(x0+x1)
+                xs = x1-x0
+                settings['min'] = list(xc-xs)
+                settings['max'] = list(xc+xs)
+
+            elif clower in ['z', 'zoom']:
+                settings['min'] = []
+                settings['max'] = []
+                for a in axes1s:
+                    settings['min'].append(a.get_xlim()[0])
+                    settings['max'].append(a.get_xlim()[1])
+
+            elif clower[0] == "z" and len(clower.split('=')) == 1:
+                try:
+                    if clower[1] == 'o':    
+                        n = int(clower[2:].strip()) - settings['figure']
+                        
+                        print "Zooming out figure", n+settings['figure']
+                        x0, x1 = axes1s[n].get_xlim()
+                        xc = 0.5*(x0+x1)
+                        xs = x1-x0
+                        settings['min'][n] = xc-xs
+                        settings['max'][n] = xc+xs
+                    else:    
+                        
+                        n = int(clower[1:].strip()) - settings['figure']                        
+
+                        print "Zooming figure", n+settings['figure']                                                
+                        settings['min'][n] = axes1s[n].get_xlim()[0]
+                        settings['max'][n] = axes1s[n].get_xlim()[1]
+                        
+                except:
+                    print "ERROR: could not zoom according to the specified figure"
 
             else:
                 # now parse it (it has the form "min=2; max=4; plot_all=True")
