@@ -592,13 +592,6 @@ class model_base:
                 settings['guess'] = None
                 settings['show_guess'] = True
 
-            elif command.lower() in ['z', 'zoom']:
-                settings['min'] = []
-                settings['max'] = []
-                for a in axes1s:
-                    settings['min'].append(a.get_xlim()[0])
-                    settings['max'].append(a.get_xlim()[1])
-
             elif command.lower() in ['zo', 'zoomout']:                
                 # if we haven't set the min and max yet, use the axes bounds.                
                 if not settings['min']: 
@@ -615,6 +608,13 @@ class model_base:
                 xs = x1-x0
                 settings['min'] = list(xc-xs)
                 settings['max'] = list(xc+xs)
+
+            elif command.lower() in ['z', 'zoom']:
+                settings['min'] = []
+                settings['max'] = []
+                for a in axes1s:
+                    settings['min'].append(a.get_xlim()[0])
+                    settings['max'].append(a.get_xlim()[1])
 
             elif command.lower() in ['o', 'output']:
                 # print all the header elements of the current databox
