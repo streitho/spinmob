@@ -241,7 +241,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     title               axes title
     pyshell_history=1   how many commands from the pyshell history to include 
                         above the title
-    clear=1             1=clear the axes first
+    clear=2             1=clear the axes first
                         2=clear the figure
     axes="gca"          which axes to use, or "gca" for the current axes
     draw=1              whether or not to draw the plot after plotting
