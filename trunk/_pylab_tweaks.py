@@ -199,7 +199,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=True, vertical_reshape=True, draw=True):
+def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=True, vertical_reshape=False, draw=True):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
