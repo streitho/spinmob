@@ -336,7 +336,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
         axes = _pylab.twinx()
 
     # set the current axes    
-    _pylab.sca(axes)
+    _pylab.axes(axes)
 
     # now loop over the list of data in xdata and ydata
     for n in range(0,len(xdata)):
