@@ -283,7 +283,7 @@ def realimag_data(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real',
     _pylab.draw()
 
 
-def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=2, axes="gca", draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
+def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=True, axes=None, draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
     """
     Plots specified data.
 
@@ -294,8 +294,9 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     title               axes title
     pyshell_history=1   how many commands from the pyshell history to include 
                         above the title
-    clear=2             1=clear the axes first
-                        2=clear the figure
+    axes=None           axes to use. Set axes='gca' to use the current axes.
+    clear=True          if no axes are specified, clear the figure, otherwise
+                        clear just the axes.
     axes="gca"          which axes to use, or "gca" for the current axes
     draw=1              whether or not to draw the plot after plotting
     xscale,yscale       'linear' by default. Set either to 'log' for log axes
@@ -321,7 +322,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
         label = l
 
     # clear the figure?
-    if clear==2: _pylab.gcf().clear()
+    if clear and not axes: _pylab.gcf().clear()
 
     # setup axes
     if axes=="gca":     axes = _pylab.gca()
@@ -334,8 +335,8 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     if yaxis=='right':
         axes = _pylab.twinx()
 
-    # set the current axes
-    _pylab.axes(axes)
+    # set the current axes    
+    _pylab.sca(axes)
 
     # now loop over the list of data in xdata and ydata
     for n in range(0,len(xdata)):
