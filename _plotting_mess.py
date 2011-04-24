@@ -177,7 +177,7 @@ def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False
 
 
 
-def magphase_data(xdata, ydata, xscale='linear', mscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
+def magphase_data(xdata, ydata, xscale='linear', mscale='linear', pscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
 
@@ -185,6 +185,7 @@ def magphase_data(xdata, ydata, xscale='linear', mscale='linear', mlabel='Magnit
     ydata               complex data
     xscale='linear'     'log' or 'linear'
     mscale='linear'     'log' or 'linear' (only applies to the magnitude graph)
+    pscale='linear'     'log' or 'linear' (only applies to the phase graph)
     mlabel='Magnitude'  y-axis label for magnitude plot
     plabel='Phase'      y-axis label for phase plot
     phase='degrees'     'degrees' or 'radians'
@@ -226,28 +227,24 @@ def magphase_data(xdata, ydata, xscale='linear', mscale='linear', mlabel='Magnit
     if not kwargs.has_key('draw'): kwargs['draw'] = False
 
     kwargs['xlabel'] = ''
-    xy_data(xdata, m, ylabel=mlabel, axes=axes1, clear=0, **kwargs)
+    xy_data(xdata, m, ylabel=mlabel, axes=axes1, clear=0, xscale=xscale, yscale=mscale, **kwargs)
 
     kwargs['xlabel'] = xlabel
-    kwargs['title']  = ''
-    xy_data(xdata, p, ylabel=plabel, axes=axes2, clear=0, **kwargs)
-
-    axes1.set_xscale(xscale)
-    axes2.set_xscale(xscale)
-    axes1.set_yscale(mscale)
+    xy_data(xdata, p, ylabel=plabel, axes=axes2, clear=0, xscale=xscale, yscale=pscale, **kwargs)
 
     axes2.set_title('')
     _pt.auto_zoom(axes=axes1)
     _pylab.draw()
 
-def realimag_data(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ilabel='Imaginary', figure='gcf', clear=1, **kwargs):
+def realimag_data(xdata, ydata, xscale='linear', rscale='linear', iscale='linear', rlabel='Real', ilabel='Imaginary', figure='gcf', clear=1, **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
 
     xdata               real-valued x-axis data
     ydata               complex data
-    xscale='log'        'log' or 'linear'
-    yscale='log'        'log' or 'linear' (only applies to the magnitude graph)
+    xscale='linear'     'log' or 'linear'
+    rscale='linear'     'log' or 'linear' for the real yscale
+    iscale='linear'     'log' or 'linear' for the imaginary yscale
     rlabel='Real'       y-axis label for magnitude plot
     ilabel='Imaginary'  y-axis label for phase plot
     figure='gcf'        figure instance
@@ -271,16 +268,63 @@ def realimag_data(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real',
 
 
     kwargs['xlabel'] = ''
-    xy_data(xdata, rdata, ylabel=rlabel, axes=axes1, clear=0, **kwargs)
+    xy_data(xdata, rdata, ylabel=rlabel, axes=axes1, clear=0, xscale=xscale, yscale=rscale, **kwargs)
 
     kwargs['xlabel'] = xlabel
-    kwargs['title']  = ''
-    xy_data(xdata, idata, ylabel=ilabel, axes=axes2, clear=0, **kwargs)
+    xy_data(xdata, idata, ylabel=ilabel, axes=axes2, clear=0, xscale=xscale, yscale=iscale, **kwargs)
 
-    axes1.set_xscale(xscale)
-    axes2.set_xscale(xscale)
-    axes1.set_yscale(yscale)
+    axes2.set_title('')
     _pylab.draw()
+
+def realimag_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+    """
+
+    Plots the function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to plot.data()
+
+    """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: r = _fun.erange(xmin, xmax, steps)
+    else:      r = _numpy.linspace(xmin, xmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(f) in [type([]), type(())]: f = [f]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in f:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        x = []
+        y = []
+        for z in r:
+            x.append(z)
+            y.append(a(z))
+
+        xdatas.append(x)
+        ydatas.append(y)
+        labels.append(a.__name__)
+
+    # plot!
+    return realimag_data(xdatas, ydatas, label=labels, **kwargs)
 
 
 def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlabel="x", ylabel="y", title='', pyshell_history=1, clear=True, axes=None, draw=1, xscale='linear', yscale='linear', yaxis='left', legend='best', grid=False, autoformat=True, tall=False, **kwargs):
