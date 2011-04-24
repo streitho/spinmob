@@ -125,16 +125,66 @@ def magphase_files(xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
 
     return magphase_databoxes(ds, xscript=xscript, yscript=yscript, **kwargs)
 
+def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+    """
+
+    Plots the function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to plot.data()
+
+    """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: r = _fun.erange(xmin, xmax, steps)
+    else:      r = _numpy.linspace(xmin, xmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(f) in [type([]), type(())]: f = [f]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in f:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        x = []
+        y = []
+        for z in r:
+            x.append(z)
+            y.append(a(z))
+
+        xdatas.append(x)
+        ydatas.append(y)
+        labels.append(a.__name__)
+
+    # plot!
+    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
 
 
-def magphase_data(xdata, ydata, xscale='linear', yscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
+
+def magphase_data(xdata, ydata, xscale='linear', mscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
 
     xdata               real-valued x-axis data
     ydata               complex data
     xscale='linear'     'log' or 'linear'
-    yscale='linear'     'log' or 'linear' (only applies to the magnitude graph)
+    mscale='linear'     'log' or 'linear' (only applies to the magnitude graph)
     mlabel='Magnitude'  y-axis label for magnitude plot
     plabel='Phase'      y-axis label for phase plot
     phase='degrees'     'degrees' or 'radians'
@@ -184,7 +234,10 @@ def magphase_data(xdata, ydata, xscale='linear', yscale='linear', mlabel='Magnit
 
     axes1.set_xscale(xscale)
     axes2.set_xscale(xscale)
-    axes1.set_yscale(yscale)
+    axes1.set_yscale(mscale)
+
+    axes2.set_title('')
+    _pt.auto_zoom(axes=axes1)
     _pylab.draw()
 
 def realimag_data(xdata, ydata, xscale='linear', yscale='linear', rlabel='Real', ilabel='Imaginary', figure='gcf', clear=1, **kwargs):
@@ -280,6 +333,9 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     # if yaxis is 'right' set up the twinx()
     if yaxis=='right':
         axes = _pylab.twinx()
+
+    # set the current axes
+    _pylab.axes(axes)
 
     # now loop over the list of data in xdata and ydata
     for n in range(0,len(xdata)):
@@ -512,6 +568,58 @@ def xy_files(xscript=0, yscript=1, eyscript=None, exscript=None, paths='ask', **
     return databoxes
 
 
+def xy_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+    """
+
+    Plots the function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to plot.data()
+
+    """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: r = _fun.erange(xmin, xmax, steps)
+    else:      r = _numpy.linspace(xmin, xmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(f) in [type([]), type(())]: f = [f]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in f:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        x = []
+        y = []
+        for z in r:
+            x.append(z)
+            y.append(a(z))
+
+        xdatas.append(x)
+        ydatas.append(y)
+        labels.append(a.__name__)
+
+    # plot!
+    return xy_data(xdatas, ydatas, label=labels, **kwargs)
+
+
+
 def image_data(X, Y, Z, plot="image", **kwargs):
     """
     Generates an image or 3d plot
@@ -618,56 +726,6 @@ def image_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, 
     # now plot!
     return image_data(x,y,zgrid,plot,**kwargs)
 
-
-def xy_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
-    """
-
-    Plots the function over the specified range
-
-    f                   function or list of functions to plot; can be string functions
-    xmin, xmax, steps   range over which to plot, and how many points to plot
-    p                   if using strings for functions, p is the parameter name
-    g                   optional dictionary of extra globals. Try g=globals()!
-    erange              Use exponential spacing of the x data?
-
-    **kwargs are sent to plot.data()
-
-    """
-
-    if not g: g = {}
-    for k in globals().keys():
-        if not g.has_key(k): g[k] = globals()[k]
-
-    # if the x-axis is a log scale, use erange
-    if erange: r = _fun.erange(xmin, xmax, steps)
-    else:      r = _numpy.linspace(xmin, xmax, steps)
-
-    # make sure it's a list so we can loop over it
-    if not type(f) in [type([]), type(())]: f = [f]
-
-    # loop over the list of functions
-    xdatas = []
-    ydatas = []
-    labels = []
-    for fs in f:
-        if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, g)
-            a.__name__ = fs
-        else:
-            a = fs
-
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(a(z))
-
-        xdatas.append(x)
-        ydatas.append(y)
-        labels.append(a.__name__)
-
-    # plot!
-    return xy_data(xdatas, ydatas, label=labels, **kwargs)
 
 
 
