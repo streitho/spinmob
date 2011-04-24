@@ -54,7 +54,7 @@ def complex_databoxes(ds, script='c(1)+1j*c(2)', **kwargs):
     ds        list of databoxes
     script    comlex script
     
-    **kwargs are sent to spinmob.plot.xy.complex_data()    
+    **kwargs are sent to spinmob.plot.complex.data()    
     """
     
     datas  = []
@@ -71,7 +71,7 @@ def complex_files(script='c(1)+1j*c(2)', **kwargs):
     """
     Loads and plots complex data in the real-imaginary plane.
     
-    **kwargs are sent to harrisgroup.plot.complex_databoxes()    
+    **kwargs are sent to spinmob.plot.complex.databoxes()    
     """
     
     ds = _s.data.load_multiple()
@@ -82,99 +82,6 @@ def complex_files(script='c(1)+1j*c(2)', **kwargs):
         kwargs['title']=_os.path.split(ds[0].path)[0]
 
     return complex_databoxes(ds, script=script, **kwargs)
-
-
-
-
-def magphase_databoxes(ds, xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
-    """
-    Use script to generate data and send to harrisgroup.plot.complex_data()    
-    
-    ds        list of databoxes
-    script    comlex script
-    
-    **kwargs are sent to harrisgroup.plot.complex_data()    
-    """
-    
-    xdatas = []
-    ydatas = []
-    labels = []
-    
-    for d in ds: 
-        xdatas.append(d(xscript))
-        ydatas.append(d(yscript))
-        labels.append(_os.path.split(d.path)[-1])
-    
-    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
-
-
-
-def magphase_files(xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
-    """
-    Loads and plots complex data in the real-imaginary plane.
-    
-    **kwargs are sent to harrisgroup.plot.complex_databoxes()    
-    """
-    
-    ds = _s.data.load_multiple()
-
-    if len(ds) == 0: return
-    
-    if not kwargs.has_key('title'): 
-        kwargs['title']=_os.path.split(ds[0].path)[0]
-
-    return magphase_databoxes(ds, xscript=xscript, yscript=yscript, **kwargs)
-
-def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
-    """
-
-    Plots the function over the specified range
-
-    f                   function or list of functions to plot; can be string functions
-    xmin, xmax, steps   range over which to plot, and how many points to plot
-    p                   if using strings for functions, p is the parameter name
-    g                   optional dictionary of extra globals. Try g=globals()!
-    erange              Use exponential spacing of the x data?
-
-    **kwargs are sent to plot.data()
-
-    """
-
-    if not g: g = {}
-    for k in globals().keys():
-        if not g.has_key(k): g[k] = globals()[k]
-
-    # if the x-axis is a log scale, use erange
-    if erange: r = _fun.erange(xmin, xmax, steps)
-    else:      r = _numpy.linspace(xmin, xmax, steps)
-
-    # make sure it's a list so we can loop over it
-    if not type(f) in [type([]), type(())]: f = [f]
-
-    # loop over the list of functions
-    xdatas = []
-    ydatas = []
-    labels = []
-    for fs in f:
-        if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, g)
-            a.__name__ = fs
-        else:
-            a = fs
-
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(a(z))
-
-        xdatas.append(x)
-        ydatas.append(y)
-        labels.append(a.__name__)
-
-    # plot!
-    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
-
 
 
 def magphase_data(xdata, ydata, xscale='linear', mscale='linear', pscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
@@ -193,7 +100,7 @@ def magphase_data(xdata, ydata, xscale='linear', mscale='linear', pscale='linear
     clear=1             clear the figure?
 
 
-    kwargs are sent to plot.data()
+    kwargs are sent to plot.xy.data()
     """
 
     if figure == 'gcf': f = _pylab.gcf()
@@ -236,6 +143,98 @@ def magphase_data(xdata, ydata, xscale='linear', mscale='linear', pscale='linear
     _pt.auto_zoom(axes=axes1)
     _pylab.draw()
 
+
+def magphase_databoxes(ds, xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
+    """
+    Use script to generate data and send to harrisgroup.plot.complex_data()    
+    
+    ds        list of databoxes
+    script    comlex script
+    
+    **kwargs are sent to spinmob.plot.mag_phase.data()    
+    """
+    
+    xdatas = []
+    ydatas = []
+    labels = []
+    
+    for d in ds: 
+        xdatas.append(d(xscript))
+        ydatas.append(d(yscript))
+        labels.append(_os.path.split(d.path)[-1])
+    
+    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
+
+
+
+def magphase_files(xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
+    """
+    Loads and plots complex data in the real-imaginary plane.
+    
+    **kwargs are sent to spinmob.plot.mag_phase.databoxes()    
+    """
+    
+    ds = _s.data.load_multiple()
+
+    if len(ds) == 0: return
+    
+    if not kwargs.has_key('title'): 
+        kwargs['title']=_os.path.split(ds[0].path)[0]
+
+    return magphase_databoxes(ds, xscript=xscript, yscript=yscript, **kwargs)
+
+def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+    """
+
+    Plots the function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to plot.mag_phase.data()
+    """
+
+    if not g: g = {}
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: r = _fun.erange(xmin, xmax, steps)
+    else:      r = _numpy.linspace(xmin, xmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(f) in [type([]), type(())]: f = [f]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in f:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        x = []
+        y = []
+        for z in r:
+            x.append(z)
+            y.append(a(z))
+
+        xdatas.append(x)
+        ydatas.append(y)
+        labels.append(a.__name__)
+
+    # plot!
+    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
+
+
+
+
 def realimag_data(xdata, ydata, xscale='linear', rscale='linear', iscale='linear', rlabel='Real', ilabel='Imaginary', figure='gcf', clear=1, **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
@@ -250,7 +249,7 @@ def realimag_data(xdata, ydata, xscale='linear', rscale='linear', iscale='linear
     figure='gcf'        figure instance
     clear=1             clear the figure?
 
-    kwargs are sent to plot.data()
+    kwargs are sent to plot.xy.data()
     """
 
     if figure == 'gcf': f = _pylab.gcf()
@@ -276,6 +275,44 @@ def realimag_data(xdata, ydata, xscale='linear', rscale='linear', iscale='linear
     axes2.set_title('')
     _pylab.draw()
 
+def realimag_databoxes(ds, xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
+    """
+    Use script to generate data and send to harrisgroup.plot.complex_data()    
+    
+    ds        list of databoxes
+    script    comlex script
+    
+    **kwargs are sent to spinmob.plot.real_imag.data()    
+    """
+    
+    xdatas = []
+    ydatas = []
+    labels = []
+    
+    for d in ds: 
+        xdatas.append(d(xscript))
+        ydatas.append(d(yscript))
+        labels.append(_os.path.split(d.path)[-1])
+    
+    return realimag_data(xdatas, ydatas, label=labels, **kwargs)
+
+def realimag_files(xscript=0, yscript='c(1)+1j*c(2)', **kwargs):
+    """
+    Loads and plots complex data in the real-imaginary plane.
+    
+    **kwargs are sent to spinmob.plot.real_imag.databoxes()    
+    """
+    
+    ds = _s.data.load_multiple()
+
+    if len(ds) == 0: return
+    
+    if not kwargs.has_key('title'): 
+        kwargs['title']=_os.path.split(ds[0].path)[0]
+
+    return realimag_databoxes(ds, xscript=xscript, yscript=yscript, **kwargs)
+
+
 def realimag_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
@@ -287,7 +324,7 @@ def realimag_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False
     g                   optional dictionary of extra globals. Try g=globals()!
     erange              Use exponential spacing of the x data?
 
-    **kwargs are sent to plot.data()
+    **kwargs are sent to spinmob.plot.real_imag.data()
 
     """
 
@@ -350,6 +387,8 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, style=None, label=None, xlab
     grid=False          Should we draw a grid on the axes?
     autoformat=True     Should we format the figure for printing?
     tall=False          Should the format be tall?
+    
+    **kwargs are sent to pylab.errorbar()
     """
 
     # if the first element is not a list, make it a list
@@ -448,7 +487,7 @@ def xy_databoxes(databoxes, xscript=0, yscript=1, eyscript=None, exscript=None, 
     paths='ask'                     list of full paths to data files (or we'll
                                     ask for a list)
 
-    **kwargs are sent to plot_data() aka xy()
+    **kwargs are sent to spinmob.plot.xy.data()
 
     """
 
@@ -584,10 +623,11 @@ def xy_files(xscript=0, yscript=1, eyscript=None, exscript=None, paths='ask', **
     databox, the first entry is the summary databox.
 
     xscript, yscript, eyscript      the scripts supplied to the data
-    **kwargs                        sent to plot.databoxes
 
     setting xscript or yscript=None plots as a function of file number.
 
+    **kwargs                        sent to spinmob.plot.xy.databoxes
+    
     """
 
     # have the user select a file
@@ -624,7 +664,7 @@ def xy_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kw
     g                   optional dictionary of extra globals. Try g=globals()!
     erange              Use exponential spacing of the x data?
 
-    **kwargs are sent to plot.data()
+    **kwargs are sent to spinmob.plot.xy.data()
 
     """
 
@@ -787,7 +827,7 @@ def parametric_function(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erang
     g                   optional dictionary of extra globals. Try g=globals()!
     erange              Use exponential spacing of the t data?
 
-    **kwargs are sent to plot.data()
+    **kwargs are sent to spinmob.plot.xy.data()
 
     """
 
