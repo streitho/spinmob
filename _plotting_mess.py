@@ -112,6 +112,24 @@ def complex_files(script='c(1)+1j*c(2)', **kwargs):
     return complex_databoxes(ds, script=script, **kwargs)
 
 
+def complex_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+    """
+
+    Plots the function over the specified range
+
+    f                   complex-valued function or list of functions to plot; 
+                        can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals()!
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to spinmob.plot.xy.data()
+    """
+    kwargs2 = dict(xlabel='Real', ylabel='Imaginary')
+    kwargs2.update(kwargs)
+    return function(f, xmin, xmax, steps, p, g, erange, plotter=xy_data, complex_plane=True, **kwargs2)
+
 def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscale='linear', pscale='linear', mlabel='Magnitude', plabel='Phase', phase='degrees', figure='gcf', clear=1,  **kwargs):
     """
     Plots the magnitude and phase of complex ydata.
@@ -515,7 +533,7 @@ def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databox
     # run the databox plotter
     return plotter(ds, xscript=xscript, yscript=yscript, eyscript=eyscript, exscript=exscript, **kwargs)
 
-def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter=xy_data, **kwargs):
+def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter=xy_data, complex_plane=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -525,6 +543,8 @@ def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter
     p                   if using strings for functions, p is the parameter name
     g                   optional dictionary of extra globals. Try g=globals() 
     erange              Use exponential spacing of the x data?
+    plotter             function used to plot the generated data
+    complex_plane       plot imag versus real of f?
 
     **kwargs are sent to spinmob.plot.real_imag.data()
 
@@ -566,7 +586,8 @@ def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter
         labels.append(a.__name__)
 
     # plot!
-    return plotter(xdatas, ydatas, label=labels, **kwargs)
+    if complex_plane:    return plotter(real(ydatas),imag(ydatas), label=labels, **kwargs)
+    else:                return plotter(xdatas, ydatas, label=labels, **kwargs)
 
 
 
@@ -687,7 +708,7 @@ def parametric_function(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erang
 
     Plots the parametric function over the specified range
 
-    f                   function or list of functions to plot; can be string functions
+    fx, fy              function or list of functions to plot; can be string functions
     xmin, xmax, steps   range over which to plot, and how many points to plot
     p                   if using strings for functions, p is the parameter name
     g                   optional dictionary of extra globals. Try g=globals()!
