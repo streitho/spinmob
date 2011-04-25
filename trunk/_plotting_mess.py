@@ -25,48 +25,74 @@ from numpy import *
 
 
 
-def complex_data(data, **kwargs):
+def complex_data(data, edata=None, **kwargs):
     """
     Plots the X and Y of complex data.
 
-    data                complex data
+    data             complex data
+    edata            complex error
     
     kwargs are sent to spinmob.plot.xy.data()
     """
+    # generate the data the easy way
     try:
         rdata = _n.real(data)
         idata = _n.imag(data)
+        if edata==None:
+            erdata = None
+            eidata = None
+        else:
+            erdata = _n.real(edata)
+            eidata = _n.imag(edata)
+            
+    # generate the data the hard way.            
     except:
         rdata = []
         idata = []
-        for x in data:
-            rdata.append(_n.real(x))
-            idata.append(_n.imag(x))
+        if edata==None:
+            erdata = None
+            eidata = None
+        else:
+            erdata = []
+            eidata = []
+
+        for n in range(len(data)):
+            rdata.append(_n.real(data[n]))
+            idata.append(_n.imag(data[n]))
+            
+            if not edata == None:
+                erdata.append(_n.real(edata[n]))
+                eidata.append(_n.imag(edata[n]))
 
     if not kwargs.has_key('xlabel'):    kwargs['xlabel'] = 'Real'
     if not kwargs.has_key('ylabel'):    kwargs['ylabel'] = 'Imaginary'
     
-    return xy_data(rdata, idata, **kwargs)
+    return xy_data(rdata, idata, eidata, erdata, **kwargs)
 
 
 
-def complex_databoxes(ds, script='c(1)+1j*c(2)', **kwargs):
+def complex_databoxes(ds, script='c(1)+1j*c(2)', escript=None, **kwargs):
     """
     Use script to generate data and send to harrisgroup.plot.complex_data()    
     
-    ds        list of databoxes
-    script    comlex script
+    ds            list of databoxes
+    script        complex script
+    escript       complex script for error bars
     
     **kwargs are sent to spinmob.plot.complex.data()    
     """
     
     datas  = []
     labels = []
+    if escript==None: errors = None
+    else:             errors = []
+    
     for d in ds: 
         datas.append(d(script))
         labels.append(_os.path.split(d.path)[-1])
+        if not escript==None: errors.append(d(escript))
     
-    return complex_data(datas, label=labels, **kwargs)
+    return complex_data(datas, errors, label=labels, **kwargs)
 
 
 
@@ -81,8 +107,7 @@ def complex_files(script='c(1)+1j*c(2)', **kwargs):
 
     if len(ds) == 0: return
     
-    if not kwargs.has_key('title'): 
-        kwargs['title']=_os.path.split(ds[0].path)[0]
+    if not kwargs.has_key('title'): kwargs['title'] = _os.path.split(ds[0].path)[0]
 
     return complex_databoxes(ds, script=script, **kwargs)
 
@@ -189,41 +214,8 @@ def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False
 
     **kwargs are sent to plot.mag_phase.data()
     """
+    return function(f, xmin, xmax, steps, p, g, erange, plotter=magphase_data, **kwargs)
 
-    if not g: g = {}
-    for k in globals().keys():
-        if not g.has_key(k): g[k] = globals()[k]
-
-    # if the x-axis is a log scale, use erange
-    if erange: r = _fun.erange(xmin, xmax, steps)
-    else:      r = _numpy.linspace(xmin, xmax, steps)
-
-    # make sure it's a list so we can loop over it
-    if not type(f) in [type([]), type(())]: f = [f]
-
-    # loop over the list of functions
-    xdatas = []
-    ydatas = []
-    labels = []
-    for fs in f:
-        if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, g)
-            a.__name__ = fs
-        else:
-            a = fs
-
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(a(z))
-
-        xdatas.append(x)
-        ydatas.append(y)
-        labels.append(a.__name__)
-
-    # plot!
-    return magphase_data(xdatas, ydatas, label=labels, **kwargs)
 
 
 
@@ -316,41 +308,9 @@ def realimag_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False
     **kwargs are sent to spinmob.plot.real_imag.data()
 
     """
+    return function(f, xmin, xmax, steps, p, g, erange, plotter=realimag_data, **kwargs)
 
-    if not g: g = {}
-    for k in globals().keys():
-        if not g.has_key(k): g[k] = globals()[k]
-
-    # if the x-axis is a log scale, use erange
-    if erange: r = _fun.erange(xmin, xmax, steps)
-    else:      r = _numpy.linspace(xmin, xmax, steps)
-
-    # make sure it's a list so we can loop over it
-    if not type(f) in [type([]), type(())]: f = [f]
-
-    # loop over the list of functions
-    xdatas = []
-    ydatas = []
-    labels = []
-    for fs in f:
-        if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, g)
-            a.__name__ = fs
-        else:
-            a = fs
-
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(a(z))
-
-        xdatas.append(x)
-        ydatas.append(y)
-        labels.append(a.__name__)
-
-    # plot!
-    return realimag_data(xdatas, ydatas, label=labels, **kwargs)
+    
 
 
 def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabel='',               \
@@ -498,40 +458,7 @@ def xy_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kw
 
     """
 
-    if not g: g = {}
-    for k in globals().keys():
-        if not g.has_key(k): g[k] = globals()[k]
-
-    # if the x-axis is a log scale, use erange
-    if erange: r = _fun.erange(xmin, xmax, steps)
-    else:      r = _numpy.linspace(xmin, xmax, steps)
-
-    # make sure it's a list so we can loop over it
-    if not type(f) in [type([]), type(())]: f = [f]
-
-    # loop over the list of functions
-    xdatas = []
-    ydatas = []
-    labels = []
-    for fs in f:
-        if type(fs) == str:
-            a = eval('lambda ' + p + ': ' + fs, g)
-            a.__name__ = fs
-        else:
-            a = fs
-
-        x = []
-        y = []
-        for z in r:
-            x.append(z)
-            y.append(a(z))
-
-        xdatas.append(x)
-        ydatas.append(y)
-        labels.append(a.__name__)
-
-    # plot!
-    return xy_data(xdatas, ydatas, label=labels, **kwargs)
+    return function(f, xmin, xmax, steps, p, g, erange, plotter=xy_data, **kwargs)
 
 
 
@@ -588,7 +515,58 @@ def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databox
     # run the databox plotter
     return plotter(ds, xscript=xscript, yscript=yscript, eyscript=eyscript, exscript=exscript, **kwargs)
 
+def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter=xy_data, **kwargs):
+    """
 
+    Plots the function over the specified range
+
+    f                   function or list of functions to plot; can be string functions
+    xmin, xmax, steps   range over which to plot, and how many points to plot
+    p                   if using strings for functions, p is the parameter name
+    g                   optional dictionary of extra globals. Try g=globals() 
+    erange              Use exponential spacing of the x data?
+
+    **kwargs are sent to spinmob.plot.real_imag.data()
+
+    """
+
+    if not g: g = {}
+    # do the opposite kind of update()
+    for k in globals().keys():
+        if not g.has_key(k): g[k] = globals()[k]
+
+    # if the x-axis is a log scale, use erange
+    if erange: x = _fun.erange(xmin, xmax, steps)
+    else:      x = _numpy.linspace(xmin, xmax, steps)
+
+    # make sure it's a list so we can loop over it
+    if not type(f) in [type([]), type(())]: f = [f]
+
+    # loop over the list of functions
+    xdatas = []
+    ydatas = []
+    labels = []
+    for fs in f:
+        if type(fs) == str:
+            a = eval('lambda ' + p + ': ' + fs, g)
+            a.__name__ = fs
+        else:
+            a = fs
+
+        # try directly evaluating
+        try: y = a(x)
+        
+        # do it the slow way.
+        except: 
+            y = []
+            for z in x: y.append(a(z))
+
+        xdatas.append(x)
+        ydatas.append(y)
+        labels.append(a.__name__)
+
+    # plot!
+    return plotter(xdatas, ydatas, label=labels, **kwargs)
 
 
 

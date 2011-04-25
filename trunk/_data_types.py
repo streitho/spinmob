@@ -337,7 +337,7 @@ class standard:
         This will save all the header info and columns to an ascii file.
         """
 
-        if path=="ask": path = _dialogs.SingleFile(self.file_extension, default_directory=self.directory)
+        if path=="ask": path = _dialogs.Save(self.file_extension, default_directory=self.directory)
         if path in ["", None]:
             print "Aborted."
             return False
