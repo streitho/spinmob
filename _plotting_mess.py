@@ -2,6 +2,7 @@ import os           as _os
 import pylab        as _pylab
 import numpy        as _numpy
 import itertools    as _itertools
+import time         as _time
 
 import _functions as _fun
 import _data
@@ -147,7 +148,6 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
     figure='gcf'        figure instance
     clear=1             clear the figure?
 
-
     kwargs are sent to plot.xy.data()
     """
 
@@ -181,11 +181,17 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
 
     if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
     else:                        xlabel=''
+    
     if not kwargs.has_key('draw'): kwargs['draw'] = False
+    if not kwargs.has_key('tall'): kwargs['tall'] = True
+    if not kwargs.has_key('autoformat'):   kwargs['autoformat'] = True
 
+    autoformat = kwargs['autoformat']
+    kwargs['autoformat'] = False    
     kwargs['xlabel'] = ''
     xy_data(xdata, m, em, exdata, ylabel=mlabel, axes=axes1, clear=0, xscale=xscale, yscale=mscale, **kwargs)
 
+    kwargs['autoformat'] = autoformat
     kwargs['xlabel'] = xlabel
     xy_data(xdata, p, ep, exdata, ylabel=plabel, axes=axes2, clear=0, xscale=xscale, yscale=pscale, **kwargs)
 
@@ -275,11 +281,17 @@ def realimag_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', rscal
 
     if kwargs.has_key('xlabel')  : xlabel=kwargs['xlabel']
     else:                          xlabel=''
-    if not kwargs.has_key('draw'): kwargs['draw'] = False
+    
+    if not kwargs.has_key('draw'):         kwargs['draw'] = False
+    if not kwargs.has_key('tall'):         kwargs['tall'] = True
+    if not kwargs.has_key('autoformat'):   kwargs['autoformat'] = True
 
+    autoformat = kwargs['autoformat']
+    kwargs['autoformat'] = False    
     kwargs['xlabel'] = ''
     xy_data(xdata, rdata, eydata=erdata, exdata=exdata, ylabel=rlabel, axes=axes1, clear=0, xscale=xscale, yscale=rscale, **kwargs)
 
+    kwargs['autoformat'] = autoformat
     kwargs['xlabel'] = xlabel
     xy_data(xdata, idata, eydata=eidata, exdata=exdata, ylabel=ilabel, axes=axes2, clear=0, xscale=xscale, yscale=iscale, **kwargs)
 
@@ -363,7 +375,6 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     
     **kwargs are sent to pylab.errorbar()
     """
-
     # if the first element is not a list, make it a list
     if not _fun.is_iterable(xdata[0]):
         xdata  = [xdata]
@@ -423,16 +434,20 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     if title in [None, False, 0]: title = ''
     title = str(title)
     if pyshell_history:
+        title = 'Plot created ' + _time.asctime() + '\n' + title
         for n in range(pyshell_history): 
             if not title == '': title = _pt.get_pyshell_command(n) + "\n" + title
             else:               title = _pt.get_pyshell_command(n)
+        
     axes.set_title(title)
+    
     if grid: _pylab.grid(True)
 
-    if autoformat: _pt.format_figure(tall=tall, draw=draw, vertical_reshape=False)
+    if autoformat: _pt.format_figure(tall=tall, draw=False)
 
     # update the canvas
     if draw: _pylab.draw()
+    
     return axes
 
 def xy_databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, **kwargs):
@@ -584,6 +599,8 @@ def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter
         xdatas.append(x)
         ydatas.append(y)
         labels.append(a.__name__)
+
+    if not kwargs.has_key('xlabel'): kwargs['xlabel'] = p
 
     # plot!
     if complex_plane:    return plotter(real(ydatas),imag(ydatas), label=labels, **kwargs)
