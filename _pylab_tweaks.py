@@ -199,7 +199,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, autozoom=True, draw=True, figheight=10, figwidth=7.5, **kwargs):
+def format_figure(figure='gcf', tall=False, draw=True, figheight=10, figwidth=7.5, **kwargs):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -285,8 +285,6 @@ def format_figure(figure='gcf', tall=False, autozoom=True, draw=True, figheight=
         axes.title.set_visible(1)
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
-
-        if autozoom and not len(axes.lines)==0: auto_zoom(axes,draw=draw)
 
     # get the shell window
     if draw:
