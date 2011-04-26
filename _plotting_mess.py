@@ -779,6 +779,8 @@ class plot_style_cycle(dict):
         style = plot_style_cycle(color=['k','r','b'], marker='o')
 
         """
+        self.iterators = {}        
+        
         # make sure everything is iterable
         for key in kwargs:
             if not getattr(kwargs[key],'__iter__',False): kwargs[key] = [kwargs[key]]
