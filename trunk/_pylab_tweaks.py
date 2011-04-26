@@ -199,7 +199,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=True, vertical_reshape=False, draw=True):
+def format_figure(figure='gcf', tall=False, autozoom=True, draw=True, figheight=10, figwidth=7.5, **kwargs):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -211,6 +211,8 @@ def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=Tr
 
     """
 
+    for k in kwargs.keys(): print "NOTE: '"+k+"' is not an option used by spinmob.tweaks.format_figure()"
+
     if figure == 'gcf': figure = _pylab.gcf()
 
     # get the window of the figure
@@ -218,26 +220,50 @@ def format_figure(figure='gcf', tall=False, autozoom=True, horizontal_reshape=Tr
     #figure_window.SetPosition([0,0])
 
     # assume two axes means twinx
-    window_width=700
+    window_width=600
     legend_position=1.01
 
     # set the size of the window
-    if(tall): figure_window.SetSize([window_width,700])
-    else:     figure_window.SetSize([window_width,550])
+    if(tall): figure_window.SetSize([window_width,670])
+    else:     figure_window.SetSize([window_width,500])
 
-    for n in range(len(figure.get_axes())):
-        axes = figure.get_axes()[n]
+    figure.set_figwidth(figwidth)
+    figure.set_figheight(figheight)
+
+    # first, find overall bounds of the figure.
+    ymin = 1.0
+    ymax = 0.0
+    xmin = 1.0
+    xmax = 0.0
+    for axes in figure.get_axes():
+        (x,y,dx,dy) = axes.get_position().bounds
+        if y    < ymin: ymin = y
+        if y+dy > ymax: ymax = y+dy
+        if x    < xmin: xmin = x
+        if x+dx > xmax: xmax = x+dx
+
+    # Fraction of the figure's height to use for all the plots.
+    if tall: h = 0.7
+    else:    h = 0.5
+    
+    # buffers
+    bt = 0.07
+    bb = 0.05
+    w  = 0.53
+    bl = 0.15    
+    
+    xscale =  w        / (xmax-xmin)
+    yscale = (h-bt-bb) / (ymax-ymin)
+    
+    for axes in figure.get_axes():
 
         (x,y,dx,dy) = axes.get_position().bounds
-
-        # set the position/size of the axis in the window
-        if vertical_reshape:
-            y  = 0.1
-            dy = 0.8
+        
+        y  = 1-h+bb + (y-ymin)*yscale
+        dy = dy * yscale
             
-        if horizontal_reshape:
-            x = 0.13
-            dx = 0.55
+        x  = bl
+        dx = dx * xscale
 
         axes.set_position([x,y,dx,dy])
 

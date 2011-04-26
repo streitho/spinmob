@@ -20,21 +20,22 @@ average = _n.average
 try:    _prefs
 except: _prefs = None
 
-def _print_figures(figures, arguments=''):
+def _print_figures(figures, arguments='', file_format='pdf'):
     """
     figure printing loop designed to be launched in a separate thread.
     """
 
     for fig in figures:
         # output the figure to postscript
-        postscript_path = _os.path.join(_prefs.temp_dir,"graph.ps")
-        fig.savefig(postscript_path)
+        path = _os.path.join(_prefs.temp_dir,"graph."+file_format)
+        fig.savefig(path)
 
         if not arguments == '':
-            c = _prefs['print_command'] + ' ' + arguments + ' "' + postscript_path + '"'
+            c = _prefs['print_command'] + ' ' + arguments + ' "' + path + '"'
         else:
-            c = _prefs['print_command'] + ' "' + postscript_path + '"'
+            c = _prefs['print_command'] + ' "' + path + '"'
 
+        print c
         _os.system(c)
 
 
@@ -941,7 +942,7 @@ def load_object(path="ask", text="Load a pickled object."):
     object._path = path
     return object
 
-def printer(figure='gcf', arguments='', threaded=True):
+def printer(figure='gcf', arguments='', threaded=True, file_format='pdf'):
     """
     Quick function that saves the specified figure as a postscript and then
     calls the command defined by spinmob.prefs['print_command'] with this
@@ -968,15 +969,14 @@ def printer(figure='gcf', arguments='', threaded=True):
     # now run the ps printing command
     if threaded:
         # launch the aforementioned function as a separate thread
-        print _print_figures, figures, '"'+arguments+'"'
-        _thread.start_new_thread(_print_figures, (figures,arguments,))
+        _thread.start_new_thread(_print_figures, (figures,arguments,file_format,))
 
         # bring back the figure and command line
         for fig in figures:
             _pylab_tweaks.get_figure_window(fig)
         _pylab_tweaks.get_pyshell()
 
-    else:   _print_figures(figures, arguments)
+    else:   _print_figures(figures, arguments, file_format)
 
 
 def psd(t, y, pow2=False, window=None):
