@@ -522,7 +522,7 @@ class model_base:
                     _pylab.draw()
                     _wx.Yield()
 
-
+            _st.format_figure()
             _st.raise_figure_window()
             _wx.Yield()
             _st.raise_pyshell()
