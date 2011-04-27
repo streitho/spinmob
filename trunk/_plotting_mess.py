@@ -539,7 +539,10 @@ def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databox
 
     **kwargs are sent to plotter()    
     """
-    ds = _s.data.load_multiple(paths=paths)
+    if kwargs.has_key('delimiter'): delimiter = kwargs.pop('delimiter')
+    else:                           delimiter = None    
+    
+    ds = _s.data.load_multiple(paths=paths, delimiter = delimiter)
     if len(ds) == 0: return
     
     # generate a default title (the directory)
