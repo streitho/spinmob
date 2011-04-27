@@ -7,6 +7,7 @@ import os                           as _os
 import thread                       as _thread
 import shutil                       as _shutil
 import wx                           as _wx
+import time                         as _time
 
 from scipy.integrate import quad
 
@@ -968,8 +969,21 @@ def printer(figure='gcf', arguments='', threaded=True, file_format='pdf'):
 
     # now run the ps printing command
     if threaded:
+        # store the canvas type of the last figure
+        canvas_type = type(figures[-1].canvas)        
+        
         # launch the aforementioned function as a separate thread
         _thread.start_new_thread(_print_figures, (figures,arguments,file_format,))
+
+        # wait until the thread is running
+        _time.sleep(0.25)
+
+        # wait until the canvas type has returned to normal
+        t0 = _time.time()
+        while not canvas_type == type(figures[-1].canvas) and _time.time()-t0 < 5.0: 
+            _time.sleep(0.1)
+        if _time.time()-t0 >= 5.0:
+            print "WARNING: Timed out waiting for canvas to return to original state!"
 
         # bring back the figure and command line
         for fig in figures:

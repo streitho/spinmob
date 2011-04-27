@@ -199,7 +199,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, draw=True, figheight=10, figwidth=7.5, **kwargs):
+def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=8.0, **kwargs):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -220,12 +220,12 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10, figwidth=7.
     #figure_window.SetPosition([0,0])
 
     # assume two axes means twinx
-    window_width=600
+    window_width=645
     legend_position=1.01
 
     # set the size of the window
-    if(tall): figure_window.SetSize([window_width,670])
-    else:     figure_window.SetSize([window_width,500])
+    if(tall): figure_window.SetSize([window_width,680])
+    else:     figure_window.SetSize([window_width,520])
 
     figure.set_figwidth(figwidth)
     figure.set_figheight(figheight)
@@ -249,8 +249,8 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10, figwidth=7.
     # buffers
     bt = 0.07
     bb = 0.05
-    w  = 0.53
-    bl = 0.15    
+    w  = 0.55
+    bl = 0.20    
     
     xscale =  w        / (xmax-xmin)
     yscale = (h-bt-bb) / (ymax-ymin)
