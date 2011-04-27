@@ -183,7 +183,7 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
     else:                        xlabel=''
     
     if not kwargs.has_key('draw'): kwargs['draw'] = False
-    if not kwargs.has_key('tall'): kwargs['tall'] = True
+    if not kwargs.has_key('tall'): kwargs['tall'] = False
     if not kwargs.has_key('autoformat'):   kwargs['autoformat'] = True
 
     autoformat = kwargs['autoformat']
@@ -283,7 +283,7 @@ def realimag_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', rscal
     else:                          xlabel=''
     
     if not kwargs.has_key('draw'):         kwargs['draw'] = False
-    if not kwargs.has_key('tall'):         kwargs['tall'] = True
+    if not kwargs.has_key('tall'):         kwargs['tall'] = False
     if not kwargs.has_key('autoformat'):   kwargs['autoformat'] = True
 
     autoformat = kwargs['autoformat']
@@ -370,7 +370,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     legend='best'       where to place the legend (see pylab.legend())
                         Set this to None to ignore the legend.
     autoformat=True     Should we format the figure for printing?
-    tall=False          Should the format be tall?
+    False          Should the format be tall?
     draw=True           whether or not to draw the plot after plotting
     
     **kwargs are sent to pylab.errorbar()
