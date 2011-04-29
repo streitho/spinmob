@@ -986,8 +986,6 @@ def printer(figure='gcf', arguments='', threaded=True, file_format='pdf'):
             print "WARNING: Timed out waiting for canvas to return to original state!"
 
         # bring back the figure and command line
-        for fig in figures:
-            _pylab_tweaks.get_figure_window(fig)
         _pylab_tweaks.get_pyshell()
 
     else:   _print_figures(figures, arguments, file_format)
