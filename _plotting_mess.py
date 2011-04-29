@@ -355,7 +355,7 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     label               string or array of strings for the line labels
     xlabel=''           label for the x-axis
     ylabel=''           label for the y-axis
-    title=''            title for the axes
+    title=''            title for the axes; set to None to have nothing.
     pyshell_history=1   how many commands from the pyshell history to include 
                         with the title
     xshift=0, yshift=0  progressive shifts on the data, to make waterfall plots
@@ -430,16 +430,19 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     
+    # for some arguments there should be no title.
+    if title in [None, False, 0]:
+        axes.set_title('')
+    
     # add the commands to the title
-    if title in [None, False, 0]: title = ''
-    title = str(title)
-    if pyshell_history:
-        title = 'Plot created ' + _time.asctime() + '\n' + title
-        for n in range(pyshell_history): 
-            if not title == '': title = _pt.get_pyshell_command(n) + "\n" + title
-            else:               title = _pt.get_pyshell_command(n)
-        
-    axes.set_title(title)
+    else:
+        title = str(title)
+        if pyshell_history:
+            title = 'Plot created ' + _time.asctime() + '\n' + title
+            for n in range(pyshell_history): 
+                if not title == '': title = _pt.get_pyshell_command(n) + "\n" + title
+                else:               title = _pt.get_pyshell_command(n)
+        axes.set_title(title)
     
     if grid: _pylab.grid(True)
 

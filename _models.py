@@ -518,11 +518,11 @@ class model_base:
                     axes2.title.set_position([1.0,1.010])
 
                     _pylab.figure(axes1.get_figure().number)
+                    _st.format_figure()
                     _st.auto_zoom(axes1)
                     _pylab.draw()
                     _wx.Yield()
-
-            _st.format_figure()
+                    
             _st.raise_figure_window()
             _wx.Yield()
             _st.raise_pyshell()
@@ -551,6 +551,10 @@ class model_base:
                     command = raw_input("-------> ").strip()
 
             clower = command.lower().strip()
+
+
+
+
             
             # first check and make sure the command isn't one of the simple ones
             if clower in ['']:
@@ -586,11 +590,12 @@ class model_base:
                 print "  <parameter>=x|y|dx|dy|slope"
                 print "              sets the parameter guess value to the"
                 print "              clicked x, y, dx, dy, or slope value."
+                print 
+                print "  <parameter> lists the curent parameter value."
                 print
 
                 command=""
                 hold_plot=True
-                continue
 
             elif clower in ['q', 'quit', 'exit']:
                 return {'command':'q'}
@@ -632,6 +637,8 @@ class model_base:
 
                 except:
                     print "\nOops! Aborting."
+                    
+                hold_plot=True
 
             elif clower in ['y', 'yes','u','use']:
 
@@ -743,6 +750,12 @@ class model_base:
                         
                 except:
                     print "ERROR: could not zoom according to the specified figure"
+            
+            # just display the value
+            elif clower in settings.keys():
+                print                
+                print clower,'=',settings[clower]
+                hold_plot = True
 
             else:
                 # now parse it (it has the form "min=2; max=4; plot_all=True")
