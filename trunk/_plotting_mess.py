@@ -607,10 +607,11 @@ def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter
         labels.append(a.__name__)
 
     if not kwargs.has_key('xlabel'): kwargs['xlabel'] = p
+    if not kwargs.has_key('label'):  kwargs['label']  = labels
 
     # plot!
-    if complex_plane:    return plotter(real(ydatas),imag(ydatas), label=labels, **kwargs)
-    else:                return plotter(xdatas, ydatas, label=labels, **kwargs)
+    if complex_plane:    return plotter(real(ydatas),imag(ydatas), **kwargs)
+    else:                return plotter(xdatas, ydatas, **kwargs)
 
 
 
