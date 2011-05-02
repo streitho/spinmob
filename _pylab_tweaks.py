@@ -4,6 +4,7 @@ import matplotlib as _mpl
 import wx as _wx
 import time as _time
 from matplotlib.font_manager import FontProperties as _FontProperties
+import os as _os
 
 import _dialogs
 import _functions as _fun
@@ -1423,30 +1424,38 @@ def save_plot(axes="gca", path="ask"):
 
     f.close()
 
-def save_raw_data(axes="gca", trace=0):
+def save_figure_raw_data(figure="gcf", **kwargs):
     """
-    This will just output an ascii file of the data that is plotted
-    trace is the index of the line to get the data from
+    This will just output an ascii file for each of the traces in the shown figure.
+
+    **kwargs are sent to dialogs.Save()    
     """
-
-
+    
     # choose a path to save to
-    path = _dialogs.Save("*.*", default_directory="save_plot_default_directory")
-
-    if path=="":
-        print "your path sucks."
-        return
+    path = _dialogs.Save(**kwargs)
+    if path=="": return "aborted."
 
     # if no argument was given, get the current axes
-    if axes=="gca": axes=_pylab.gca()
+    if figure=="gcf": figure = _pylab.gcf()
 
-    l = axes.lines[trace]
-    x = l.get_xdata()
-    y = l.get_ydata()
+    for n in range(len(figure.axes)):
+        a = figure.axes[n]        
+        
+        for m in range(len(a.lines)):
+            l = a.lines[m]
+            
+            x = l.get_xdata()
+            y = l.get_ydata()
 
-    # loop over the data
-    for n in range(0, len(x)):
-        _fun.append_to_file(path, str(x[n]) + " " + str(y[n]) + "\n")
+            p = _os.path.split(path)
+            p = _os.path.join(p[0], "axes" + str(n) + " line" + str(m) + " " + p[1])
+            print p
+            
+            # loop over the data
+            f = open(p, 'w')
+            for j in range(0, len(x)):
+                f.write(str(x[j]) + "\t" + str(y[j]) + "\n")
+            f.close()
 
 
 def load_plot(clear=1, offset=0, axes="gca"):

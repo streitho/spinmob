@@ -44,4 +44,3 @@ def load_multiple(paths="ask", first_data_line="auto", filters="*.*", text="Sele
         if _os.path.isfile(path): datas.append(load(path, first_data_line, **kwargs))
 
     return datas
-
