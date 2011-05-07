@@ -501,26 +501,154 @@ class standard:
         """
         if self.debug: print "Generating column '"+str(name)+"' = "+str(script)+"..."
 
+        # add any extra user-supplied global variables for the eventual eval() call.
         self.extra_globals.update(g)
-        g = {}
+        g = {} # clear out the existing dictionary
 
-        # if it's not a list of scripts
+        # If the script is not a list of scripts, return the script value. 
+        # This is the termination of a recursive call.
         if not _fun.is_iterable(script):
+
             # get the expression and variables
             [expression, v] = self._parse_script(script)
+            
+            # if there was a problem parsing the script            
             if v == None: 
-                return None    
+                print "ERROR: Could not parse '"+script+"'"                
+                return None  
+            
+            # otherwise, evaluate the script using python's eval command
             return eval(expression, v)
         
-        # otherwise make a list
+        # Otherwise, this is a list of scripts. Make the recursive call.
         output = []
         for s in script: output.append(self.execute_script(s))
 
         return output
 
-
     # Define this so you can quickly call a script
     __call__ = execute_script
+
+    def _parse_script(self, script, n=0):
+        """
+        This takes a script such as "a/b where a=c('current'), b=3.3" and returns
+        ["a/b", {"a":self.columns["current"], "b":3.3}]
+
+        You can also just use an integer for script to reference columns by number
+        or use the column label as the script.
+
+        n is for internal use. Don't use it. In fact, don't use this function, user.
+        """
+
+        if n > 1000:
+            print "This script ran recursively 1000 times!"
+            a = raw_input("<enter> or (q)uit: ")
+            if a.strip().lower() in ['q', 'quit']:
+                script = None
+
+        if script==None: return [None, None]
+
+        # check if the script is simply an integer
+        if type(script) in [int,long]:
+            if script<0: script = script+len(self.ckeys)
+            return ["___"+str(script), {"___"+str(script):self[script]}]
+
+        # the scripts would like to use calls like "h('this')/3.0*c('that')",
+        # so to make eval() work we should add these functions to a local list
+
+        # start with the globals list
+        globbies = globals()
+
+        # update the globals with supplied extras
+        globbies.update(self.extra_globals)
+
+        # override the important ones!
+        globbies.update({'h':self.h, 'c':self.c, 'self':self})
+
+        
+        
+        
+        # first split up by "where"
+        split_script = script.split(" where ")
+
+
+
+
+        # #######################################
+        # Scripts without a "where" statement:
+        # #######################################
+
+        # if it's a simple script, like "column0" or "c(3)/2.0"
+        if len(split_script) == 1:
+            if self.debug: print "script of length 1"
+
+            # try to evaluate the script
+
+            # first try to evaluate it as a simple column label
+            if n==0 and script in self.ckeys:
+                # only try this on the zero'th attempt
+                # if this is a recursive call, there can be ambiguities if the
+                # column names are number strings
+                return ['___', {'___':self[script]}]
+
+
+            # Otherwise, evaluate it.
+            try:
+                b = eval(script, globbies)
+                return ['___', {'___':b}]
+            except:
+                print
+                print "ERROR: Could not evaluate '"+str(script)+"'"
+                _wx.Yield()
+                return [None, None]
+
+
+        # ######################################
+        # Full-on fancy scripts
+        # ######################################
+
+        # otherwise it's a complicated script like "c(1)-a/2 where a=h('this')"
+
+        # tidy up the expression
+        expression = split_script[0].strip()
+
+        # now split the variables list up by ,
+        varsplit = split_script[1].split(';')
+
+        # loop over the entries in the list of variables, storing the results
+        # of evaluation in the "stuff" dictionary
+        stuff = {}
+        for var in varsplit:
+
+            # split each entry by the "=" sign
+            s = var.split("=")
+            if len(s) == 1:
+                print s, "has no '=' in it"
+                return [None, None]
+
+            # tidy up into "variable" and "column label"
+            v = s[0].strip()
+            c = s[1].strip()
+
+            # now try to evaluate c, given our current globbies
+
+            # recursively call this sub-script. At the end of all this mess
+            # we want the final return value to be the first expression
+            # and a full dictionary of variables to fill it
+            [x,y] = self._parse_script(c, n+1)
+
+            # if it's not working, just quit out.
+            if y==None: return [None, None]
+
+            stuff[v] = y[x]
+
+        # incorporate the globbies so other functions can eval() with things
+        # like c('this')
+        stuff.update(globbies)
+
+        # at this point we've found or generated the list
+        return [expression, stuff]
+
 
 
     def insert_column(self, data_array, ckey='temp', index='end'):
@@ -637,130 +765,7 @@ class standard:
         self.headers  = {}
 
 
-    def _parse_script(self, script, n=0):
-        """
-        This takes a script such as "a/b where a=c('current'), b=3.3" and returns
-        ["a/b", {"a":self.columns["current"], "b":3.3}]
-
-        You can also just use an integer for script to reference columns by number
-        or use the column label as the script.
-
-        n is for internal use. Don't use it. In fact, don't use this function, user.
-        """
-
-        if n > 1000:
-            print "This script ran recursively 1000 times!"
-            a = raw_input("<enter> or (q)uit: ")
-            if a.strip().lower() in ['q', 'quit']:
-                script = None
-
-        if script==None: return [None, None]
-
-        # check if the script is simply an integer
-        if type(script)==int:
-            if script<0: script = script+len(self.ckeys)
-            return ["___"+str(script), {"___"+str(script):self[script]}]
-
-
-
-
-        # the scripts would like to use calls like "h('this')/3.0*c('that')",
-        # so to make eval() work we should add these functions to a local list
-
-        # start with the globals list
-        globbies = globals()
-
-        # update the globals with supplied extras
-        globbies.update(self.extra_globals)
-
-        # override the important ones!
-        globbies.update({'h':self.h, 'c':self.c, 'self':self})
-
-
-
-
-        # first split up by "where"
-        split_script = script.split(" where ")
-
-
-
-
-        # #######################################
-        # Scripts without a "where" statement:
-        # #######################################
-
-        # if it's a simple script, like "column0" or "c(3)/2.0"
-        if len(split_script) == 1:
-            if self.debug: print "script of length 1"
-
-            # try to evaluate the script
-
-            # first try to evaluate it as a simple column label
-            if n==0 and script in self.ckeys:
-                # only try this on the zero'th attempt
-                # if this is a recursive call, there can be ambiguities if the
-                # column names are number strings
-                return ['___', {'___':self[script]}]
-
-
-            # Otherwise, evaluate it.
-            try:
-                b = eval(script, globbies)
-                return ['___', {'___':b}]
-            except:
-                print
-                print "ERROR: Could not evaluate '"+str(script)+"'"
-                _wx.Yield()
-                return [None, None]
-
-
-        # ######################################
-        # Full-on fancy scripts
-        # ######################################
-
-        # otherwise it's a complicated script like "c(1)-a/2 where a=h('this')"
-
-        # tidy up the expression
-        expression = split_script[0].strip()
-
-        # now split the variables list up by ,
-        varsplit = split_script[1].split(';')
-
-        # loop over the entries in the list of variables, storing the results
-        # of evaluation in the "stuff" dictionary
-        stuff = {}
-        for var in varsplit:
-
-            # split each entry by the "=" sign
-            s = var.split("=")
-            if len(s) == 1:
-                print s, "has no '=' in it"
-                return [None, None]
-
-            # tidy up into "variable" and "column label"
-            v = s[0].strip()
-            c = s[1].strip()
-
-            # now try to evaluate c, given our current globbies
-
-            # recursively call this sub-script. At the end of all this mess
-            # we want the final return value to be the first expression
-            # and a full dictionary of variables to fill it
-            [x,y] = self._parse_script(c, n+1)
-
-            # if it's not working, just quit out.
-            if y==None: return [None, None]
-
-            stuff[v] = y[x]
-
-        # incorporate the globbies so other functions can eval() with things
-        # like c('this')
-        stuff.update(globbies)
-
-        # at this point we've found or generated the list
-        return [expression, stuff]
-
-
+    
 
     def rename_header(self, old_name, new_name):
         """
