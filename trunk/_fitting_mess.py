@@ -14,6 +14,8 @@ from numpy import *
 #
 # Fit function based on the model class
 #
+
+
 def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
@@ -35,16 +37,18 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
     about what the arguments should be, see spinmob.models.curve().
     """
 
-
     # generate the model
     model = _s.models.curve(f, p, bg, globals())
-    fit_files_model(model, xscript,   yscript,   eyscript,      command,    settings,    **kwargs)
-    settings = {}
+    return fit_files_model(model, xscript,   yscript,   eyscript,      command,    settings,    **kwargs)
+
+
 
 def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", settings={}, **kwargs):
     """
-    Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
-    are then sent to "data.standard()". Useful ones to keep in mind:
+    Load a bunch of data files and fit them using fit_databoxes_model(). 
+    
+    kwargs are sent to "data.load_multiple()" which
+    are then sent to "data.databox()". Useful ones to keep in mind:
 
     for loading:                paths, default_directory
     for generating data to fit: xscript, yscript, eyscript
@@ -55,7 +59,26 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
     # Have the user select a bunch of files.
     ds = _s.data.load_multiple(**kwargs)
     if not ds: return
+    
+    return fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command="", settings={}, **kwargs)
 
+
+
+def fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command="", settings={}, **kwargs):
+    """
+    Loops over the supplied databoxe(s) and fits them using the supplied model    
+    
+    kwargs are sent to "data.load_multiple()" which
+    are then sent to "data.standard()". Useful ones to keep in mind:
+
+    for loading:                paths, default_directory
+    for generating data to fit: xscript, yscript, eyscript
+
+    See the above mentioned functions for more information.
+    """
+
+    results = []
+    
     for d in ds:
         print '\n\n\nFILE:', ds.index(d)+1, '/', len(ds)
         print str(d.path)
@@ -65,20 +88,20 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
         settings["eyscript"] = eyscript
 
         # do the interactive fit.
-        result = model.fit(d, command, settings)
-
+        results.append(model.fit(d, command, settings))
+        results[-1]['databox'] = d
+        
         # make sure we didn't quit.
-        if result['command'] == 'q':
-            settings = {}
-            return
+        if results[-1]['command'] == 'q': break
 
         # prepare for the next file.
         command=''
-        if result.has_key('settings'): settings = result['settings']
+        if results[-1].has_key('settings'): settings = results[-1]['settings']
 
     # clean up
     del settings
-
+    return results
+    
 
 def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, axes="gca", **kwargs):
     """
@@ -110,6 +133,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
 
     # loop over the data
     lines = axes.get_lines()
+    results = []
     for n in range(len(lines)):
         line = lines[n]
         if isinstance(line, _mpl.lines.Line2D):
@@ -129,18 +153,20 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
             model.fit_parameters = None
             settings['autopath'] = False
             settings['figure']   = axes.figure.number+1
-            result = model.fit(d, command, settings)
+            results.append(model.fit(d, command, settings))
+            results[-1]['databox'] = d
 
             # make sure we didn't quit.
-            if result['command'] == 'q': break
+            if results[-1]['command'] == 'q': break
 
             # prepare for the next file.
             command=''
-            if result.has_key('settings'): settings = result['settings']
+            if results[-1].has_key('settings'): settings = results[-1]['settings']
 
     # clean up
     del settings
     _pylab.figure(fn0)
+    return results
 
 
 
