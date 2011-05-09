@@ -692,7 +692,10 @@ class model_base:
                                     "fit_errors"                :fit_errors,
                                     "fit_reduced_chi_squared"   :fit_reduced_chi_squared,
                                     "fit_covariance"            :fit_covariance,
-                                    "settings"                  :settings}
+                                    "settings"                  :settings,
+                                    "function_string"           :self.function_string,
+                                    "pnames"                    :self.pnames}
+                                    
                     if clower in ['u', 'use']:
                         return_value['command'] = 'u'
                         return_value['settings']['guess'] = fit_parameters
