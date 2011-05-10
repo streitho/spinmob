@@ -39,7 +39,7 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
 
     # generate the model
     model = _s.models.curve(f, p, bg, globals())
-    return fit_files_model(model, xscript,   yscript,   eyscript,      command,    settings,    **kwargs)
+    return fit_files_model(model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
 
 
@@ -60,7 +60,7 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
     ds = _s.data.load_multiple(**kwargs)
     if not ds: return
     
-    return fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command="", settings={}, **kwargs)
+    return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
 
 
