@@ -7,8 +7,7 @@ import wx as _wx
 # setup matplotlib and wx so it works well with pyshell/pycrust
 import matplotlib as _mpl
 if not _mpl.get_backend() == 'WXAgg': _mpl.use('wxAgg') # set the backend (must do this first)
-    
-
+_mpl.rcParams['figure.facecolor']='w'
 
 import pylab
 pylab.ion()          # turn on interactive mode
