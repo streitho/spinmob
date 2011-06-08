@@ -16,7 +16,7 @@ Then, if you have windows, you can use the spinmob windows installer from the do
 >>> import spinmob as s
 }}}
 
-In all of the following we assuming spinmob is imported as "s".
+In all of the following we assume spinmob is imported as "s".
 
 
 
