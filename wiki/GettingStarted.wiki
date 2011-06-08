@@ -80,7 +80,7 @@ array([1, 2, 3])
 Heads up! These data columns are just numpy arrays, which follow all the numpy rules about integers.
 
 {{{
->>> d[0] = s.array([1,2,3]) / 2.0
+>>> d[0] = s.numpy.array([1,2,3]) / 2.0
 }}}
 
 should fix that. :)
@@ -168,47 +168,55 @@ which does the same thing. Just make sure not to assign c or h as a variable :).
 
 It might seem silly to have the ability to execute scripts (i.e. why not just do them without the strings?) but they do have a purpose. They can shorten or organize a long expression, and they can be used in other automated scripts such as plotting, discussed below.
 
-== Databox Plotting ==
+== Plotting ==
 
-It is pretty easy to plot from spinmob, either from a databox directly or using one of the canned plot functions. Since spinmob uses matplotlib/pylab to plot, you can also access all of these things by typing "s.pylab."
+Spinmob has some high-level functions to help it plot things quickly with pylab. You can also access all of these things by typing "s.pylab."
 
-If you want to plot the same analysis script from many similar data files,
-
-{{{
->>> s.plot.files('c(0)+cos(c(1))', 'h(0)*y + b where y=c(1)*27; b=h("eader2")[2]')
-}}}
-
-Is a quick way to get it done. If you have a bunch of files and want to plot one data point per file, this is also possible, with scripts like
+For example, if you want to quickly load a bunch of data files and plot column 0 versus column 2 on the same set of axes,
 
 {{{
->>> s.plot.files('max(c(0))','h(0)',marker='o')
+>>> s.plot.xy.files(0,2)
 }}}
 
-Check out the help(d.plot) and help(s.plot.files) to learn about the various options. In fact, use help() on everything.
+will do the trick. If you want to quickly load a bunch of data files and plot some scripted combination of columns and header elements, you could use something like
+
+{{{
+>>> s.plot.xy.files('c(0)*1000', 'c(2)*cos(c(3))+h("Gain")')
+}}}
+
+(provided columns 0 through 3 exist, are the same length, and the header element "Gain" is a number)
+
+If you have a bunch of files and want to plot one data point per file, this is also possible, with scripts like
+
+{{{
+>>> s.plot.xy.files('max(c(0))','h(0)',marker='o')
+}}}
+
+Check out help(s.plot.xy.files) to learn about the various options. In fact, use help() on everything.
 
 == General Plotting ==
 
 Under s.plot there are a few other plotting functions I wrote to get things done quickly. It is possible to plot functions in 1d or 2d, data arrays in 1d or 2d, and more. 1d functions are relatively straightforward:
 
 {{{
->>> s.plot.function('sin(x)')
->>> s.plot.function(['sin(x)','5*cos(x*3)','sqrt(x)'], -1, 10)
+>>> s.plot.xy.function('sin(x)')
+>>> s.plot.xy.dfunction(['sin(x)','5*cos(x*3)','sqrt(x)'], -1, 10)
 }}}
 
 It is possible to change the dependent variable using the kwarg 'p'. You can also define your own functions:
 
 {{{
 >>> def my_f(x): return x**2
->>> s.plot.function([my_f,'arcsin(x)'])
+>>> s.plot.xy.function([my_f,'arcsin(x)'])
 }}}
 
 Similarly, in 2d
 
 {{{
->>> s.plot.surface_function('sin(x*y)')
+>>> s.plot.image.function('sin(x*y)')
 }}}
 
-or define your own. surface_function() currently only makes colorplots.
+or define your own.
 
 Once you have data plotted, there are a whole mess of functions to tweak these plots (most apply to 1d plots) found in 
 
