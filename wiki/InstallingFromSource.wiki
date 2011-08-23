@@ -23,9 +23,9 @@ svn checkout http://spinmob.googlecode.com/svn/trunk /path/to/site-packages/spin
 {{{
 svn update /path/to/site-packages/spinmob
 }}}
- * It is possible to turn these commands into clickable scripts or aliased terminal commands. To make it an easy terminal command (e.g. spinmob_update), add the following line to ".profile" in your home directory:
+ * It is possible to turn these commands into clickable scripts or aliased terminal commands. To make it an easy terminal command (e.g. spinmob-update), add the following line to ".profile" in your home directory:
 {{{
-alias spinmob_update="svn update /path/to/site-packages/spinmob"
+alias spinmob-update="svn update /path/to/site-packages/spinmob"
 }}}
 
  * I don't know what is the best SVN client. I remember at one point I used a clunky one in linux, but it worked.
