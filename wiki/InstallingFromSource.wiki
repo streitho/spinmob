@@ -14,6 +14,14 @@ All done. Any time you want to update, simply right-click this folder and select
 
 == Linux & Mac ==
 
+ * Find your [SitePackages site-packages] directory.
+ * In the terminal window use the command
+{{{
+svn checkout http://spinmob.googlecode.com/svn/trunk /path/to/site-packages/spinmob
+}}}
+ * Then whenever you want to update spinmob to the latest version, use
+{{{
+svn update /path/to/site-packages/spinmob
+}}}
+ * It is possible to turn these commands into clickable scripts or aliased terminal commands. Somehow...
  * I don't know what is the best SVN client. I remember at one point I used a clunky one in linux, but it worked.
- * Still, use http://spinmob.googlecode.com/svn/trunk as the SVN repository URL.
- * Best of luck!
