@@ -640,14 +640,12 @@ def image_data(Z, X=[0,1.0], Y=[0,1.0], aspect=1.0, zmin=None, zmax=None, clear=
     # assume X and Y are the bin centers and figure out the bin widths
     x_width = abs(float(X[-1] - X[0])/(len(Z[0])-1))
     y_width = abs(float(Y[-1] - Y[0])/(len(Z)-1))
-    print X, Y
-    print x_width, y_width
-
+    
     # reverse the Z's
     Z = Z[-1::-1]
     
     _pylab.imshow(Z, extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
-                             Y[0]+y_width/2.0, Y[-1]-y_width/2.0], **kwargs)    
+                             Y[0]-y_width/2.0, Y[-1]+y_width/2.0], **kwargs)    
     _pylab.colorbar()
     _pt.image_set_clim(zmin,zmax)
     _pt.image_set_aspect(aspect)
