@@ -1,7 +1,7 @@
 import scipy as _scipy                          
 import pylab as _pylab
 from scipy import interpolate as _interpolate
-import spinmob as _spinmob                      
+import spinmob as _s                      
 import pylab_helper_standalones as _pylab_help
 import time as _time
 import spinmob_functions as _fun
@@ -285,7 +285,7 @@ class spline_array:
             a.set_title(self._path+"\nSpline array plot at fixed x = "+self.xlabel)
             a.get_lines()[-1].set_label("x ("+self.xlabel+") = "+str(x))
 
-        if format: _spinmob.format_figure()
+        if format: _s.format_figure()
         return a
     
     def plot_range_fixed_x(self, xmin="auto", xmax="auto", xsteps=21, ymin="auto", ymax="auto", ysteps=200, clear=True, x_derivative=0):
@@ -293,7 +293,7 @@ class spline_array:
         if xmax=="auto": xmax=self.xmax
         
         self.plot_fixed_x(_pylab.linspace(xmin, xmax, xsteps), x_derivative, ysteps, ymin, ymax, False, clear)
-        _spinmob.format_figure()
+        _s.format_figure()
         
     def plot_fixed_y(self, y_values, x_derivative=0, steps=1000, smooth=0, simple='auto', xmin="auto", xmax="auto", format=True, clear=1):
         """
@@ -325,7 +325,7 @@ class spline_array:
             a.set_xlabel(self.xlabel)
             a.set_title(self._path+"\nSpline array plot at fixed y "+self.ylabel)
             a.get_lines()[-1].set_label("y ("+self.ylabel+") = "+str(y))
-        if format: _spinmob.format_figure()
+        if format: _s.format_figure()
         return a
     
     def plot_range_fixed_y(self, ymin="auto", ymax="auto", ysteps=21, xmin="auto", xmax="auto", xsteps=200, clear=True, x_derivative=0):
@@ -333,7 +333,7 @@ class spline_array:
         if ymax=="auto": ymax=self.ymax
         
         self.plot_fixed_y(_pylab.linspace(ymin, ymax, ysteps), x_derivative, xsteps, xmin, xmax, False, clear)
-        _spinmob.format_figure()
+        _s.format_figure()
 
     def generate_y_values(self):
         self.y_values = self.x_splines.keys()
@@ -366,11 +366,11 @@ def copy_spline_array(a):
 
     
 def load_spline_array(path="ask", text="Give me a spline array to load, jerkface! No, YOU'RE the jerkface."):
-    a = _spinmob.load_object(path, text)
+    a = _s.load_object(path, text)
 
     b = copy_spline_array(a)
     b._path = a._path
-    _spinmob.save_object(b, b._path)
+    _s.save_object(b, b._path)
 
     return b    
             
@@ -388,7 +388,7 @@ def generate_spline_array(data, y_parameter="field", smoothing=5000, degree=5, p
     s.ylabel = y_parameter
     
     # have the user select a file
-    paths = _spinmob.DialogMultipleFiles('DIS AND DAT|*.dat', text=text, default_directory=data.directory)
+    paths = _s.DialogMultipleFiles('DIS AND DAT|*.dat', text=text, default_directory=data.directory)
     if paths == []: return
 
     # loop over each data file, fit it, plot it, ask if it's okay, and move on
@@ -427,7 +427,7 @@ def generate_spline_array(data, y_parameter="field", smoothing=5000, degree=5, p
     print "Complete! "+str(len(paths))+" file and "+str(len(s.x_splines))+" successful splines."
 
     s.simple = simple
-    if autosave: _spinmob.save_object(s)
+    if autosave: _s.save_object(s)
     return s    
 
 
@@ -485,7 +485,7 @@ def splinteractive(xdata, ydata, smoothing=5000, degree=5, presmoothing=0, splin
         elif command in ["p", "P", "print", "printer"]:
             x_spline.message = "print"
             smoothing = x_spline.smoothing
-            _spinmob.printer()
+            _s.printer()
         elif command == "[":
             x_spline.message = "unboost smoothing"
             smoothing = smoothing / boost_factor

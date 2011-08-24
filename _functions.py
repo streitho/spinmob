@@ -14,7 +14,6 @@ from scipy.integrate import quad
 import _dialogs                    ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_pylab_tweaks)
 
-
 # Functions from other libraries
 average = _n.average
 

@@ -549,18 +549,24 @@ def image_shift(xshift=0, yshift=0, axes="gca"):
 
 
 
-def image_set_clim(vmin='auto', vmax='auto', axes="gca"):
+def image_set_clim(zmin=None, zmax=None, axes="gca"):
     """
     This will set the clim (range) of the colorbar.
+    
+    Setting zmin or zmax to None will not change them.
+    Setting zmin or zmax to "auto" will auto-scale them to include all the data.
     """
     if axes=="gca": axes=_pylab.gca()
 
     image = axes.images[0]
 
-    if vmin=='auto': vmin = _numpy.min(image.get_array())
-    if vmax=='auto': vmax = _numpy.max(image.get_array())
+    if zmin=='auto': zmin = _numpy.min(image.get_array())
+    if zmax=='auto': zmax = _numpy.max(image.get_array())
 
-    image.set_clim(vmin, vmax)
+    if zmin==None: zmin = image.get_clim()[0]
+    if zmax==None: zmax = image.get_clim()[1]
+
+    image.set_clim(zmin, zmax)
 
     _pylab.draw()
 

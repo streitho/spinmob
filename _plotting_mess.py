@@ -113,7 +113,7 @@ def complex_files(script='c(1)+1j*c(2)', **kwargs):
     return complex_databoxes(ds, script=script, **kwargs)
 
 
-def complex_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+def complex_function(f='1.0/(1+1j*x)', xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -225,7 +225,7 @@ def magphase_files(xscript=0, yscript='c(1)+1j*c(2)', eyscript=None, exscript=No
     """
     return files(xscript, yscript, eyscript, exscript, plotter=magphase_databoxes, **kwargs)
 
-def magphase_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+def magphase_function(f='1.0/(1+1j*x)', xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -324,7 +324,7 @@ def realimag_files(xscript=0, yscript='c(1)+1j*c(2)', eyscript=None, exscript=No
     return files(xscript, yscript, eyscript, exscript, plotter=realimag_databoxes, **kwargs)
 
 
-def realimag_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+def realimag_function(f='1.0/(1+1j*x)', xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -479,7 +479,7 @@ def xy_files(xscript=0, yscript=1, eyscript=None, exscript=None, **kwargs):
     """
     return files(xscript, yscript, eyscript, exscript, plotter=xy_databoxes, **kwargs)
 
-def xy_function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
+def xy_function(f='sin(x)', xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -554,7 +554,7 @@ def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databox
     # run the databox plotter
     return plotter(ds, xscript=xscript, yscript=yscript, eyscript=eyscript, exscript=exscript, **kwargs)
 
-def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter=xy_data, complex_plane=False, **kwargs):
+def function(f='sin(x)', xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter=xy_data, complex_plane=False, **kwargs):
     """
 
     Plots the function over the specified range
@@ -616,64 +616,54 @@ def function(f, xmin=-1, xmax=1, steps=200, p='x', g=None, erange=False, plotter
 
 
 
-def image_data(X, Y, Z, plot="image", **kwargs):
+def image_data(Z, X=[0,1.0], Y=[0,1.0], aspect=1.0, zmin=None, zmax=None, clear=1, **kwargs):
     """
     Generates an image or 3d plot
 
     X                       1-d array of x-values
     Y                       1-d array of y-values
     Z                       2-d array of z-values
-    plot                    What type of surface data to plot ("image", "mountains")
+
+    X and Y can be something like [0,2] or an array of X-values
     """
 
     fig = _pylab.gcf()
-    fig.clear()
-    axes = _pylab.axes()
+    if clear: 
+        fig.clear()
+        _pylab.axes()
 
     # generate the 3d axes
-    d=_data.standard()
-    d.X = _numpy.array(X)
-    d.Y = _numpy.array(Y)
-    d.Z = _numpy.array(Z)
+    X = _numpy.array(X)
+    Y = _numpy.array(Y)
+    Z = _numpy.array(Z)
 
-    d.path = ""
-    d.xlabel = "X"
-    d.ylabel = "Y"
+    # assume X and Y are the bin centers and figure out the bin widths
+    x_width = abs(float(X[-1] - X[0])/(len(Z[0])-1))
+    y_width = abs(float(Y[-1] - Y[0])/(len(Z)-1))
+    print X, Y
+    print x_width, y_width
 
-    d.plot_XYZ(plot=plot, **kwargs)
+    # reverse the Z's
+    Z = Z[-1::-1]
+    
+    _pylab.imshow(Z, extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
+                             Y[0]+y_width/2.0, Y[-1]-y_width/2.0], **kwargs)    
+    _pylab.colorbar()
+    _pt.image_set_clim(zmin,zmax)
+    _pt.image_set_aspect(aspect)
 
-    if plot=="image":
-        _pt.close_sliders()
-        _pt.image_sliders()
+    _pt.close_sliders()
+    _pt.image_sliders()
 
     _pt.raise_figure_window()
     _pt.raise_pyshell()
     _pylab.draw()
-    return axes
-
-
-def image_autogrid(Z, xmin=0, xmax=1, ymin=0, ymax=1, plot="image", **kwargs):
-    """
-    Generates an image plot on the specified range
-
-    Z                       2-d array of z-values
-    xmin,xmax,ymin,ymax     range upon which to place the image
-    plot                    What type of surface data to plot ("image", "mountains")
-    """
-
-    fig = _pylab.gcf()
-    fig.clear()
-    _pylab.axes()
-
-    # generate the 3d axes
-    X = _numpy.linspace(xmin,xmax,len(Z))
-    Y = _numpy.linspace(ymin,ymax,len(Z[0]))
-
-    return image_data(X,Y,Z,plot, **kwargs)
+    
+    return _pylab.gca()
 
 
 
-def image_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="x,y", g=None, plot="image", **kwargs):
+def image_function(f='sin(x)*cos(y)', xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, p="x,y", g=None, **kwargs):
     """
     Plots a 2-d function over the specified range
 
@@ -683,7 +673,6 @@ def image_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, 
     xsteps,ysteps           how many points to plot on the specified range
     p                       if using strings for functions, this is a string of parameters.
     g                       Optional additional globals. Try g=globals()!
-    plot                    What type of surface data to plot ("image", "mountains")
     """
 
     # aggregate globals
@@ -720,14 +709,14 @@ def image_function(f, xmin=-1, xmax=1, ymin=-1, ymax=1, xsteps=100, ysteps=100, 
         zgrid = _numpy.array(zgrid)
 
     # now plot!
-    return image_data(x,y,zgrid,plot,**kwargs)
+    return image_data(zgrid, x, y, **kwargs)
 
 
 
 
 
 
-def parametric_function(fx, fy, tmin=-1, tmax=1, steps=200, p='t', g=None, erange=False, **kwargs):
+def parametric_function(fx='sin(t)', fy='cos(t)', tmin=-1, tmax=1, steps=200, p='t', g=None, erange=False, **kwargs):
     """
 
     Plots the parametric function over the specified range
