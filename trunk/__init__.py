@@ -11,7 +11,6 @@ _mpl.rcParams['figure.facecolor']='w'
 
 import pylab
 pylab.ion()          # turn on interactive mode
-from pylab import gca, gcf, figure, axes, draw, subplot, twinx
 
 import scipy
 import numpy
@@ -28,20 +27,26 @@ if _app == None: _app = _wx.PySimpleApp()
 import _prefs
 prefs = _prefs.Prefs()
 
-import _dialogs as dialogs             ;dialogs._prefs            = prefs
-import _functions as fun               ;fun._prefs                = prefs
+
+
+import _dialogs as dialogs; reload(dialogs); dialogs._prefs       = prefs
 import _pylab_colorslider              ;_pylab_colorslider._prefs = prefs
 import _plot as plot                   ;plot._prefs               = prefs
+import _functions as fun               ;fun._prefs                = prefs
 import _models as models               ;models._prefs             = prefs
-import _constants as constants
 import _fitting as fit                 ;fit._prefs                = prefs
 import _data as data                   ;data._prefs               = prefs
+
 data._data_types._prefs = prefs
 
 # pull some of the common functions to the top
-printer                 = fun.printer
-array                   = numpy.array
+import scipy.constants
+printer   = fun.printer
+constants = scipy.constants
 
 
 xscale = plot.tweaks.xscale
 yscale = plot.tweaks.yscale
+
+# now do the big reload chain.
+
