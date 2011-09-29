@@ -1,6 +1,6 @@
 import wx as _wx
-
-
+try:    _prefs
+except: _prefs = {}
 #
 # Dialogs
 #
@@ -114,9 +114,6 @@ def MultipleFiles(filters="*.*", text='select some files, facehead!', default_di
 
     # This is the command that pops up the dialog for the user
     if not dialog.ShowModal() == _wx.ID_OK: return None
-
-    # get the paths for returning
-    path_list = dialog.GetPaths()
 
     # update the default path so you don't have to keep navigating
     _prefs[default_directory] = dialog.GetDirectory()
