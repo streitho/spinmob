@@ -375,28 +375,39 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     
     **kwargs are sent to pylab.errorbar()
     """
-    # if the first element is not a list, make it a list
-    if not _fun.is_iterable(xdata[0]):
-        xdata  = [xdata]
-        ydata  = [ydata]
-        if not eydata==None: eydata = [eydata]
-        if not exdata==None: exdata = [exdata]
-        if label: label = [label]
+       
+    # First make sure everything is a list of datas (or None's)
+    if not _fun.is_iterable(xdata[0]):  xdata  = [xdata]
+    if not _fun.is_iterable(exdata):    exdata = [exdata]
+    if not _fun.is_iterable(ydata[0]):  ydata  = [ydata]
+    if not _fun.is_iterable(eydata):    eydata = [eydata]
 
-    # check for the case of no specified errors
-    if eydata == None:
-        eydata = []
-        for y in ydata: eydata.append(None)
-    if exdata == None:
-        exdata = []
-        for x in xdata: exdata.append(None)
-        
-    if not _fun.is_iterable(label): label = [label]
+    # make sure exdata matches shape with xdata (and the same for y)
+    if len(exdata)   < len(xdata):
+        for n in range(len(xdata)-1): exdata.append(exdata[0])
+    if len(eydata)   < len(ydata):
+        for n in range(len(ydata)-1): eydata.append(eydata[0])
 
-    if not len(label) == len(xdata):
-        l = []
-        for x in xdata: l.append(label[0])
-        label = l
+    # Make xdata and exdata match in shape with ydata and eydata
+    if len(xdata)    < len(ydata):
+        for n in range(len(ydata)-1):
+            xdata.append(xdata[0])
+            exdata.append(exdata[0])
+            
+    # check for the reverse possibility
+    if len(ydata)    < len(xdata):
+        for n in range(len(xdata)-1):
+            ydata.append(ydata[0])
+            eydata.append(eydata[0])
+    
+    # check that the labels is a list of strings of the same length
+    if not _fun.is_iterable(label): label = [label]    
+    if len(label) < len(ydata):
+        for n in range(len(ydata)-1): label.append(label[0])
+
+
+
+
 
     # clear the figure?
     if clear and not axes: _pylab.gcf().clear()
@@ -515,22 +526,48 @@ def databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy
     **kwargs are sent to plotter()    
     """
     
+    # First make sure everything is a list of scripts (or None's)
+    if not _fun.is_iterable(xscript): xscript = [xscript]
+    if not _fun.is_iterable(yscript): yscript = [yscript]
+    if not _fun.is_iterable(exscript): exscript = [exscript]
+    if not _fun.is_iterable(eyscript): eyscript = [eyscript]
+    
+    # make sure exscript matches shape with xscript (and the same for y)
+    if len(exscript)   < len(xscript):
+        for n in range(len(xscript)-1): exscript.append(exscript[0])
+    if len(eyscript)   < len(yscript):
+        for n in range(len(yscript)-1): eyscript.append(eyscript[0])
+
+    # Make xscript and exscript match in shape with yscript and eyscript
+    if len(xscript)    < len(yscript):
+        for n in range(len(yscript)-1):
+            xscript.append(xscript[0])
+            exscript.append(exscript[0])
+            
+    # check for the reverse possibility
+    if len(yscript)    < len(xscript):
+        for n in range(len(xscript)-1):
+            yscript.append(yscript[0])
+            eyscript.append(eyscript[0])     
+    
     xdatas  = []
     ydatas  = []
+    exdatas = []
+    eydatas = []
     labels  = []
     
-    if exscript==None: exdatas = None
-    else:              exdatas = []
-    if eyscript==None: eydatas = None
-    else:              eydatas = []
-        
     for d in ds: 
-        xdatas.append(d(xscript))
-        ydatas.append(d(yscript))
-        if not eyscript==None: eydatas.append(d(eyscript))
-        if not exscript==None: exdatas.append(d(exscript))
-        labels.append(_os.path.split(d.path)[-1])
-    
+        
+        xdata = d(xscript)
+        for n in range(len(xdata)):  
+            xdatas.append(xdata[n])
+            if len(xdata)>1: labels.append(str(n)+": "+_os.path.split(d.path)[-1])
+            else:            labels.append(_os.path.split(d.path)[-1])
+        
+        for y in d(yscript):  ydatas.append(y)
+        for x in d(exscript): exdatas.append(x)
+        for y in d(eyscript): eydatas.append(y)
+        
     return plotter(xdatas, ydatas, eydatas, exdatas, label=labels, **kwargs)
 
 def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databoxes, paths='ask', **kwargs): 

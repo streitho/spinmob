@@ -509,6 +509,8 @@ class standard:
         # This is the termination of a recursive call.
         if not _fun.is_iterable(script):
 
+            if script == None: return None
+
             # get the expression and variables
             [expression, v] = self._parse_script(script)
             
