@@ -161,26 +161,31 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
     p = _n.angle(ydata)
 
     # do the elliptical error transformation
-    if eydata == None: 
-        em = None
-        ep = None
-    else:
-        er = _n.real(eydata)
-        ei = _n.imag(eydata)
-        em = 0.5*((er+ei) + (er-ei)*_n.cos(p))
-        ep = 0.5*((er+ei) - (er-ei)*_n.cos(p))/m
-    
-    # convert to degrees
-    if phase=='degrees':
-        plabel = plabel + " (degrees)"
-        p  = p*180.0/_n.pi
-        if not ep==None: ep = ep*180.0/_n.pi       
+    em = []
+    ep = []
+    er = []
+    ei = []    
+    for n in range(len(eydata)):   
+        if eydata[n] == None: 
+            em.append(None)
+            ep.append(None)
+        else:
+            er = _n.real(eydata[n])
+            ei = _n.imag(eydata[n])
+            em.append(0.5*((er+ei) + (er-ei)*_n.cos(p[n]))   )
+            ep.append(0.5*((er+ei) - (er-ei)*_n.cos(p[n]))/m[n] )
         
-    else:
-        plabel = plabel + " (radians)"
+        # convert to degrees
+        if phase=='degrees':
+            p[n]  = p[n]*180.0/_n.pi
+            if not ep[n]==None: ep[n] = ep[n]*180.0/_n.pi       
+            
 
-    if kwargs.has_key('xlabel'): xlabel=kwargs['xlabel']
+    if phase=='degrees':         plabel = plabel + " (degrees)"
+    else:                        plabel = plabel + " (radians)"
+    if kwargs.has_key('xlabel'): xlabel=kwargs.pop('xlabel')
     else:                        xlabel=''
+    if kwargs.has_key('ylabel'): kwargs.pop('ylabel')
     
     if not kwargs.has_key('draw'): kwargs['draw'] = False
     if not kwargs.has_key('tall'): kwargs['tall'] = False
@@ -279,8 +284,9 @@ def realimag_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', rscal
         erdata = _n.real(eydata)
         eidata = _n.imag(eydata)
 
-    if kwargs.has_key('xlabel')  : xlabel=kwargs['xlabel']
+    if kwargs.has_key('xlabel')  : xlabel=kwargs.pop('xlabel')
     else:                          xlabel=''
+    if kwargs.has_key('ylabel')  : kwargs.pop('ylabel')    
     
     if not kwargs.has_key('draw'):         kwargs['draw'] = False
     if not kwargs.has_key('tall'):         kwargs['tall'] = False
@@ -469,8 +475,8 @@ def xy_databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, **kwarg
     Use script to generate data and plot it.   
     
     ds        list of databoxes
-    xscript   script for x data
-    yscript   script for y data
+    xscript   script for x data (xscript = None for counting script)
+    yscript   script for y data (yscript = None for counting script)
     eyscript  script for y error
     exscript  script for x error
     
@@ -525,6 +531,8 @@ def databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy
     
     **kwargs are sent to plotter()    
     """
+    if not kwargs.has_key('xlabel'): kwargs['xlabel'] = str(xscript)
+    if not kwargs.has_key('ylabel'): kwargs['ylabel'] = str(yscript)
     
     # First make sure everything is a list of scripts (or None's)
     if not _fun.is_iterable(xscript): xscript = [xscript]
@@ -550,6 +558,18 @@ def databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy
             yscript.append(yscript[0])
             eyscript.append(eyscript[0])     
     
+    # now check for None's (counting scripts)
+    for n in range(len(xscript)):
+        if xscript[n] == None and yscript[n] == None: 
+            print "Two None scripts? But why?"
+            return
+        if xscript[n] == None: 
+            if type(yscript[n])==str: xscript[n] = 'range(len('+yscript[n]+'))'
+            else:                     xscript[n] = 'range(len(c('+str(yscript[n])+')))'               
+        if yscript[n] == None: 
+            if type(xscript[n])==str: yscript[n] = 'range(len('+xscript[n]+'))'
+            else:                     yscript[n] = 'range(len(c('+str(xscript[n])+')))'
+        
     xdatas  = []
     ydatas  = []
     exdatas = []
