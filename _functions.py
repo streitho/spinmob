@@ -942,7 +942,7 @@ def load_object(path="ask", text="Load a pickled object."):
     object._path = path
     return object
 
-def printer(figure='gcf', arguments='', threaded=True, file_format='pdf'):
+def printer(figure='gcf', arguments='', threaded=False, file_format='pdf'):
     """
     Quick function that saves the specified figure as a postscript and then
     calls the command defined by spinmob.prefs['print_command'] with this

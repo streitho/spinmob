@@ -247,7 +247,7 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=
     if tall: h = 0.7
     else:    h = 0.5
     
-    # buffers
+    # buffers around edges
     bt = 0.07
     bb = 0.05
     w  = 0.55
@@ -293,6 +293,99 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=
         figure_window.Raise()
         shell_window.Raise()
 
+def format_figure2(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=8.0, **kwargs):
+    """
+
+    This formats the figure in a compact way with (hopefully) enough useful
+    information for printing large data sets. Used mostly for line and scatter
+    plots with long, information-filled titles.
+
+    Chances are somewhat slim this will be ideal for you but it very well might
+    and is at least a good starting point.
+
+    """
+
+    for k in kwargs.keys(): print "NOTE: '"+k+"' is not an option used by spinmob.tweaks.format_figure()"
+
+    if figure == 'gcf': figure = _pylab.gcf()
+
+    # get the window of the figure
+    figure_window = get_figure_window(figure)
+    #figure_window.SetPosition([0,0])
+
+    # assume two axes means twinx
+    window_width=645
+    legend_position=1.01
+
+    # set the size of the window
+    if(tall): figure_window.SetSize([window_width,680])
+    else:     figure_window.SetSize([window_width,520])
+
+    figure.set_figwidth(figwidth)
+    figure.set_figheight(figheight)
+
+    # first, find overall bounds of all axes.
+    ymin = 1.0
+    ymax = 0.0
+    xmin = 1.0
+    xmax = 0.0
+    for axes in figure.get_axes():
+        (x,y,dx,dy) = axes.get_position().bounds
+        if y    < ymin: ymin = y
+        if y+dy > ymax: ymax = y+dy
+        if x    < xmin: xmin = x
+        if x+dx > xmax: xmax = x+dx
+
+    # Fraction of the figure's height to use for all the plots.
+    if tall: h = 0.7
+    else:    h = 0.5
+    
+    # buffers around edges
+    bt = 0.07
+    bb = 0.05
+    w  = 0.55
+    bl = 0.20    
+    
+    xscale =  w        / (xmax-xmin)
+    yscale = (h-bt-bb) / (ymax-ymin)
+"""  
+    for axes in figure.get_axes():
+
+        (x,y,dx,dy) = axes.get_position().bounds
+        
+        y  = 1-h+bb + (y-ymin)*yscale
+        dy = dy * yscale
+            
+        x  = bl
+        dx = dx * xscale
+
+        axes.set_position([x,y,dx,dy])
+
+        # set the position of the legend
+        _pylab.axes(axes) # set the current axes
+        if len(axes.lines)>0:
+            _pylab.legend(loc=[legend_position, 0], borderpad=0.02, prop=_FontProperties(size=7))
+
+        # set the label spacing in the legend
+        if axes.get_legend():
+            if tall: axes.get_legend().labelsep = 0.007
+            else:    axes.get_legend().labelsep = 0.01
+            axes.get_legend().set_visible(1)
+
+        # set up the title label
+        axes.title.set_horizontalalignment('right')
+        axes.title.set_size(8)
+        axes.title.set_position([1.4,1.02])
+        axes.title.set_visible(1)
+        #axes.yaxis.label.set_horizontalalignment('center')
+        #axes.xaxis.label.set_horizontalalignment('center')
+
+    # get the shell window
+    if draw:
+        shell_window = get_pyshell()
+        figure_window.Raise()
+        shell_window.Raise()
+"""
 def impose_legend_limit(limit=30, axes="gca", **kwargs):
     """
     This will erase all but, say, 30 of the legend entries and remake the legend.
