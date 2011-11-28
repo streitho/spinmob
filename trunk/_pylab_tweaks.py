@@ -293,7 +293,7 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=
         figure_window.Raise()
         shell_window.Raise()
 
-def format_figure2(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=8.0, **kwargs):
+def format_figure2(figure='gcf', tall=False, draw=True, **kwargs):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -314,15 +314,12 @@ def format_figure2(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth
     #figure_window.SetPosition([0,0])
 
     # assume two axes means twinx
-    window_width=645
+    window_width=figure_window.GetSize()[0]
     legend_position=1.01
 
     # set the size of the window
-    if(tall): figure_window.SetSize([window_width,680])
-    else:     figure_window.SetSize([window_width,520])
-
-    figure.set_figwidth(figwidth)
-    figure.set_figheight(figheight)
+    if(tall): figure_window.SetSize([window_width,window_width*680./645.])
+    else:     figure_window.SetSize([window_width,window_width*520./645.])
 
     # first, find overall bounds of all axes.
     ymin = 1.0
@@ -348,7 +345,7 @@ def format_figure2(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth
     
     xscale =  w        / (xmax-xmin)
     yscale = (h-bt-bb) / (ymax-ymin)
-"""  
+  
     for axes in figure.get_axes():
 
         (x,y,dx,dy) = axes.get_position().bounds
@@ -385,7 +382,7 @@ def format_figure2(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth
         shell_window = get_pyshell()
         figure_window.Raise()
         shell_window.Raise()
-"""
+
 def impose_legend_limit(limit=30, axes="gca", **kwargs):
     """
     This will erase all but, say, 30 of the legend entries and remake the legend.
