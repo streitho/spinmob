@@ -13,6 +13,7 @@ from scipy.integrate import quad
 
 import _dialogs                    ;reload(_dialogs)
 import _pylab_tweaks               ;reload(_pylab_tweaks)
+_pt = _pylab_tweaks
 
 # Functions from other libraries
 average = _n.average
@@ -20,7 +21,7 @@ average = _n.average
 try:    _prefs
 except: _prefs = None
 
-def _print_figures(figures, arguments='', file_format='pdf'):
+def _print_figures(figures, arguments='', file_format='pdf', target_width=8.5, target_height=11.0, target_pad=0.5):
     """
     figure printing loop designed to be launched in a separate thread.
     """
@@ -28,7 +29,37 @@ def _print_figures(figures, arguments='', file_format='pdf'):
     for fig in figures:
         # output the figure to postscript
         path = _os.path.join(_prefs.temp_dir,"graph."+file_format)
-        fig.savefig(path)
+        
+        # get the dimensions of the figure in inches
+        w=fig.get_figwidth()
+        h=fig.get_figheight()
+        
+        # we're printing to 8.5 x 11, so aim for 7.5 x 10
+        target_height = target_height-2*target_pad
+        target_width  = target_width -2*target_pad
+       
+        # depending on the aspect we scale by the vertical or horizontal value
+        if 1.0*h/w > target_height/target_width:
+            # scale down according to the vertical dimension
+            new_h = target_height
+            new_w = w*target_height/h
+        else:
+            # scale down according to the hozo dimension
+            new_w = target_width
+            new_h = h*target_width/w  
+            
+        fig.set_figwidth(new_w)
+        fig.set_figheight(new_h)
+                
+        # save it
+        fig.savefig(path, bbox_inches=_pylab.matplotlib.transforms.Bbox(
+            [[-target_pad, new_h-target_height-target_pad],
+             [target_width-target_pad, target_height-target_pad]]))
+
+        # set it back
+        fig.set_figheight(h)
+        fig.set_figwidth(w)
+        
 
         if not arguments == '':
             c = _prefs['print_command'] + ' ' + arguments + ' "' + path + '"'
@@ -985,9 +1016,12 @@ def printer(figure='gcf', arguments='', threaded=False, file_format='pdf'):
             print "WARNING: Timed out waiting for canvas to return to original state!"
 
         # bring back the figure and command line
+        _pylab.draw()
         _pylab_tweaks.get_pyshell()
 
-    else:   _print_figures(figures, arguments, file_format)
+    else:   
+        _print_figures(figures, arguments, file_format)
+        _pylab.draw()
 
 
 def psd(t, y, pow2=False, window=None):
