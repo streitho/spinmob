@@ -200,7 +200,7 @@ def image_sliders(image="top", colormap="_last"):
     _pc.GuiColorMap(image, colormap)
 
 
-def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=8.0, **kwargs):
+def _old_format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=8.0, **kwargs):
     """
 
     This formats the figure in a compact way with (hopefully) enough useful
@@ -293,16 +293,14 @@ def format_figure(figure='gcf', tall=False, draw=True, figheight=10.5, figwidth=
         figure_window.Raise()
         shell_window.Raise()
 
-def format_figure2(figure='gcf', tall=False, draw=True, **kwargs):
+def format_figure(figure='gcf', tall=False, draw=True, **kwargs):
     """
-
     This formats the figure in a compact way with (hopefully) enough useful
     information for printing large data sets. Used mostly for line and scatter
     plots with long, information-filled titles.
 
     Chances are somewhat slim this will be ideal for you but it very well might
     and is at least a good starting point.
-
     """
 
     for k in kwargs.keys(): print "NOTE: '"+k+"' is not an option used by spinmob.tweaks.format_figure()"
@@ -333,27 +331,25 @@ def format_figure2(figure='gcf', tall=False, draw=True, **kwargs):
         if x    < xmin: xmin = x
         if x+dx > xmax: xmax = x+dx
 
-    # Fraction of the figure's height to use for all the plots.
-    if tall: h = 0.7
-    else:    h = 0.5
-    
-    # buffers around edges
-    bt = 0.07
-    bb = 0.05
+    # Fraction of the figure's width and height to use for all the plots.
     w  = 0.55
-    bl = 0.20    
+    if tall: h = 0.77
+    else:    h = 0.75
     
-    xscale =  w        / (xmax-xmin)
-    yscale = (h-bt-bb) / (ymax-ymin)
+    # buffers on left and bottom edges
+    bb = 0.12
+    bl = 0.12    
+    
+    xscale = w / (xmax-xmin)
+    yscale = h / (ymax-ymin)
   
     for axes in figure.get_axes():
 
         (x,y,dx,dy) = axes.get_position().bounds
-        
-        y  = 1-h+bb + (y-ymin)*yscale
+        y  = bb + (y-ymin)*yscale
         dy = dy * yscale
             
-        x  = bl
+        x  = bl + (x-xmin)*xscale
         dx = dx * xscale
 
         axes.set_position([x,y,dx,dy])
@@ -372,7 +368,7 @@ def format_figure2(figure='gcf', tall=False, draw=True, **kwargs):
         # set up the title label
         axes.title.set_horizontalalignment('right')
         axes.title.set_size(8)
-        axes.title.set_position([1.4,1.02])
+        axes.title.set_position([1.5,1.02])
         axes.title.set_visible(1)
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
