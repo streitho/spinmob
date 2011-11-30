@@ -342,7 +342,8 @@ def format_figure(figure='gcf', tall=False, draw=True, **kwargs):
     
     xscale = w / (xmax-xmin)
     yscale = h / (ymax-ymin)
-  
+    
+    current_axes = _pylab.gca()
     for axes in figure.get_axes():
 
         (x,y,dx,dy) = axes.get_position().bounds
@@ -372,6 +373,8 @@ def format_figure(figure='gcf', tall=False, draw=True, **kwargs):
         axes.title.set_visible(1)
         #axes.yaxis.label.set_horizontalalignment('center')
         #axes.xaxis.label.set_horizontalalignment('center')
+
+    _pylab.axes(current_axes)
 
     # get the shell window
     if draw:

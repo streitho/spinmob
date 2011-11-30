@@ -707,12 +707,25 @@ def image_data(Z, X=[0,1.0], Y=[0,1.0], aspect=1.0, zmin=None, zmax=None, clear=
     # reverse the Z's
     Z = Z[-1::-1]
     
+    # get rid of the label and title kwargs
+    xlabel=''
+    ylabel=''
+    title =''
+    if kwargs.has_key('xlabel'): xlabel = kwargs.pop('xlabel')
+    if kwargs.has_key('ylabel'): ylabel = kwargs.pop('ylabel')
+    if kwargs.has_key('title'):  title  = kwargs.pop('title')
+    
     _pylab.imshow(Z, extent=[X[0]-x_width/2.0, X[-1]+x_width/2.0,
                              Y[0]-y_width/2.0, Y[-1]+y_width/2.0], **kwargs)    
     _pylab.colorbar()
     _pt.image_set_clim(zmin,zmax)
     _pt.image_set_aspect(aspect)
-
+    
+    a = _pylab.gca()
+    a.set_title(title)
+    a.set_xlabel(xlabel)
+    a.set_ylabel(ylabel)
+    
     _pt.close_sliders()
     _pt.image_sliders()
 
