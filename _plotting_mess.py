@@ -165,20 +165,26 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
     ep = []
     er = []
     ei = []    
-    for n in range(len(eydata)):   
-        if eydata[n] == None: 
-            em.append(None)
-            ep.append(None)
-        else:
-            er = _n.real(eydata[n])
-            ei = _n.imag(eydata[n])
-            em.append(0.5*((er+ei) + (er-ei)*_n.cos(p[n]))   )
-            ep.append(0.5*((er+ei) - (er-ei)*_n.cos(p[n]))/m[n] )
-        
-        # convert to degrees
-        if phase=='degrees':
-            p[n]  = p[n]*180.0/_n.pi
-            if not ep[n]==None: ep[n] = ep[n]*180.0/_n.pi       
+    if eydata==None:
+        em = None
+        ep = None
+        er = None
+        ei = None
+    else:
+        for n in range(len(eydata)):   
+            if eydata[n] == None: 
+                em.append(None)
+                ep.append(None)
+            else:
+                er = _n.real(eydata[n])
+                ei = _n.imag(eydata[n])
+                em.append(0.5*((er+ei) + (er-ei)*_n.cos(p[n]))   )
+                ep.append(0.5*((er+ei) - (er-ei)*_n.cos(p[n]))/m[n] )
+            
+            # convert to degrees
+            if phase=='degrees':
+                p[n]  = p[n]*180.0/_n.pi
+                if not ep[n]==None: ep[n] = ep[n]*180.0/_n.pi       
             
 
     if phase=='degrees':         plabel = plabel + " (degrees)"
