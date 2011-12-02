@@ -413,10 +413,12 @@ def image_autozoom(axes="gca"):
 
     _pylab.draw()
 
-def image_coarsen(xlevel=0, ylevel=0, image="auto"):
+def image_coarsen(xlevel=0, ylevel=0, image="auto", method='average'):
     """
     This will coarsen the image data by binning each xlevel+1 along the x-axis
     and each ylevel+1 points along the y-axis
+    
+    type can be 'average', 'min', or 'max'
     """
     if image == "auto": image = _pylab.gca().images[0]
 
@@ -428,7 +430,7 @@ def image_coarsen(xlevel=0, ylevel=0, image="auto"):
     if len(image_undo_list) > 10: image_undo_list.pop(0)
 
     # images have transposed data
-    image.set_array(_fun.coarsen_matrix(Z, ylevel, xlevel))
+    image.set_array(_fun.coarsen_matrix(Z, ylevel, xlevel, method))
 
     # update the plot
     _pylab.draw()
