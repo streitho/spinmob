@@ -138,33 +138,42 @@ def avg(array):
 def chi_squared(p, f, xdata, ydata):
     return(sum( (ydata - f(p,xdata))**2 ))
 
-def coarsen_array(array, level=1):
+def coarsen_array(array, level=1, method='average'):
     """
     Returns a shorter array of binned data (every level+1 data points).
+    
+    method can be 'average', 'max', 'min', or 'all'
+                  'all' returns (average, max, min)
     """
 
     if level is 0: return _n.array(array)
 
-    new_array = []
+    # we do all of them for speed reasons (no string comparison at each step)
+    average = _n.array(array[0::level+1])
+    maximum = _n.array(array[0::level+1])
+    minimum = _n.array(array[0::level+1])
+    
+    temp = _n.array([0.0]); temp.resize(level+1)
 
     # loop over 0, 2, 4, ...
     for n in range(0, len(array), level+1):
-        # reset the count
-        x     = 0.0
-        count = 0.0
-
+        
         # loop over this bin
         for m in range(n, n+level+1):
             # make sure we're not past the end of the array
-            if m < len(array):
-                x += array[m]
-                count += 1
-
+            if m < len(array):    temp[m-n] = array[m]
+            # otherwise give it a useful value (the average of the others)
+            else:                 temp[m-n] = _n.average(temp[0:m-n])
+        
         # append the average to the new array
-        new_array.append(x / count)
-
-    return _n.array(new_array)
-
+        average[n/(level+1)] = _n.average(temp)
+        maximum[n/(level+1)] = _n.max(temp)
+        minimum[n/(level+1)] = _n.min(temp)
+        
+    if method=="average": return average
+    if method=="min"    : return minimum
+    if method=="max"    : return maximum
+    else                : return average, maximum, minimum
 
 
 
@@ -208,19 +217,40 @@ def coarsen_data(xdata, ydata, yerror=None, level=1):
 
 
 
-def coarsen_matrix(Z, xlevel=0, ylevel=0):
+def coarsen_matrix(Z, xlevel=0, ylevel=0, method='average'):
     """
     This returns a coarsened numpy matrix.
+    
+    method can be 'average', 'max', or 'min'
     """
-    Z_ycoarsened = _n.array(Z)
+    
+    # coarsen x
+    if not ylevel: 
+        Z_coarsened = Z
+    else:
+        temp = []        
+        for z in Z: temp.append(coarsen_array(z, ylevel, method))
+        Z_coarsened = _n.array(temp)    
+    
+    # coarsen y
+    if xlevel:
+        Z_coarsened = Z_coarsened.transpose()
+        temp = []
+        for z in Z_coarsened: temp.append(coarsen_array(z, xlevel, method))
+        Z_coarsened = _n.array(temp).transpose()
+    
+    return Z_coarsened
+
+
 
     # first coarsen the columns (if necessary)
     if ylevel:
         Z_ycoarsened = []
-        for c in Z: Z_ycoarsened.append(coarsen_array(c, ylevel))
+        for c in Z: Z_ycoarsened.append(coarsen_array(c, ylevel, method))
+        Z_ycoarsened = _n.array(Z_ycoarsened)
 
     # now coarsen the rows
-    if xlevel: return coarsen_array(Z_ycoarsened, xlevel)
+    if xlevel: return coarsen_array(Z_ycoarsened, xlevel, method)
     else:      return _n.array(Z_ycoarsened)
 
 def combine_dictionaries(a, b):
