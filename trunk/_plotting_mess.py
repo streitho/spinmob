@@ -159,6 +159,9 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
 
     m = _n.abs(ydata)
     p = _n.angle(ydata)
+    if phase=='degrees': 
+        for n in range(len(ydata)):
+            p[n] = p[n]*180.0/_n.pi
 
     # do the elliptical error transformation
     em = []
@@ -171,7 +174,7 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
         er = None
         ei = None
     else:
-        for n in range(len(eydata)):   
+           
             if eydata[n] == None: 
                 em.append(None)
                 ep.append(None)
@@ -183,7 +186,6 @@ def magphase_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', mscal
             
             # convert to degrees
             if phase=='degrees':
-                p[n]  = p[n]*180.0/_n.pi
                 if not ep[n]==None: ep[n] = ep[n]*180.0/_n.pi       
             
 
@@ -537,6 +539,8 @@ def databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy
     
     **kwargs are sent to plotter()    
     """
+    if not _fun.is_iterable(ds): ds = [ds]  
+    
     if not kwargs.has_key('xlabel'): kwargs['xlabel'] = str(xscript)
     if not kwargs.has_key('ylabel'): kwargs['ylabel'] = str(yscript)
     
@@ -609,7 +613,7 @@ def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databox
     else:                           delimiter = None    
     
     ds = _s.data.load_multiple(paths=paths, delimiter = delimiter)
-    if len(ds) == 0: return
+    if ds==None or len(ds) == 0: return
     
     # generate a default title (the directory)
     if not kwargs.has_key('title'): kwargs['title']=_os.path.split(ds[0].path)[0]
