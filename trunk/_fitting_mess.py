@@ -15,7 +15,7 @@ from numpy import *
 # Fit function based on the model class
 #
 
-def fit_databoxes(ds, xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, g={}, **kwargs):
+def fit_databoxes(ds, xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", settings={}, g={}, **kwargs):
     """
     Create a model based on the supplied string and fit the supplied list of databoxes. 
     
@@ -38,12 +38,12 @@ def fit_databoxes(ds, xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=
     globals().update(g)
 
     # generate the model
-    model = _s.models.curve(f, p, bg, globals())
+    model = _s.models.curve(f=f, p=p, bg=bg, a=a, globs=globals())
     return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
 
 
-def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, g={}, **kwargs):
+def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", settings={}, g={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
     are then sent to "data.standard()". Useful ones to keep in mind:
@@ -70,7 +70,7 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
     globals().update(g)
 
     # generate the model
-    model = _s.models.curve(f, p, bg, globals())
+    model = _s.models.curve(f=f, p=p, bg=bg, a=a, globs=globals())
     return fit_files_model(model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
 
@@ -135,7 +135,7 @@ def fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command=
     return results
     
 
-def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, axes="gca", **kwargs):
+def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", settings={}, axes="gca", **kwargs):
     """
     Loops over the shown data, performing a fit in a separate figure.
     ***kwargs are sent to fit()
@@ -161,7 +161,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={
     d = _s.data.standard(xlabel,ylabel,None)
 
     # generate the model
-    model = _s.models.curve(f, p, bg, globals())
+    model = _s.models.curve(f=f, p=p, bg=bg, a=a, globs=globals())
 
     # loop over the data
     lines = axes.get_lines()

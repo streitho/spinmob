@@ -812,7 +812,7 @@ class curve(model_base):
 
     globs={} # globals such as sin and cos...
 
-    def __init__(self, f='a+b*x+c*x**2', p='a=1.5, b, c=1.5', bg=None, globs={}):
+    def __init__(self, f='a+b*x+c*x**2', p='a=1.5, b, c=1.5', bg=None, a=None, globs={}):
         """
         This class takes the function string you specify and generates
         a model based on it.
@@ -820,6 +820,10 @@ class curve(model_base):
         f can be either a string or a function f(x,a,b,..) that you have defined.
 
         p is a comma-delimited string
+        
+        bg is a background function.
+        
+        a is a comma-delimited string of additional args to send to the function.
 
         globs is a list of globals should you wish to have these visible to f.
 
@@ -833,12 +837,17 @@ class curve(model_base):
         If you want to do something a little more fancy with a guessing algorithm,
         it's relatively straightforward to write one of the model classes similar
         to the examples given in spinmob.models
+        
+        If you want, you can specify a list of functions, a string of parameters,
+        a matching list of background functions, and a matching list of additional
+        arguments to fit more than one dataset simultaneously.
         """
 
         # make sure we have lists
-        if not _s.fun.is_iterable(f) : f  = [f]
-        if not _s.fun.is_iterable(bg): bg = [bg]
-
+        if not _s.fun.is_iterable(f) :   f    = [f]
+        if not _s.fun.is_iterable(bg):   bg   = [bg]
+        if not _s.fun.is_iterable(a) :   a    = [a]
+        
         # make sure the background has as many elements as the function list
         if not len(f)==len(bg):
             x  = bg[0]
@@ -863,12 +872,13 @@ class curve(model_base):
         self.p0 = _n.array(self.defaults)
 
         # store the globals
-        self.globs = globs
-
+        self.globs = dict(globs)
+        
         self.f  = []
         self.bg = []
         self.function_string   = []
         self.background_string = []
+        self.additional_args   = []
 
         # loop over the supplied list of functions
         for n in range(len(f)):
@@ -882,6 +892,12 @@ class curve(model_base):
 
                 # override the function and background
                 args = 'x,'+_fun.join(self.pnames,',')
+                if a[n]==None: 
+                    self.additional_args.append(None)
+                else:                    
+                    args = args + "," + str(a[n])
+                    self.additional_args.append(eval('['+str(a[n])+']', self.globs))
+                
                 self.f.append( eval('lambda ' + args + ': ' +   self.function_string[n], self.globs))
                 self.bg.append(eval('lambda ' + args + ': ' + self.background_string[n], self.globs))
 
@@ -900,16 +916,24 @@ class curve(model_base):
         if n==None:
             results = []
             for n in range(len(self.f)):
-                results.append(self.f[n](x[n],*p))
-        else: results = self.f[n](x,*p)
+                if self.additional_args[n]==None: results.append(self.f[n](x[n],*p))
+                else:                             results.append(self.f[n](x[n],*(list(p)+self.additional_args[n])))
+        
+        else: 
+            if self.additional_args[n]==None: results = self.f[n](x,*p)
+            else:                             results = self.f[n](x,*(list(p)+self.additional_args[n]))
         return results
 
     def background(self, p, x, n=None):
         if n==None:
             results = []
             for n in range(len(self.bg)):
-                results.append(self.bg[n](x[n],*p))
-        else: results = self.bg[n](x,*p)
+                if self.additional_args[n]==None: results.append(self.bg[n](x[n],*p))
+                else:                             results.append(self.bg[n](x[n],*(list(p)+self.additional_args[n])))
+        
+        else: 
+            if self.additional_args[n]==None: results = self.bg[n](x,*p)
+            else:                             results = self.bg[n](x,*(list(p)+self.additional_args[n]))
         return results
 
     # You can override this if you want the guess to be something fancier.
