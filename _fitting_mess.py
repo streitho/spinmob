@@ -15,8 +15,35 @@ from numpy import *
 # Fit function based on the model class
 #
 
+def fit_databoxes(ds, xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, g={}, **kwargs):
+    """
+    Create a model based on the supplied string and fit the supplied list of databoxes. 
+    
+    f is a string (or list of string) of the curve to fit, or a 
+    function / lis of functions f(x,a,b,..) that you have defined.
 
-def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, **kwargs):
+    p is a comma-delimited string of parameters (with default values if
+    you're into that)
+
+    bg is the background function should you want to use it (leaving it as None
+    sets it equal to f).
+    
+    g is a list of additional globals, for example if you have defined your
+    own functions and you want these to be visible to the function string when evaluated.
+
+    This routine just generates a model based on this input. For more information
+    about what the arguments should be, see spinmob.models.curve().
+    """
+
+    globals().update(g)
+
+    # generate the model
+    model = _s.models.curve(f, p, bg, globals())
+    return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+
+
+
+def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, command="", settings={}, g={}, **kwargs):
     """
     Load a bunch of data files and fit them. kwargs are sent to "data.load_multiple()" which
     are then sent to "data.standard()". Useful ones to keep in mind:
@@ -32,10 +59,15 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
 
     bg is the background function should you want to use it (leaving it as None
     sets it equal to f).
+    
+    g is a list of additional globals, for example if you have defined your
+    own functions and you want these to be visible to the function string when evaluated.
 
     This routine just generates a model based on this input. For more information
     about what the arguments should be, see spinmob.models.curve().
     """
+
+    globals().update(g)
 
     # generate the model
     model = _s.models.curve(f, p, bg, globals())
@@ -58,8 +90,6 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
 
     # Have the user select a bunch of files.
     ds = _s.data.load_multiple(**kwargs)
-    if not ds: return
-    
     return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
 
@@ -76,6 +106,8 @@ def fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command=
 
     See the above mentioned functions for more information.
     """
+    if not ds: return
+    if not _s.fun.is_iterable: ds = [ds]
 
     results = []
     
