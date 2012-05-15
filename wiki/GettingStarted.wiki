@@ -200,7 +200,7 @@ Under s.plot there are a few other plotting functions I wrote to get things done
 
 {{{
 >>> s.plot.xy.function('sin(x)')
->>> s.plot.xy.dfunction(['sin(x)','5*cos(x*3)','sqrt(x)'], -1, 10)
+>>> s.plot.xy.function(['sin(x)','5*cos(x*3)','sqrt(x)'], -1, 10)
 }}}
 
 It is possible to change the dependent variable using the kwarg 'p'. You can also define your own functions:
