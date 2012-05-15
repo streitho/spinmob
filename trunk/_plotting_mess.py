@@ -5,9 +5,7 @@ import itertools    as _itertools
 import time         as _time
 
 import _functions as _fun
-import _data
 import _pylab_tweaks as _pt
-import _dialogs
 import spinmob as _s
 
 # for the user to get at
