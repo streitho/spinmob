@@ -614,7 +614,10 @@ class model_base:
 
                 # get a list of numbers from the user
                 key_list = raw_input("pick headers by number: ").split(',')
-                old_output_columns = list(settings['output_columns'])
+                if not settings['output_columns']==None:
+                      old_output_columns = list(settings['output_columns'])
+                else: old_output_columns = None
+                
                 try:
                     # get the list of keys.
                     settings['output_columns'] = []
