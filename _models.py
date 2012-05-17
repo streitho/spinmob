@@ -26,9 +26,7 @@ class model_base:
     pnames          = []
     function_string = None
     D               = None
-    output_columns  = []
-    output_path     = None
-
+    
     # this function just creates a p0 array based on the size of the pnames array
     def __init__(self):
         # get a numpy array and then resize it
@@ -251,6 +249,8 @@ class model_base:
                             "show_background"   : True,
                             "plot_all"          : False,
                             "eyscript"          : None,
+                            "output_path"       : None,
+                            "output_columns"    : None,
 
                             "skip"              : True,
                             "guess"             : None,
@@ -570,6 +570,7 @@ class model_base:
                 print "  p          Call the printer() command."
                 print "  q          Quit."
                 print "  u          Same as 'y' but use fit as the next guess."
+                print "  t          Just transfer these fit results to the guess."
                 print "  y          Yes, this is a good fit. Move on."
                 print "  z          Use current zoom to set xmin and xmax."
                 print "  zN         Use current zoom from N'th figure (e.g. z3)."
@@ -598,7 +599,7 @@ class model_base:
                 hold_plot=True
 
             elif clower in ['q', 'quit', 'exit']:
-                return {'command':'q'}
+                return {'command':'q','settings':settings}
 
             elif clower in ['g', 'guess']:
                 settings['guess'] = None
@@ -613,22 +614,23 @@ class model_base:
 
                 # get a list of numbers from the user
                 key_list = raw_input("pick headers by number: ").split(',')
+                old_output_columns = list(settings['output_columns'])
                 try:
                     # get the list of keys.
-                    self.output_columns = []
-                    for n in key_list: self.output_columns.append(data[0].hkeys[int(n.strip())])
+                    settings['output_columns'] = []
+                    for n in key_list: settings['output_columns'].append(data[0].hkeys[int(n.strip())])
 
                     # now have the user select a file
-                    self.output_path = _dialogs.Save()
-                    if not self.output_path==None:
+                    settings['output_path'] = _dialogs.Save()
+                    if not settings['output_path']==None:
                         # write the column names
-                        f = open(self.output_path, 'w')
+                        f = open(settings['output_path'], 'w')
                         f.write('function_string\t'+str(self.function_string)+
                                 '\nmodel\t'+str(self.__class__)+
                                 '\nxscript\t'+str(settings["xscript"])+
                                 '\nyscript\t'+str(settings["yscript"])+
                                 '\neyscript\t'+str(settings["eyscript"])+'\n\n')
-                        for k in self.output_columns: f.write(k+'\t')
+                        for k in settings['output_columns']: f.write(k+'\t')
                         for n in self.pnames: f.write(n+'\t'+n+'_error\t')
                         f.write('reduced_chi_squared\n')
                         f.close()
@@ -637,6 +639,7 @@ class model_base:
 
                 except:
                     print "\nOops! Aborting."
+                    settings['output_columns'] = old_output_columns
                     
                 hold_plot=True
 
@@ -676,9 +679,9 @@ class model_base:
                                 if new_path: d.save_file(new_path)
 
                         # append to the summary file
-                        if self.output_path:
-                            f = open(self.output_path,'a')
-                            for k in self.output_columns:
+                        if settings['output_path']:
+                            f = open(settings['output_path'],'a')
+                            for k in settings['output_columns']:
                                 f.write(str(d.h(k))+'\t')
                             for n in range(len(fit_parameters)):
                                 f.write(str(fit_parameters[n])+'\t'+str(fit_errors[n])+'\t')
@@ -700,9 +703,18 @@ class model_base:
                         return_value['command'] = 'u'
                         return_value['settings']['guess'] = fit_parameters
                     return return_value
+                            
+            elif clower in ['t', 'transfer']:
+
+                if fit_parameters==None or fit_errors==None:
+                    print "\nERROR: Nothing to transfer!"
+
+                else:
+                    for n in range(len(fit_parameters)):
+                        self.p0[n] = fit_parameters[n]
 
             elif clower in ['n', 'no', 'next']:
-                return {'command':'n'}
+                return {'command':'n','settings':settings}
 
             elif clower in ['p', 'print']:
                 _s.printer()
