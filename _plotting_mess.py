@@ -407,13 +407,18 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     
     # loop over each x and y data set, making sure None's are all converted
     # to counting arrays
-    for n in range(max(len(xdata),len(ydata))):
+    for n in range(N):
+        
+        # clean up the [None]'s
+        if _fun.is_iterable(xdata[n]) and xdata[n][0] == None: xdata[n] = None
+        if _fun.is_iterable(ydata[n]) and ydata[n][0] == None: ydata[n] = None
+
         if xdata[n] == None and ydata[n] == None: 
             print "ERROR: "+str(n)+"'th data set is (None, None)."
             return 
             
-        if xdata[n] in [None, [None]]: xdata[n] = _n.arange(len(ydata[n]))
-        if ydata[n] in [None, [None]]: ydata[n] = _n.arange(len(xdata[n]))
+        if xdata[n] == None: xdata[n] = _n.arange(len(ydata[n]))
+        if ydata[n] == None: ydata[n] = _n.arange(len(xdata[n]))
     
     # check that the labels is a list of strings of the same length
     if not _fun.is_iterable(label): label = [label]    
