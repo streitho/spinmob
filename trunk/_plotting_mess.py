@@ -387,38 +387,40 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     
     **kwargs are sent to pylab.errorbar()
     """
-       
-    # First make sure everything is a list of datas (or None's)
-    if not _fun.is_iterable(xdata[0]):  xdata  = [xdata]
-    if not _fun.is_iterable(exdata):    exdata = [exdata]
-    if not _fun.is_iterable(ydata[0]):  ydata  = [ydata]
-    if not _fun.is_iterable(eydata):    eydata = [eydata]
 
-    # make sure exdata matches shape with xdata (and the same for y)
-    if len(exdata)   < len(xdata):
-        for n in range(len(xdata)-1): exdata.append(exdata[0])
-    if len(eydata)   < len(ydata):
-        for n in range(len(ydata)-1): eydata.append(eydata[0])
+    # make sure everything is at least iterable.
+    if not _fun.is_iterable(xdata):  xdata  = [xdata]
+    if not _fun.is_iterable(exdata): exdata = [exdata]
+    if not _fun.is_iterable(ydata):  ydata  = [ydata]
+    if not _fun.is_iterable(eydata): eydata = [eydata]
 
-    # Make xdata and exdata match in shape with ydata and eydata
-    if len(xdata)    < len(ydata):
-        for n in range(len(ydata)-1):
-            xdata.append(xdata[0])
-            exdata.append(exdata[0])
+    # make sure at least xdata and ydata are 2-D
+    if _fun.is_a_number(xdata[0]): xdata = [xdata]
+    if _fun.is_a_number(xdata[0]): ydata = [ydata]
+    
+    # make sure the number of data sets agrees
+    N = max(len(xdata),len(ydata))
+    for n in range(N-len( xdata)):  xdata.append( xdata[0])
+    for n in range(N-len( ydata)):  ydata.append( ydata[0])
+    for n in range(N-len(exdata)): exdata.append(exdata[0])
+    for n in range(N-len(eydata)): eydata.append(eydata[0])
+    
+    # loop over each x and y data set, making sure None's are all converted
+    # to counting arrays
+    for n in range(max(len(xdata),len(ydata))):
+        if xdata[n] == None and ydata[n] == None: 
+            print "ERROR: "+str(n)+"'th data set is (None, None)."
+            return 
             
-    # check for the reverse possibility
-    if len(ydata)    < len(xdata):
-        for n in range(len(xdata)-1):
-            ydata.append(ydata[0])
-            eydata.append(eydata[0])
+        if xdata[n] in [None, [None]]: xdata[n] = _n.arange(len(ydata[n]))
+        if ydata[n] in [None, [None]]: ydata[n] = _n.arange(len(xdata[n]))
     
     # check that the labels is a list of strings of the same length
     if not _fun.is_iterable(label): label = [label]    
     if len(label) < len(ydata):
         for n in range(len(ydata)-1): label.append(label[0])
 
-
-
+    
 
 
     # clear the figure?
