@@ -291,6 +291,8 @@ class model_base:
         # Initialize the fit_parameters (we haven't any yet!)
         fit_parameters = None
         fit_errors     = None
+        
+        format_figures = True
 
         # set up the figures
         axes2s = []
@@ -517,12 +519,14 @@ class model_base:
                     axes2.title.set_size(8)
                     axes2.title.set_position([1.0,1.010])
 
-                    _pylab.figure(axes1.get_figure().number)
-                    _st.format_figure()
+                    fig = _pylab.figure(axes1.get_figure().number)
+                    if format_figures: _st.format_figure(fig)
                     _st.auto_zoom(axes1)
                     _pylab.draw()
                     _wx.Yield()
-                    
+            
+            format_figures = False
+            
             _st.raise_figure_window()
             _wx.Yield()
             _st.raise_pyshell()

@@ -393,11 +393,11 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
     if not _fun.is_iterable(exdata): exdata = [exdata]
     if not _fun.is_iterable(ydata):  ydata  = [ydata]
     if not _fun.is_iterable(eydata): eydata = [eydata]
-
+    
     # make sure at least xdata and ydata are 2-D
     if _fun.is_a_number(xdata[0]): xdata = [xdata]
-    if _fun.is_a_number(xdata[0]): ydata = [ydata]
-    
+    if _fun.is_a_number(ydata[0]): ydata = [ydata]
+
     # make sure the number of data sets agrees
     N = max(len(xdata),len(ydata))
     for n in range(N-len( xdata)):  xdata.append( xdata[0])
@@ -426,7 +426,6 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
         for n in range(len(ydata)-1): label.append(label[0])
 
     
-
 
     # clear the figure?
     if clear and not axes: _pylab.gcf().clear()
