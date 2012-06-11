@@ -29,6 +29,10 @@ Update: It seems at [http://www.wxpython.org/ wxpython.org] that the "wxPython c
 
 Ubuntu does not hide pyshell. You can find it in the repository package "python-wxtools". It appears in your applications menu!
 
+== Ubuntu 12.04 LTS Doesn't (Sorta) ==
+
+In Ubuntu 12.04 LTS, install "python-wxtools", and then in "Dash Home" you will find "PyCrust" which is the same business with some extra stuff you can disable via the "View" menu.
+
 == Mac OSX ==
 
 I know I've gotten it working with little effort on OSX in the past, but I forgot exactly what is required. One thing that I *know* works is to install the (free) [http://www.enthought.com/ Enthought Python Distribution]. Then, from the command line type "pyshell". 
