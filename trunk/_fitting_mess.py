@@ -39,8 +39,10 @@ def fit_databoxes(ds, xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=
 
     # generate the model
     model = _s.models.curve(f=f, p=p, bg=bg, a=a, globs=globals())
-    return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+    result = fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
 
+    settings = g = dict()
+    return result
 
 
 def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", settings={}, g={}, **kwargs):
@@ -71,7 +73,10 @@ def fit_files(xscript=0, yscript=1, eyscript=None, f='a*sin(x)+b', p='a=1.5, b',
 
     # generate the model
     model = _s.models.curve(f=f, p=p, bg=bg, a=a, globs=globals())
-    return fit_files_model(model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+    result = fit_files_model(model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+
+    settings = g = dict()
+    return result
 
 
 
@@ -90,7 +95,10 @@ def fit_files_model(model, xscript=0, yscript=1, eyscript=None, command="", sett
 
     # Have the user select a bunch of files.
     ds = _s.data.load_multiple(**kwargs)
-    return fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+    result = fit_databoxes_model(ds=ds, model=model, xscript=xscript, yscript=yscript, eyscript=eyscript, command=command, settings=settings, **kwargs)
+
+    settings = dict()
+    return result
 
 
 
@@ -131,7 +139,7 @@ def fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command=
         if results[-1].has_key('settings'): settings = results[-1]['settings']
 
     # clean up
-    del settings
+    settings = dict()
     return results
     
 
@@ -196,7 +204,7 @@ def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", se
             if results[-1].has_key('settings'): settings = results[-1]['settings']
 
     # clean up
-    del settings
+    settings = dict()
     _pylab.figure(fn0)
     return results
 
