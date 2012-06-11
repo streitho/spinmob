@@ -14,7 +14,15 @@ import _functions as _fun
 import wx as _wx
 
 
- 
+# This is completely a hack, but it works very well. I'd like to rewrite this as
+#
+# 1. a class-based object to interact with on the command line (so no input loop)
+# 2. something that can handle multiple functions or a single function with 
+#    multiple outputs (i.e. returning an array)
+# 3. something more general? No need for "x"? Something that can handle many
+#    parameters, only some of which are fit (specified by you)?
+
+
 
 #
 # Classes
@@ -408,7 +416,7 @@ class model_base:
                     # grab all the information from fit_output
                     fit_covariance = fit_output[1]
                     fit_reduced_chi_squared = list(self.residuals_variance(fit_parameters,xs,ys,eys))
-                    if fit_covariance is not None:
+                    if not fit_covariance == None:
                         # get the error vector and correlation matrix from (scaled) covariance
                         [fit_errors, fit_correlation] = _fun.decompose_covariance(fit_covariance)
                     else:
@@ -865,14 +873,13 @@ class curve(model_base):
         # make sure we have lists
         if not _s.fun.is_iterable(f) :   f    = [f]
         if not _s.fun.is_iterable(bg):   bg   = [bg]
-        if not _s.fun.is_iterable(a) :   a    = [a]
         
         # make sure the background has as many elements as the function list
         if not len(f)==len(bg):
             x  = bg[0]
             bg = list(f)
             for n in range(len(bg)): bg[n]=x
-
+            
         # start by parsing the p string. This is the same for both f's
         p_split = p.split(',')
 
@@ -911,7 +918,7 @@ class curve(model_base):
 
                 # override the function and background
                 args = 'x,'+_fun.join(self.pnames,',')
-                if a[n]==None: 
+                if a==None or a[n]==None: 
                     self.additional_args.append(None)
                 else:                    
                     args = args + "," + str(a[n])
@@ -931,7 +938,7 @@ class curve(model_base):
 
 
     # override the evaluate and background functions used by the base class.
-    def evaluate  (self, p, x, n=None):
+    def evaluate(self, p, x, n=None):
         if n==None:
             results = []
             for n in range(len(self.f)):

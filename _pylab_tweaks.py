@@ -1660,7 +1660,6 @@ def get_pyshell():
     w = _wx.GetTopLevelWindows()
 
     for x in w:
-        print x        
         if type(x) == _wx.py.shell.ShellFrame or type(x) == _wx.py.crust.CrustFrame: return x
 
     return False
