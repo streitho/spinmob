@@ -146,6 +146,7 @@ def fit_databoxes_model(ds, model, xscript=0, yscript=1, eyscript=None, command=
 def fit_shown_data(f='a*sin(x)+b', p='a=1.5, b', bg=None, a=None, command="", settings={}, axes="gca", **kwargs):
     """
     Loops over the shown data, performing a fit in a separate figure.
+    Loops over the shown data, performing a fit in a separate figure.
     ***kwargs are sent to fit()
     """
 

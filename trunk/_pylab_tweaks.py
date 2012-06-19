@@ -1389,6 +1389,9 @@ def ubertidy(figure="gcf", zoom=True, width=None, height=None, fontsize=15, font
         for label in _pylab.xticks()[1]: label.set_y(-xlabel_pad)
         for label in _pylab.yticks()[1]: label.set_x(-ylabel_pad)
 
+        # get rid of tick label offsets
+        #a.ticklabel_format(style='plain')
+
         # set the position/size of the axis in the window
         p = a.get_position().bounds
         if width:  a.set_position([0.15,p[1],0.15+width*0.5,p[3]])
