@@ -144,9 +144,11 @@ def coarsen_array(array, level=1, method='average'):
     
     method can be 'average', 'max', 'min', or 'all'
                   'all' returns (average, max, min)
+                  
+    returns a new array.
     """
 
-    if level is 0: return _n.array(array)
+    if level is 0 or array==None: return array
 
     # we do all of them for speed reasons (no string comparison at each step)
     average = _n.array(array[0::level+1])

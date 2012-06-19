@@ -357,7 +357,7 @@ def realimag_function(f='1.0/(1+1j*x)', xmin=-1, xmax=1, steps=200, p='x', g=Non
 
 def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabel='',               \
             title='', pyshell_history=1, xshift=0, yshift=0, xshift_every=1, yshift_every=1,        \
-            style=None,  clear=True, axes=None, xscale='linear', yscale='linear', grid=False,       \
+            coarsen=0, style=None,  clear=True, axes=None, xscale='linear', yscale='linear', grid=False,       \
             legend='best', autoformat=True, tall=False, draw=True, **kwargs):
     """
     Plots specified data.
@@ -448,10 +448,16 @@ def xy_data(xdata, ydata, eydata=None, exdata=None, label=None, xlabel='', ylabe
         # calculate the x an y progressive shifts
         dx = xshift*(n/xshift_every)
         dy = yshift*(n/yshift_every)
+
+        # if we're supposed to coarsen the data, do so.
+        x = _s.fun.coarsen_array(xdata[n], coarsen)
+        y = _s.fun.coarsen_array(ydata[n], coarsen)
+        ey = _s.fun.coarsen_array(eydata[n], coarsen)
+        ex = _s.fun.coarsen_array(exdata[n], coarsen)
         
         # update the style
         if not style==None: kwargs.update(style.next())
-        axes.errorbar(_n.array(xdata[n])+dx, _n.array(ydata[n])+dy, label=l, yerr=eydata[n], xerr=exdata[n], **kwargs)
+        axes.errorbar(x+dx, y+dy, label=l, yerr=ey, xerr=ex, **kwargs)
 
     _pylab.xscale(xscale)
     _pylab.yscale(yscale)
