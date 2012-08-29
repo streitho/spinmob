@@ -2,7 +2,7 @@
 
 = Spyder =
 
-Spyder is a great IDE.  It comes with the Python(x,y) distribution which is not fully compatible with Enthought. 
+Spyder is a great IDE.  It comes with the Python(x,y) distribution which is not fully compatible with Enthought. [http://www.wxpython.org/ wxpython]
 
 = Windows 7 =
 
@@ -13,4 +13,3 @@ After installing Enthought Python to get Pyshell running (this is the priority f
 == Mac == 
 
 Installing on Mac has been painful in the past.  Putting it in a Windows virtual machine on a mac (virtualbox is free) is worth it.  Upgrades can break Spyder on mac, forcing a second painful install.  Hopefully this is worked out in the future.
-
