@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Notes on installing the fantastic Spyder IDE.
 
 = Spyder =
 
