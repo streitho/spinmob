@@ -8,7 +8,7 @@
 
 A hack installation follows.  
 
-After installing Enthought Python to get Pyshell running (this is the priority for spinmob) then download and install Python(x,y).  This installation breaks Enthought.  Repair Enthought by executing the Enthought .msi again and following the prompt.  This breaks Spyder.  Download the [http://code.google.com/p/spyderlib/downloads/list latest version] of Spyder from the spyder homepage and install.  Pyshell and Spyder now both work.
+After installing Enthought Python to get Pyshell running (this is the priority for spinmob) then download and install Python(x,y).  This installation breaks Enthought.  Repair Enthought by executing the Enthought .msi again and following the prompt.  This breaks Spyder.  Download the [http://code.google.com/p/spyderlib/downloads/list latest version] of Spyder and install.  Pyshell and Spyder now both work.
 
 == Mac == 
 
