@@ -2,7 +2,7 @@
 
 = Spyder =
 
-Spyder is a great IDE.  It comes with the Python(x,y) distribution which is not fully compatible with Enthought. [http://www.wxpython.org/ wxpython]
+Spyder is a great IDE.  It comes with the [http://code.google.com/p/pythonxy/ Python(x,y)] distribution which is not fully compatible with Enthought. [http://www.wxpython.org/ wxpython]
 
 = Windows 7 =
 
