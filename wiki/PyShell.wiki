@@ -18,7 +18,7 @@ Windows doesn't seem to want you to know about pyshell. To run it in windows, fi
 
 == Windows 7 ==
 
-Pyshell comes with the Enthought Python distribution.  From "Search programs and files" you can search for pyshell and hit enter to launch Pyshell.  You can locate the executable via this search and to create a shortcut.
+Pyshell comes with the Enthought Python distribution.  From "Search programs and files" you can search for pyshell and hit enter to launch Pyshell.  You can locate the executable via this search to create a shortcut.
 
 
 == Mandriva 2009 Hides It Even Better == 
