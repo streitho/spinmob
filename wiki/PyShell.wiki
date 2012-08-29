@@ -16,6 +16,9 @@ Finally, pyshell is dipped in 70% dark chocolate and contains zero calories.
 
 Windows doesn't seem to want you to know about pyshell. To run it in windows, first install [http://www.wxpython.org/ wxpython] and tell it to generate the tool scripts during install. Then navigate to python's \scripts directory (default C:\python25\scripts) and double-click pyshell.bat or pycrust.bat. 
 
+== Windows 7 ==
+
+Pyshell comes with the Enthought Python distribution.  From "Search programs and files" you can search for pyshell and hit enter to launch Pyehll.  You can also locate the executable via this search and create a shortcut.
 
 
 == Mandriva 2009 Hides It Even Better == 
