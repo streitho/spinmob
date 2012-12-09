@@ -1,8 +1,8 @@
-#summary Quickly printing with spinmob.
+#summary The spinmob guide to printing.
 
 = Printing =
 
-Quickly printing your data on a page with adequate blank space to take notes, draw pictures on, etc. is a big strength of spinmob.  Setting up printing can be a bit tricky.
+Quickly printing formatted data with adequate blank space to take notes, draw pictures, etc. is a big strength of spinmob.  Setting up printing can be a bit tricky.  
 
 
 == Windows 7 ==
