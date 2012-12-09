@@ -2,7 +2,7 @@
 
 = Printing =
 
-Quickly printing formatted data with adequate blank space to take notes, draw pictures, etc. is a big strength of spinmob.  Setting up printing can be a bit tricky.  
+Quickly printing formatted data with adequate blank space to take notes, draw pictures, etc. is a big strength of spinmob.  Setting up printing can be a bit tricky.  The information below will hopefully be of use to setup spinmob printing.
 
 
 == Windows 7 ==
