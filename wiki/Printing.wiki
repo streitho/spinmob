@@ -5,7 +5,7 @@
 Quickly printing your data on a page with adequate blank space to take notes, draw pictures on, etc. is a big strength of spinmob.  Setting up printing can be a bit tricky.
 
 
-= Windows 7 =
+== Windows 7 ==
 
 On Windows 7 first download and install [http://www.ghostscript.com/ Ghostscript] and [http://pages.cs.wisc.edu/~ghost/gsview/ gsview].
 
