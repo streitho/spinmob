@@ -28,4 +28,4 @@ Note, at this time I don't know how to account for special characters, such as s
 {{{
 s.printer()
 }}} 
-and print out nicely formatted figures.
+to generate hard copies of nicely formatted figures.
