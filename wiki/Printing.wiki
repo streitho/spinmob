@@ -1,5 +1,4 @@
 #summary One-sentence summary of this page.
-#labels Featured
 
 = Printing =
 
@@ -18,11 +17,11 @@ if errorlevel 1 pause
 This obviously depends on the location of gsprint.exe.  This .bat file is good for default printing.  Label it "Win7_Print_To_Default.bat"
 
 Save this file somewhere, for example:
-
+{{{
 "C:Lab\Programming\Python\Win7_Print_to_Default.bat"
-
+}}}
 Finally, in python save the key value pair to your spinmob preferences:
-
+{{{
 s.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
-
+}}}
 Note, at this time I don't know how to account for special characters, such as spaces in the command above.  Now hopefully you can run s.printer() and print out nicely formatted figures.
