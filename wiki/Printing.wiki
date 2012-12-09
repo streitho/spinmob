@@ -1,4 +1,4 @@
-#summary How to quickly print in spinmob.
+#summary Quickly printing with spinmob.
 
 = Printing =
 
