@@ -11,8 +11,8 @@ On Windows 7 first download and install the latest and appropriate versions [htt
 
 Second, generate a Windows ".bat" file, with contents similar to:
 
-C:\"Program Files"\Ghostgum\gsview\gsprint.exe -color %1
-if errorlevel 1 pause
+"C:\"Program Files"\Ghostgum\gsview\gsprint.exe -color %1
+if errorlevel 1 pause"
 
 This obviously depends on the location of gsprint.exe.  This .bat file is good for default printing.  Label it "Win7_Print_To_Default.bat"
 
