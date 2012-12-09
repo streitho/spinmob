@@ -1,4 +1,5 @@
 #summary One-sentence summary of this page.
+#labels Featured
 
 = Printing =
 
@@ -7,12 +8,12 @@ Quickly printing your data on a page with adequate blank space to take notes, dr
 
 = Windows 7 =
 
-On Windows 7 first download and install the latest and appropriate versions [http://www.ghostscript.com/ Ghostscript] and [http://pages.cs.wisc.edu/~ghost/gsview/ gsview].
+On Windows 7 first download and install [http://www.ghostscript.com/ Ghostscript] and [http://pages.cs.wisc.edu/~ghost/gsview/ gsview].
 
 Second, generate a Windows ".bat" file, with contents similar to:
 
-"C:\"Program Files"\Ghostgum\gsview\gsprint.exe -color %1
-if errorlevel 1 pause"
+C:\"Program Files"\Ghostgum\gsview\gsprint.exe -color %1
+if errorlevel 1 pause
 
 This obviously depends on the location of gsprint.exe.  This .bat file is good for default printing.  Label it "Win7_Print_To_Default.bat"
 
@@ -20,8 +21,8 @@ Save this file somewhere, for example:
 
 "C:Lab\Programming\Python\Win7_Print_to_Default.bat"
 
-Finally in python save the key value pair to your spinmob preferences:
+Finally, in python save the key value pair to your spinmob preferences:
 
-sm.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
+s.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
 
 Note, at this time I don't know how to account for special characters, such as spaces in the command above.  Now hopefully you can run s.printer() and print out nicely formatted figures.
