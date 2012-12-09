@@ -7,7 +7,7 @@ Quickly printing your data on a page with adequate blank space to take notes, dr
 
 = Windows 7 =
 
-On Windows 7 first download and install the latest versions Ghostview and gsview that are appropriate for your system.
+On Windows 7 first download and install the latest and appropriate versions [http://www.ghostscript.com/ Ghostscript] and [http://pages.cs.wisc.edu/~ghost/gsview/ gsview].
 
 Second, generate a Windows ".bat" file, with contents similar to:
 
