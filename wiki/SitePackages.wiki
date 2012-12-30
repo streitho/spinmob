@@ -15,6 +15,7 @@ I had a heck of a time finding the site-packages directory when I switched to Li
 || Windows  || C:\python25\Lib\site-packages || 
 || Ubuntu 8.10 || /usr/lib/python2.5/site-packages ||
 || Ubuntu 12.04 LTS || /usr/lib/python2.7/dist-packages ||
+|| osx 10.8.2 (Enthought dist.) || /Library/Frameworks/EPD64.framework/Versions/7.3/lib/python2.7/site-packages ||
 
 The easiest way to find this is to start python and type
 
