@@ -41,3 +41,9 @@ In Ubuntu 12.04 LTS, install "python-wxtools", and then in "Dash Home" you will 
 I know I've gotten it working with little effort on OSX in the past, but I forgot exactly what is required. One thing that I *know* works is to install the (free) [http://www.enthought.com/ Enthought Python Distribution]. Then, from the command line type "pyshell". 
 
 Likely all you have to install is [http://wxpython.org/ wxpython] and this will work as well. Let me know!
+
+=== OSX 10.8.2 ===
+
+Install 32 bit Enthought.  64 bit is incomplete and does not include wxPython which has the "Py" family of modules that includes PyShell.  After doing this PyShell should appear at
+
+/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/wx/py/PyShell.py
