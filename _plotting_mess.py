@@ -282,8 +282,9 @@ def realimag_data(xdata, ydata, eydata=None, exdata=None, xscale='linear', rscal
 
     rdata = _n.real(ydata)
     idata = _n.imag(ydata)
-    
-    if eydata==None: 
+
+    # HACK!!    
+    if eydata==None or eydata[0]==None: 
         erdata = None
         eidata = None
     else:
@@ -607,7 +608,9 @@ def databoxes(ds, xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy
         for y in d(yscript):  ydatas.append(y)
         for x in d(exscript): exdatas.append(x)
         for y in d(eyscript): eydatas.append(y)
-        
+    
+    # allow for custom labels
+    if kwargs.has_key('label'): labels = kwargs.pop('label')
     return plotter(xdatas, ydatas, eydatas, exdatas, label=labels, **kwargs)
 
 def files(xscript=0, yscript=1, eyscript=None, exscript=None, plotter=xy_databoxes, paths='ask', **kwargs): 
