@@ -28,6 +28,7 @@ To deal with spaces use the following, don't forget the 'r' out front.
 {{{
 s.prefs['print_command']=r'C:Lab\"printing with spaces directory"\Programming\Python\Win7_Print_to_Default.bat'
 }}}
+Now you should have printing enabled.  To print make a figure and then run:
 {{{
 s.printer()
 }}} 
