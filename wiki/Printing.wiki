@@ -24,7 +24,10 @@ Finally, in python save the key value pair to your spinmob preferences:
 {{{
 s.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
 }}}
-Note, at this time I don't know how to account for special characters, such as spaces in the command above.  Now hopefully you can run 
+To deal with spaces use the following, don't forget the 'r' out front.
+{{{
+s.prefs['print_command']=r'C:Lab\"printing with spaces directory"\Programming\Python\Win7_Print_to_Default.bat'
+}}}
 {{{
 s.printer()
 }}} 
