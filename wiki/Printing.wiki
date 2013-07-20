@@ -33,3 +33,20 @@ Now you should have printing enabled.  Make a figure and then run:
 s.printer()
 }}} 
 to print and generate hard copies of nicely formatted figures.
+
+== Mac OSX 10.8  ==
+
+This applies to previous versions of OSX.
+
+Set a default mac printer using System Preferences.
+
+Then
+{{{
+s.prefs['print_command']='lpr'
+}}}
+
+and you can now print with
+
+{{{
+s.printer()
+}}} 
