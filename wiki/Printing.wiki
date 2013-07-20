@@ -30,7 +30,7 @@ To deal with spaces use the following, don't forget the 'r' out front.
 }}}
 Now you should have printing enabled.  Make a figure and then run:
 {{{
-s.printer()
+>>> s.printer()
 }}} 
 to print and generate hard copies of nicely formatted figures.
 
