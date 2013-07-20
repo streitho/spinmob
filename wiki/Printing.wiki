@@ -22,11 +22,11 @@ Save this file somewhere, for example:
 }}}
 Finally, in python save the key value pair to your spinmob preferences:
 {{{
-s.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
+>>> s.prefs['print_command']='C:Lab\\Programming\\Python\\Win7_Print_to_Default.bat'
 }}}
 To deal with spaces use the following, don't forget the 'r' out front.
 {{{
-s.prefs['print_command']=r'C:Lab\"printing with spaces directory"\Programming\Python\Win7_Print_to_Default.bat'
+>>> s.prefs['print_command']=r'C:Lab\"printing with spaces directory"\Programming\Python\Win7_Print_to_Default.bat'
 }}}
 Now you should have printing enabled.  Make a figure and then run:
 {{{
@@ -42,11 +42,11 @@ Set a default mac printer using System Preferences.
 
 Then
 {{{
-s.prefs['print_command']='lpr'
+>>> s.prefs['print_command']='lpr'
 }}}
 
 and you can now print with
 
 {{{
-s.printer()
+>>> s.printer()
 }}} 
